@@ -1,5 +1,5 @@
 """
-Start the Cars UberDog (Uber Distributed Object Globals server).
+Start the Fairies UberDog (Uber Distributed Object Globals server).
 """
 
 import builtins
@@ -22,7 +22,7 @@ if os.path.exists('config/local.prc'):
     # A local configuration exists, load it.
     loadPrcFile('config/local.prc')
 
-print("Initializing the Cars UberDog (Uber Distributed Object Globals server)...")
+print("Initializing the Fairies UberDog (Uber Distributed Object Globals server)...")
 
 uber.mdip = ConfigVariableString("msg-director-ip", "127.0.0.1").getValue()
 uber.mdport = ConfigVariableInt("msg-director-port", 6666).getValue()

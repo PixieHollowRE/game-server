@@ -1,8 +1,7 @@
 from pandac.PandaModules import *
 from .FairiesAIMsgTypes import *
 from direct.directnotify.DirectNotifyGlobal import *
-from game.fairies.carplayer.DistributedCarPlayerAI import DistributedCarPlayerAI
-from game.fairies.carplayer.DistributedRaceCarAI import DistributedRaceCarAI
+from game.fairies.fairy.DistributedFairyPlayerAI import DistributedFairyPlayerAI
 from direct.distributed.PyDatagram import PyDatagram
 
 class DatabaseObject:
@@ -17,15 +16,10 @@ class DatabaseObject:
         self.doneEvent = doneEvent
         return
 
-    def readCarPlayer(self, fields = None) -> DistributedCarPlayerAI:
-        carPlayer = DistributedCarPlayerAI(self.air)
-        self.readObject(carPlayer, fields)
-        return carPlayer
-
-    def readRaceCar(self, fields = None) -> DistributedRaceCarAI:
-        raceCar = DistributedRaceCarAI(self.air)
-        self.readObject(raceCar, fields)
-        return raceCar
+    def readFairyPlayer(self, fields = None) -> DistributedFairyPlayerAI:
+        fairyPlayer = DistributedFairyPlayerAI(self.air)
+        self.readObject(fairyPlayer, fields)
+        return fairyPlayer
 
     def readObject(self, do, fields = None, ignoreFields = []):
         self.do = do

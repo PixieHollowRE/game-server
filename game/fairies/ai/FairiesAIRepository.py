@@ -1,43 +1,14 @@
 from typing import Dict, List
 
-import requests
 from direct.directnotify import DirectNotifyGlobal
 from direct.distributed.PyDatagram import PyDatagram
 from direct.distributed.PyDatagramIterator import PyDatagramIterator
 from game.fairies.ai.FairiesAIMsgTypes import *
 from game.fairies.ai.DatabaseObject import DatabaseObject
-from game.fairies.carplayer.DistributedCarPlayerAI import DistributedCarPlayerAI
-from game.fairies.carplayer.DistributedRaceCarAI import DistributedRaceCarAI
-from game.fairies.carplayer.games.DocsClinicAI import DocsClinicAI
-from game.fairies.carplayer.games.LuigisCasaDellaTiresAI import \
-    LuigisCasaDellaTiresAI
-from game.fairies.carplayer.games.MatersSlingShootAI import MatersSlingShootAI
-from game.fairies.carplayer.npcs.MaterAI import MaterAI
-from game.fairies.carplayer.npcs.RamoneAI import RamoneAI
-from game.fairies.carplayer.npcs.TractorAI import TractorAI
-from game.fairies.carplayer.npcs.LightningMcQueenAI import LightningMcQueenAI
-from game.fairies.carplayer.shops.FillmoreFizzyFuelHutAI import \
-    FillmoreFizzyFuelHutAI
-from game.fairies.carplayer.shops.MackShopAI import MackShopAI
-from game.fairies.carplayer.shops.SpyShopAI import SpyShopAI
-from game.fairies.carplayer.zones.GenericInteractiveObjectAI import GenericInteractiveObjectAI
-from game.fairies.carplayer.zones.HayBaleBombAI import HayBaleBombAI
-from game.fairies.carplayer.zones.MessyMixAI import MessyMixAI
-from game.fairies.carplayer.zones.RedhoodValleyAI import RedhoodValleyAI
-from game.fairies.carplayer.zones.SponsorBoothAI import SponsorBoothAI
-from game.fairies.carplayer.zones.WaterTowerAI import WaterTowerAI
+from game.fairies.fairy.DistributedFairyPlayerAI import DistributedFairyPlayerAI
 from game.fairies.distributed.FairiesRealmAI import FairiesRealmAI
 from game.fairies.distributed.FairiesGlobals import *
 from game.fairies.distributed.MongoInterface import MongoInterface
-from game.fairies.dungeon.DistributedTutorialDungeonAI import DistributedTutorialDungeonAI
-from game.fairies.dungeon.DistributedYardAI import DistributedYardAI
-from game.fairies.racing.DistributedSinglePlayerRacingLobbyAI import \
-    DistributedSinglePlayerRacingLobbyAI
-from game.fairies.racing.DistributedFriendsLobbyAI import \
-    DistributedFriendsLobbyAI
-from game.fairies.racing.DistributedCrossShardLobbyAI import \
-    DistributedCrossShardLobbyAI
-from game.fairies.zone import ZoneConstants
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.server.ServerBase import ServerBase
 from game.otp.server.ServerGlobals import WORLD_OF_CARS_ONLINE
@@ -54,16 +25,6 @@ class FairiesAIRepository(AIDistrict, ServerBase):
 
         self.staffMembers: List[int] = []
         self.accountMap: Dict[int, str] = {}
-
-        self.shops = requests.get("http://127.0.0.1:8013/getShopItemData").json()
-        self.notify.info(f"Loaded {len(self.shops)} shops item data.")
-
-    def getShopItem(self, shopId: str, itemId: int) -> None | dict:
-        for item in self.shops[shopId]:
-            if item.get("itemId", 0) == itemId:
-                return item
-
-        return None
 
     def getGameDoId(self):
         return OTP_DO_ID_FAIRIES
@@ -92,10 +53,8 @@ class FairiesAIRepository(AIDistrict, ServerBase):
                 OTP_DO_ID_FAIRIES, OTP_ZONE_ID_DISTRICTS,
                 doId=self.districtId)
 
-        # mark district as enabled
-        # NOTE: Only setEnabled is used in the client
-        # instead of setAvailable.
-        self.district.b_setEnabled(1)
+        # mark district as avaliable
+        self.district.b_setAvailable(1)
 
         if self.isProdServer():
             # Register us with the API server
@@ -127,9 +86,9 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         # is an ownrequired field, but no required or ram.)
         dbo.readObject(carPlayer, ["setCarCoins", "setYardStocks"])
 
-    def readRaceCar(self, racecarId, fields = None, doneEvent = '') -> DistributedRaceCarAI:
+    def readFairyPlayer(self, racecarId, fields = None, doneEvent = '') -> DistributedFairyPlayerAI:
         dbo = DatabaseObject(self, racecarId, doneEvent)
-        return dbo.readRaceCar(fields)
+        return dbo.readFairyPlayer(fields)
 
     def sendPopulation(self):
         data = {

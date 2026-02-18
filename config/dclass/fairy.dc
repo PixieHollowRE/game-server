@@ -1,3 +1,6 @@
+from game.fairies.uberdog import HolidayManagerUD
+from game.fairies.distributed import FairiesRealmAI
+
 struct HotspotState {
   int16 hotspotId;
   int16 frameId;

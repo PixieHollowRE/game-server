@@ -1,11 +1,7 @@
 import math
 from typing import List
 
-from .DistributedCarAvatarAI import DistributedCarAvatarAI
-from game.fairies.zone import ZoneConstants
-
-from .DistributedRaceCarAI import DistributedRaceCarAI
-from .CarDNA import CarDNA
+from .DistributedFairyBaseAI import DistributedFairyBaseAI
 
 BUY_RESP_CODE_SUCCESS = 0
 BUY_RESP_CODE_ALREADY_OWNED = 1
@@ -15,7 +11,7 @@ BUY_RESP_CODE_NOT_PURCHASEABLE = 12
 
 DEDUCT_COINS_EVENT_ID = 10008
 
-class DistributedCarPlayerAI(DistributedCarAvatarAI):
+class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def __init__(self, air):
         DistributedCarAvatarAI.__init__(self, air)
         self.DISLname = ''
@@ -25,7 +21,6 @@ class DistributedCarPlayerAI(DistributedCarAvatarAI):
         self.racecarId = 0
         self.yardStocks: list = []
         self.racecar: DistributedRaceCarAI = None
-        self.dna: CarDNA = None
         self.activeQuests: list = []
         self.badges: list = []
 
@@ -137,19 +132,6 @@ class DistributedCarPlayerAI(DistributedCarAvatarAI):
 
     def d_buyItemResponse(self, itemId: int, responseCode: int) -> None:
         self.sendUpdateToAvatarId(self.doId, 'buyItemResponse', [itemId, responseCode])
-
-    def setDNA(self, carDNA: CarDNA):
-        if carDNA.validateDNA():
-            self.dna = carDNA
-
-    def d_setDNA(self, carDNA: CarDNA):
-        if carDNA.validateDNA():
-            self.sendUpdate("setDNA", [carDNA])
-
-    def b_setDNA(self, carDNA: CarDNA):
-        if carDNA.validateDNA():
-            self.setDNA(carDNA)
-            self.d_setDNA(carDNA)
 
     def setCars(self, carCount: int, cars: list):
         self.carCount = carCount
