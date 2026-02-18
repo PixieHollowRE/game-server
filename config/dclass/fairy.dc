@@ -634,7 +634,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     setPixiePower(int16 = 100) required ownrequired broadcast db ownrecv; // 532
     setLevel(uint8 = 1) required ownrequired broadcast db ownrecv; // 533
     setExperiencePoints(int32) required ownrequired broadcast db ownrecv; // 534
-    levelUpRequest(); // 535
+    levelUpRequest() clsend; // 535
     setWingsDB(int32, int16); // 536
     consumePouchItem(int32, int32); // 537
     pouchItemGranted(int32, int32); // 538
