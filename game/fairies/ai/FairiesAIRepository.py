@@ -26,6 +26,9 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         self.staffMembers: List[int] = []
         self.accountMap: Dict[int, str] = {}
 
+        for dclass in self.dclassesByName:
+            print(self.dclassesByName[dclass].getName(), self.dclassesByName[dclass].getNumber())
+
     def getGameDoId(self):
         return OTP_DO_ID_FAIRIES
 

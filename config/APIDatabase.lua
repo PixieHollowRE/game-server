@@ -23,7 +23,7 @@ local inspect = require("inspect")
 if PRODUCTION_ENABLED then
     API_BASE = "https://fairies.sunrise.games/fairies/api/internal/"
 else
-    API_BASE = "http://localhost/fairies/api/internal/"
+    API_BASE = "http://127.0.0.1/fairies/api/internal/"
 end
 
 function retrieveObject(participant, doId)
@@ -100,36 +100,15 @@ function updateObject(participant, doId, data)
     return false, ""
 end
 
--- NOTE: setDNA is handled on its own
+-- NOTE: setFairyDNA is handled on its own
 Api2Field = {
     -- TODO: Figure out the rest
     -- Account
     lastLogin = "LAST_LOGIN",
-    -- DistributedRaceCar
-    totalMiles = "setMiles",
-    racingPoints = "setRacingPoints",
-    consumableSlot = "setConsumableSlot",
-    consumableStack = "setConsumableStack",
-    dashboardTextureId = "setDashboardTexture",
-    raceSeries = "setRaceSeries",
-    activeSponsorId = "setActiveSponsor",
-    activeGearId = "setActiveGear",
-    consumableItemList = "setConsumables",
-    gears = "setGears",
-    animationList = "setAnimations",
-    detailings = "setDetailings",
-    offAddons = "setOffAddons",
 
-    -- DistributedCarPlayer
-    carCoins = "setCarCoins",
-    userId = "setDISLid",
-    customItemList = "setYardStocks",
-    activeQuests = "setActiveQuests",
-    badges = "setBadges",
-
-    -- CarPlayerStatus
-    setLocationType = "setLocationType",
-    setPrivacySettings = "setPrivacySettings"
+    -- DistributedFairyPlayer
+    accountId = "setDISLid",
+    name = "setName"
 }
 
 Field2Api = {}
@@ -206,39 +185,41 @@ function handleGetStoredValues(participant, dgi)
             return
         end
         goto finish
-    elseif data.objectName == "DistributedCarPlayer" or data.objectName == "DistributedRaceCar" then
-        local originalData
-
-        data = originalData.carData
-        data.badges = originalData.badges
     end
-
 
     for _, field in ipairs(requestedFields) do
         local dcField = dcClass:getFieldByName(field)
         local fieldData
-        if field == "setDNA" then
-            -- Setup CarDNA struct
+        if field == "setFairyDNA" then
+            -- Setup FairyDNA struct
             fieldData = {{
-                data.carName,
-                data.carNumber,
-                data.logoBackgroundId,
-                data.logoBackgroundColor,
-                data.logoFontId,
-                data.logoFontColor,
-                data.gender,
-                data.careerType,
-                data.chassisType,
-                data.color,
-                data.eyeColor,
-                data.wheel,
-                data.tire,
-                data.detailingId,
-                data.profileBackgroundId,
-                data.stretches,
-                data.decalSlots,
-                data.addonItemList,
-                data.costumeId
+                data.talent,
+                data.avatar.proportions.head,
+                data.avatar.proportions.height,
+                data.avatar.proportions.body,
+                data.avatar.hair_back,
+                data.avatar.hair_front,
+                data.avatar.face,
+                data.avatar.eye,
+                data.avatar.wing,
+                data.avatar.hair_color,
+                0, -- hair_color2? What is this
+                data.avatar.eye_color,
+                data.avatar.skin_color,
+                data.avatar.wing_color,
+                data.gender
+            }}
+        elseif field == "setFairyPose" then
+            fieldData = {{
+                data.avatar.rotations.head_rot,
+                data.avatar.rotations.ul_arm_rot,
+                data.avatar.rotations.ur_arm_rot,
+                data.avatar.rotations.ll_arm_rot,
+                data.avatar.rotations.lr_arm_rot,
+                data.avatar.rotations.ul_leg_rot,
+                data.avatar.rotations.ur_leg_rot,
+                data.avatar.rotations.ll_leg_rot,
+                data.avatar.rotations.lr_leg_rot
             }}
         else
             if Field2Api[field] ~= nil then
@@ -317,32 +298,14 @@ function handleSetStoredValues(participant, dgi)
         if dcField:isAtomic() then
             value = value[1]
         end
-        if field == "setDNA" then
+        if field == "setFairyDNA" then
             -- We do the objectName check to ensure that the DNA gets updated once on the API
-            -- in case setDNA is updated is both DistributedCarPLayer and DistributedRaceCar.
-            -- (It's still a good idea to call both setDNA calls on the AI)
-            if data.objectName == "DistributedCarPlayer" then
+            -- in case setFairyDNA is updated on DistributedFairyPlayer.
+            -- (It's still a good idea to call setFairyDNA on the AI)
+            if data.objectName == "DistributedFairyPlayer" then
                 goto finish
             end
-            Api2Value["carName"] = value[1]
-            Api2Value["carNumber"] = value[2]
-            Api2Value["logoBackgroundId"] = value[3]
-            Api2Value["logoBackgroundColor"] = value[4]
-            Api2Value["logoFontId"] = value[5]
-            Api2Value["logoFontColor"] = value[6]
-            Api2Value["gender"] = value[7]
-            Api2Value["careerType"] = value[8]
-            Api2Value["chassis"] = value[9]
-            Api2Value["color"] = value[10]
-            Api2Value["eyeColor"] = value[11]
-            Api2Value["wheel"] = value[12]
-            Api2Value["tire"] = value[13]
-            Api2Value["detailing"] = value[14]
-            Api2Value["profileBackgroundId"] = value[15]
-            Api2Value["stretches"] = value[16]
-            Api2Value["decalSlots"] = value[17]
-            Api2Value["onAddons"] = value[18]
-            Api2Value["costumeId"] = value[19]
+            -- TODO
         else
             if Field2Api[field] ~= nil then
                 Api2Value[Field2Api[field]] = value

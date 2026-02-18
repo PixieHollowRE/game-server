@@ -18,9 +18,6 @@ eventlogger:
     output: ../logs/events-%Y%m%d_%H%M%S.log
 
 uberdogs:
-    - class: FriendManager
-      id: 4501
-
     - class: CentralLogger
       id: 4688
 
@@ -35,8 +32,8 @@ roles:
       # Clients connect in raw TCP.
       bind: 0.0.0.0:8012
       proxy: false
-      version: "9.8.3"
-      dc_hash: 2308474396
+      version: "0.0.1"
+      dc_hash: 3495383147
       lua_file: "FairyClient.lua"
       database: 4003
       client:
@@ -56,11 +53,6 @@ roles:
 
           - class: CentralLogger
             id: 4688
-
-          # Client send interets requests there to get
-          # CarPlayerStatus objects for their friends.
-          - class: DistributedDirectory
-            id: 4683
 
     # The OTP database has been replaced in favor
     # of the one hosting in the API server.

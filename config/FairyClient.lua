@@ -92,7 +92,7 @@ local http = require("http")
 if PRODUCTION_ENABLED then
     API_BASE = "https://fairies.sunrise.games/fairies/api/internal/"
 else
-    API_BASE = "http://localhost/fairies/api/internal/"
+    API_BASE = "http://127.0.0.1/fairies/api/internal/"
 end
 
 avatarSpeedChatPlusStates = {}
@@ -225,7 +225,7 @@ function handleLogin(client, dgi)
     -- Doesn't seem dcFile.getHash() matches the client.
     -- We'll just hardcode the stock Pixie Hollow client hashVal.
     -- This shouldn't change as we won't be adding new content anyways.
-    if hash ~= 46329213 then
+    if hash ~= 3495383147 then
         client:sendDisconnect(CLIENT_DISCONNECT_BAD_VERSION, string.format("Client DC hash mismatch: client=%d, server=%d", hash, CLIENT_HASH), true)
         return
     end
@@ -460,16 +460,11 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
 
     local playerFields = {
         setAccess = {setAccess},
-        setTelemetry = {0, 0, 0, 0, 0, 0, 0, 0},
-        setPhysics = {{}, {}, {}, {}, {}},
-        setState = {0},
-        setAfk = {0},
-        setDISLname = {playToken},
-        setChatLevel = {chatLevel},
+        setDISLname = {playToken}
     }
 
     if accountType ~= "Player" then
-        client:sendActivateObject(avatarId, "DistributedDistributedFairyGM", playerFields)
+        client:sendActivateObject(avatarId, "DistributedFairyGM", playerFields)
     else
         client:sendActivateObject(avatarId, "DistributedFairyPlayer", playerFields)
     end
