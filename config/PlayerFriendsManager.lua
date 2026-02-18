@@ -67,9 +67,9 @@ end
 local http = require("http")
 
 if PRODUCTION_ENABLED then
-    API_BASE = "https://woc.sunrise.games/carsds/api/internal/"
+    API_BASE = "https://fairies.sunrise.games/fairies/api/internal/"
 else
-    API_BASE = "http://localhost/carsds/api/internal/"
+    API_BASE = "http://localhost/fairies/api/internal/"
 end
 
 -- TODO: These three functions should be moved to their own

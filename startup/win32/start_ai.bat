@@ -1,5 +1,5 @@
 @echo off
-title World of Cars Online - AI
+title Pixie Hollow - AI
 cd /d "%~dp0..\.."
 set /P PYTHON_PATH=<PYTHON_PATH
 

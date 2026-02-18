@@ -1,5 +1,5 @@
 @echo off
-title World of Cars Online - UberDOG Server
+title Pixie Hollow - UberDOG Server
 cd /d "%~dp0..\.."
 set /P PYTHON_PATH=<PYTHON_PATH
 

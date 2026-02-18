@@ -21,9 +21,9 @@ local json = require("json")
 local inspect = require("inspect")
 
 if PRODUCTION_ENABLED then
-    API_BASE = "https://woc.sunrise.games/carsds/api/internal/"
+    API_BASE = "https://fairies.sunrise.games/fairies/api/internal/"
 else
-    API_BASE = "http://localhost/carsds/api/internal/"
+    API_BASE = "http://localhost/fairies/api/internal/"
 end
 
 function retrieveObject(participant, doId)
@@ -184,7 +184,7 @@ function handleGetStoredValues(participant, dgi)
     local packer = dcpacker:new()
 
     if data.objectName == "Account" then
-        -- CarsClient only use ACCOUNT_AV_SET, so let's set that up
+        -- FairyClient only use ACCOUNT_AV_SET, so let's set that up
         local avSet = {data.playerId, data.racecarId, data.statusId}
         local packedDg = datagram:new()
         if packer:packField(dcClass:getFieldByName("ACCOUNT_AV_SET"), packedDg, avSet) then

@@ -10,10 +10,10 @@ WANT_OPEN_CHAT = false
 -- Production settings:
 PRODUCTION_ENABLED = false
 
-API_TOKEN = "woc_api"
+API_TOKEN = "PixieHollow_api"
 PLAY_TOKEN_KEY = ""
 WANT_TOKEN_EXPIRATIONS = false
-USER_AGENT = "Sunrise Games - World of Cars Online OTP"
+USER_AGENT = "Sunrise Games - Pixie Hollow OTP"
 
 -- Discord settings
 REPORTS_WEBHOOK_URL = ""

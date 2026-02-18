@@ -1,11 +1,11 @@
 daemon:
-    name: Dialga OTP Cluster
+    name: Clefairy OTP Cluster
 
 general:
     eventlogger: 127.0.0.1:4343
     dc_files:
         - dclass/otp.dc
-        - dclass/cars.dc
+        - dclass/fairy.dc
 
 debug:
     pprof: true
@@ -40,7 +40,7 @@ roles:
       proxy: false
       version: "9.8.3"
       dc_hash: 2308474396
-      lua_file: "CarsClient.lua"
+      lua_file: "FairyClient.lua"
       database: 4003
       client:
           relocate: true

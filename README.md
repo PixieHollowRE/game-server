@@ -1,3 +1,3 @@
-# Dialga
+# Clefairy
 
-Dialga is a game server implementation for World of Cars Online.
+Clefairy is a game server implementation for Pixie Hollow.

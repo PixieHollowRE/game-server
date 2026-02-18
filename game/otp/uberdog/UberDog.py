@@ -221,7 +221,7 @@ class UberDog(AIRepository):
 
     def setAllowModerationActions(self, accountId: int, accountType: str) -> None:
         """
-        Should only be handled by the AI processes containing the CarsAIRepository
+        Should only be handled by the AI processes containing the FairiesAIRepository
         """
         pass
 
