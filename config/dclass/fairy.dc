@@ -549,7 +549,7 @@ dclass FairyMgr {
 }
 
 // 78
-dclass DistributedFairyBase { // : TalkPath_owner, TalkPath_whisper 
+dclass DistributedFairyBase { // : TalkPath_owner, TalkPath_whisper
     setName(string) db required clrecv; // 463
     setPosition(uint32, uint32) ram required ownsend broadcast; // 464
     setPositionCurve(uint32, uint32, uint32, uint32, uint32, uint32, uint32, int32) ram required ownsend broadcast; // 465

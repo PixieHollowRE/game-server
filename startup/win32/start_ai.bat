@@ -4,6 +4,6 @@ cd /d "%~dp0..\.."
 set /P PYTHON_PATH=<PYTHON_PATH
 
 :main
-%PYTHON_PATH% -m game.cars.ai.AIStart config/config.prc
+%PYTHON_PATH% -m game.fairies.ai.AIStart config/config.prc
 pause
 goto :main

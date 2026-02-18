@@ -30,8 +30,8 @@ function readWhitelist()
         WHITELIST[line] = true
     end
 end
-readWhitelist()
-print("TalkFilter: Successfully loaded whitelist.")
+-- TODO: readWhitelist()
+-- print("TalkFilter: Successfully loaded whitelist.")
 
 SPEEDCHAT = {}
 function readChatPhrases()
@@ -42,8 +42,8 @@ function readChatPhrases()
         SPEEDCHAT[line] = true
     end
 end
-readChatPhrases()
-print("TalkFilter: Successfully loaded SpeedChat phrases.")
+-- TODO: readChatPhrases()
+-- print("TalkFilter: Successfully loaded SpeedChat phrases.")
 
 function isWordOnWhitelist(word)
     -- Test without stripping out the punctuations first

@@ -20,7 +20,7 @@ CLIENTAGENT_DECLARE_OBJECT   = 3010
 CLIENTAGENT_UNDECLARE_OBJECT = 3011
 
 -- Avatar class to declare.
-AVATAR_CLASS = dcFile:getClassByName("DistributedCarPlayer"):getNumber()
+AVATAR_CLASS = dcFile:getClassByName("DistributedFairyPlayer"):getNumber()
 
 -- Load the configuration varables (see config.example.lua)
 dofile("config.lua")

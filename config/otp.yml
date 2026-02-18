@@ -27,9 +27,6 @@ uberdogs:
     - class: HolidayManager
       id: 4756
 
-    - class: ShardManager
-      id: 4757
-
     - class: PlayerFriendsManager
       id: 4687
 

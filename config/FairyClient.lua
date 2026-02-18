@@ -408,24 +408,6 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
     local account = json.decode(retrieveAccount("userName=" .. urlencode(playToken)))
     local fairy = json.decode(retrieveFairy(client, "playToken=" .. urlencode(playToken)))
 
-    -- Store name for SpeedChat+
-    -- By default the name is formatted like "Wreckless,Spinna,roader" so we format it to normal "Wreckless Spinnaroader".
-    local name = ""
-    local count = 0
-
-    for part in string.gmatch(car.carData.carDna.carName, "([^,]+)") do
-        if count == 1 then
-            name = name .. " " .. part
-        else
-            name = name .. part
-        end
-
-        count = count + 1
-    end
-
-    userTable.avatarName = name
-    client:userTable(userTable)
-
     local resp = datagram:new()
     resp:addUint16(CLIENT_LOGIN_FAIRIES_RESP)
     resp:addUint8(0) -- Return code
