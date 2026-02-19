@@ -8,15 +8,15 @@ INVRESP_ALREADYFRIEND = 4
 
 MAX_FRIENDS = 300
 
-FRIENDMANAGER_ACCOUNT_ONLINE  = 10000
+FRIENDMANAGER_ACCOUNT_ONLINE = 10000
 FRIENDMANAGER_ACCOUNT_OFFLINE = 10001
 
 -- For verifying that their friend is online.
-DBSS_OBJECT_GET_ACTIVATED      = 2207
+DBSS_OBJECT_GET_ACTIVATED = 2207
 DBSS_OBJECT_GET_ACTIVATED_RESP = 2208
 
 -- For declaring friends.
-CLIENTAGENT_DECLARE_OBJECT   = 3010
+CLIENTAGENT_DECLARE_OBJECT = 3010
 CLIENTAGENT_UNDECLARE_OBJECT = 3011
 
 -- Avatar class to declare.
@@ -76,37 +76,50 @@ end
 -- Lua role.
 
 function urlencode(str)
-  if not str then
-    return ""
-  end
-  str = string.gsub(str, "\n", "\r\n")
-  str = string.gsub(str, "([^%w %-%_%.~])", function(c)
-    return string.format("%%%02X", string.byte(c))
-  end)
-  str = string.gsub(str, " ", "+")
-  return str
+    if not str then
+        return ""
+    end
+    str = string.gsub(str, "\n", "\r\n")
+    str =
+        string.gsub(
+        str,
+        "([^%w %-%_%.~])",
+        function(c)
+            return string.format("%%%02X", string.byte(c))
+        end
+    )
+    str = string.gsub(str, " ", "+")
+    return str
 end
 
 function retrieveCar(data)
     local connAttempts = 0
 
     while (connAttempts < 3) do
-        local response, error_message = http.get(API_BASE .. "retrieveCar", {
-            query=data,
-            headers={
-                ["User-Agent"]=USER_AGENT,
-                ["Authorization"]=API_TOKEN
+        local response, error_message =
+            http.get(
+            API_BASE .. "retrieveCar",
+            {
+                query = data,
+                headers = {
+                    ["User-Agent"] = USER_AGENT,
+                    ["Authorization"] = API_TOKEN
+                }
             }
-        })
+        )
 
         if error_message then
-            print(string.format("PlayerFriendsManager: retrieveCar returned an error! \"%s\""), error_message)
+            print(string.format('PlayerFriendsManager: retrieveCar returned an error! "%s"'), error_message)
             connAttempts = connAttempts + 1
             goto retry
         end
 
         if response.status_code ~= 200 then
-            print(string.format("PlayerFriendsManager: retrieveCar returned %d!, \"%s\""), response.status_code, response.body)
+            print(
+                string.format('PlayerFriendsManager: retrieveCar returned %d!, "%s"'),
+                response.status_code,
+                response.body
+            )
             connAttempts = connAttempts + 1
             goto retry
         end
@@ -137,23 +150,31 @@ function setCarData(playToken, data)
 
     local connAttempts = 0
     while (connAttempts < 3) do
-        local response, error_message = http.post(API_BASE .. "setCarData", {
-            body=result,
-            headers={
-                ["Authorization"]=API_TOKEN,
-                ["User-Agent"]=USER_AGENT,
-                ["Content-Type"]="application/json"
+        local response, error_message =
+            http.post(
+            API_BASE .. "setCarData",
+            {
+                body = result,
+                headers = {
+                    ["Authorization"] = API_TOKEN,
+                    ["User-Agent"] = USER_AGENT,
+                    ["Content-Type"] = "application/json"
+                }
             }
-        })
+        )
 
         if error_message then
-            print(string.format("PlayerFriendsManager: setCarData returned an error! \"%s\""), error_message)
+            print(string.format('PlayerFriendsManager: setCarData returned an error! "%s"'), error_message)
             connAttempts = connAttempts + 1
             goto retry
         end
 
         if response.status_code ~= 200 then
-            print(string.format("PlayerFriendsManager: setCarData returned %d!, \"%s\""), response.status_code, response.body)
+            print(
+                string.format('PlayerFriendsManager: setCarData returned %d!, "%s"'),
+                response.status_code,
+                response.body
+            )
             connAttempts = connAttempts + 1
             goto retry
         end
@@ -183,7 +204,12 @@ end
 function undeclareFriend(participant, avatarId, friendId)
     -- Make sure that these are AVATAR ids, not ACCOUNT ids.
     local dg = datagram:new()
-    participant:addServerHeaderWithAvatarId(dg, avatarId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENTAGENT_UNDECLARE_OBJECT)
+    participant:addServerHeaderWithAvatarId(
+        dg,
+        avatarId,
+        OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+        CLIENTAGENT_UNDECLARE_OBJECT
+    )
     participant:addUint32(friendId)
     participant:routeDatagram(dg)
 end
@@ -241,15 +267,25 @@ function handleOnline(participant, accountId)
         0, -- wlChatEnabledYesNo
         "", -- location
         "", -- sublocation
-        0  -- timestamp
+        0 -- timestamp
     }
 
     for _, friendId in ipairs(account.friends) do
-        participant:sendUpdateToAccountId(friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "PlayerFriendsManager", "updatePlayerFriend", {accountId, friendInfo, 0})
+        participant:sendUpdateToAccountId(
+            friendId,
+            OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+            "PlayerFriendsManager",
+            "updatePlayerFriend",
+            {accountId, friendInfo, 0}
+        )
 
         local dg = datagram:new()
-        participant:addServerHeaderWithAccountId(dg, friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENTAGENT_DECLARE_OBJECT)
+        participant:addServerHeaderWithAccountId(
+            dg,
+            friendId,
+            OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+            CLIENTAGENT_DECLARE_OBJECT
+        )
         dg:addUint32(account._id)
         dg:addUint16(AVATAR_CLASS)
         participant:routeDatagram(dg)
@@ -260,30 +296,44 @@ function handleOnline(participant, accountId)
         local friendAccount = json.decode(retrieveCar(string.format("identifier=%d", friendId)))
 
         local dg = datagram:new()
-        participant:addServerHeaderWithAccountId(dg, accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENTAGENT_DECLARE_OBJECT)
+        participant:addServerHeaderWithAccountId(
+            dg,
+            accountId,
+            OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+            CLIENTAGENT_DECLARE_OBJECT
+        )
         dg:addUint32(friendAccount._id)
         dg:addUint16(AVATAR_CLASS)
         participant:routeDatagram(dg)
 
         -- Check if this account's avatar is online or not.
-        queryDBSS(participant, friendAccount._id, function (doId, activated)
-            participant:debug(string.format("Is friend %d online? %s", friendAccount._id, tostring(activated)))
-            friendInfo = {
-                formatCarName(friendAccount.carData.carDna.carName), -- avatarName
-                friendAccount._id, -- avatarId
-                friendAccount.ownerAccount, -- playerName
-                activated, -- onlineYesNo
-                -- Most of these values appears to be unused.
-                0, -- openChatEnabledYesNo
-                0, -- openChatFriendshipYesNo
-                0, -- wlChatEnabledYesNo
-                "", -- location
-                "", -- sublocation
-                0  -- timestamp
-            }
-            participant:sendUpdateToAccountId(accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-                "PlayerFriendsManager", "updatePlayerFriend", {friendId, friendInfo, 0})
-        end)
+        queryDBSS(
+            participant,
+            friendAccount._id,
+            function(doId, activated)
+                participant:debug(string.format("Is friend %d online? %s", friendAccount._id, tostring(activated)))
+                friendInfo = {
+                    formatCarName(friendAccount.carData.carDna.carName), -- avatarName
+                    friendAccount._id, -- avatarId
+                    friendAccount.ownerAccount, -- playerName
+                    activated, -- onlineYesNo
+                    -- Most of these values appears to be unused.
+                    0, -- openChatEnabledYesNo
+                    0, -- openChatFriendshipYesNo
+                    0, -- wlChatEnabledYesNo
+                    "", -- location
+                    "", -- sublocation
+                    0 -- timestamp
+                }
+                participant:sendUpdateToAccountId(
+                    accountId,
+                    OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+                    "PlayerFriendsManager",
+                    "updatePlayerFriend",
+                    {friendId, friendInfo, 0}
+                )
+            end
+        )
     end
 end
 
@@ -304,12 +354,17 @@ function handleOffline(participant, accountId)
         0, -- wlChatEnabledYesNo
         "", -- location
         "", -- sublocation
-        0  -- timestamp
+        0 -- timestamp
     }
 
     for _, friendId in ipairs(account.friends) do
-        participant:sendUpdateToAccountId(friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "PlayerFriendsManager", "updatePlayerFriend", {accountId, friendInfo, 0})
+        participant:sendUpdateToAccountId(
+            friendId,
+            OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+            "PlayerFriendsManager",
+            "updatePlayerFriend",
+            {accountId, friendInfo, 0}
+        )
     end
 end
 
@@ -336,8 +391,13 @@ function handlePlayerFriendsManager_requestInvite(participant, fieldId, data)
     invitesByInviterId[senderId] = invite
     invitesByInviteeId[otherPlayerId] = invite
 
-    participant:sendUpdateToAccountId(otherPlayerId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "PlayerFriendsManager", "invitationFrom", {senderId, formatCarName(inviterData.carData.carDna.carName)})
+    participant:sendUpdateToAccountId(
+        otherPlayerId,
+        OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+        "PlayerFriendsManager",
+        "invitationFrom",
+        {senderId, formatCarName(inviterData.carData.carDna.carName)}
+    )
 end
 
 function handlePlayerFriendsManager_requestDecline(participant, fieldId, data)
@@ -351,8 +411,13 @@ function handlePlayerFriendsManager_requestDecline(participant, fieldId, data)
     invitesByInviterId[otherPlayerId] = nil
     invitesByInviteeId[otherPlayerId] = nil
 
-    participant:sendUpdateToAccountId(otherPlayerId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "PlayerFriendsManager", "invitationResponse", {senderId, INVRESP_DECLINED, 0})
+    participant:sendUpdateToAccountId(
+        otherPlayerId,
+        OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+        "PlayerFriendsManager",
+        "invitationResponse",
+        {senderId, INVRESP_DECLINED, 0}
+    )
 end
 
 function makeFriends(participant, invite)
@@ -385,11 +450,16 @@ function makeFriends(participant, invite)
             0, -- wlChatEnabledYesNo
             "", -- location
             "", -- sublocation
-            0  -- timestamp
+            0 -- timestamp
         }
 
-        participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-                "PlayerFriendsManager", "updatePlayerFriend", {invite.inviteeId, friendInfo, 0})
+        participant:sendUpdateToAccountId(
+            invite.inviterId,
+            OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+            "PlayerFriendsManager",
+            "updatePlayerFriend",
+            {invite.inviteeId, friendInfo, 0}
+        )
     end
 
     status = INVRESP_ACCEPTED
@@ -412,16 +482,25 @@ function makeFriends(participant, invite)
             0, -- wlChatEnabledYesNo
             "", -- location
             "", -- sublocation
-            0  -- timestamp
+            0 -- timestamp
         }
 
-        participant:sendUpdateToAccountId(invite.inviteeId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-                "PlayerFriendsManager", "updatePlayerFriend", {invite.inviterId, friendInfo, 0})
+        participant:sendUpdateToAccountId(
+            invite.inviteeId,
+            OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+            "PlayerFriendsManager",
+            "updatePlayerFriend",
+            {invite.inviterId, friendInfo, 0}
+        )
     end
 
-    participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "PlayerFriendsManager", "invitationResponse", {invite.inviteeId, status, 0})
-
+    participant:sendUpdateToAccountId(
+        invite.inviterId,
+        OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+        "PlayerFriendsManager",
+        "invitationResponse",
+        {invite.inviteeId, status, 0}
+    )
 end
 
 function handlePlayerFriendsManager_setTalkAccount(participant, fieldId, data)
@@ -438,8 +517,18 @@ function handlePlayerFriendsManager_setTalkAccount(participant, fieldId, data)
     local cleanMessage, modifications = filterWhitelist(message, false)
 
     -- Log it for moderation purposes.
-    participant:writeServerEvent("chat-message-whisper", "PlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER, string.format("%d|%d|%s|%s", senderId, otherAccountId, message, cleanMessage))
+    participant:writeServerEvent(
+        "chat-message-whisper",
+        "PlayerFriendsManager",
+        OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+        string.format("%d|%d|%s|%s", senderId, otherAccountId, message, cleanMessage)
+    )
 
-    participant:sendUpdateToAccountId(otherAccountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "PlayerFriendsManager", "setTalkAccount", {otherAccountId, senderId, data[3], cleanMessage, modifications, 0})
+    participant:sendUpdateToAccountId(
+        otherAccountId,
+        OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+        "PlayerFriendsManager",
+        "setTalkAccount",
+        {otherAccountId, senderId, data[3], cleanMessage, modifications, 0}
+    )
 end

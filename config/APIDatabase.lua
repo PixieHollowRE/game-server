@@ -1,10 +1,10 @@
-DBSERVER_CREATE_STORED_OBJECT      = 1003
+DBSERVER_CREATE_STORED_OBJECT = 1003
 DBSERVER_CREATE_STORED_OBJECT_RESP = 1004
 
-DBSERVER_GET_STORED_VALUES         = 1012
-DBSERVER_GET_STORED_VALUES_RESP    = 1013
+DBSERVER_GET_STORED_VALUES = 1012
+DBSERVER_GET_STORED_VALUES_RESP = 1013
 
-DBSERVER_SET_STORED_VALUES         = 1014
+DBSERVER_SET_STORED_VALUES = 1014
 
 DATABASE_ID = 4003
 
@@ -30,21 +30,25 @@ function retrieveObject(participant, doId)
     local connAttempts = 0
 
     while (connAttempts < 3) do
-        local response, error_message = http.get(API_BASE .. string.format("retrieveObject/%d", doId), {
-            headers={
-                ["User-Agent"]=USER_AGENT,
-                ["Authorization"]=API_TOKEN
+        local response, error_message =
+            http.get(
+            API_BASE .. string.format("retrieveObject/%d", doId),
+            {
+                headers = {
+                    ["User-Agent"] = USER_AGENT,
+                    ["Authorization"] = API_TOKEN
+                }
             }
-        })
+        )
 
         if error_message then
-            participant:error(string.format("retrieveObject returned an error! \"%s\"", error_message))
+            participant:error(string.format('retrieveObject returned an error! "%s"', error_message))
             connAttempts = connAttempts + 1
             goto retry
         end
 
         if response.status_code ~= 200 then
-            participant:error(string.format("retrieveObject returned %d!, \"%s\"", response.status_code, response.body))
+            participant:error(string.format('retrieveObject returned %d!, "%s"', response.status_code, response.body))
             connAttempts = connAttempts + 1
             goto retry
         end
@@ -66,23 +70,27 @@ function updateObject(participant, doId, data)
     local connAttempts = 0
 
     while (connAttempts < 3) do
-        local response, error_message = http.post(API_BASE .. string.format("updateObject/%d", doId), {
-            body=json.encode(data),
-            headers={
-                ["User-Agent"]=USER_AGENT,
-                ["Authorization"]=API_TOKEN,
-                ["Content-Type"]="application/json"
+        local response, error_message =
+            http.post(
+            API_BASE .. string.format("updateObject/%d", doId),
+            {
+                body = json.encode(data),
+                headers = {
+                    ["User-Agent"] = USER_AGENT,
+                    ["Authorization"] = API_TOKEN,
+                    ["Content-Type"] = "application/json"
+                }
             }
-        })
+        )
 
         if error_message then
-            participant:error(string.format("updateObject returned an error! \"%s\"", error_message))
+            participant:error(string.format('updateObject returned an error! "%s"', error_message))
             connAttempts = connAttempts + 1
             goto retry
         end
 
         if response.status_code ~= 200 then
-            participant:error(string.format("updateObject returned %d!, \"%s\"", response.status_code, response.body))
+            participant:error(string.format('updateObject returned %d!, "%s"', response.status_code, response.body))
             connAttempts = connAttempts + 1
             goto retry
         end
@@ -105,7 +113,6 @@ Api2Field = {
     -- TODO: Figure out the rest
     -- Account
     lastLogin = "LAST_LOGIN",
-
     -- DistributedFairyPlayer
     accountId = "setDISLid",
     name = "setName"
@@ -190,47 +197,108 @@ function handleGetStoredValues(participant, dgi)
     for _, field in ipairs(requestedFields) do
         local dcField = dcClass:getFieldByName(field)
         local fieldData
-        if field == "setFairyDNA" then
-            -- Setup FairyDNA struct
-            fieldData = {{
-                data.talent,
-                data.avatar.proportions.head,
-                data.avatar.proportions.height,
-                data.avatar.proportions.body,
-                data.avatar.hair_back,
-                data.avatar.hair_front,
-                data.avatar.face,
-                data.avatar.eye,
-                data.avatar.wing,
-                data.avatar.hair_color,
-                0, -- hair_color2? What is this
-                data.avatar.eye_color,
-                data.avatar.skin_color,
-                data.avatar.wing_color,
-                data.gender
-            }}
-        elseif field == "setFairyPose" then
-            fieldData = {{
-                data.avatar.rotations.head_rot,
-                data.avatar.rotations.ul_arm_rot,
-                data.avatar.rotations.ur_arm_rot,
-                data.avatar.rotations.ll_arm_rot,
-                data.avatar.rotations.lr_arm_rot,
-                data.avatar.rotations.ul_leg_rot,
-                data.avatar.rotations.ur_leg_rot,
-                data.avatar.rotations.ll_leg_rot,
-                data.avatar.rotations.lr_leg_rot
-            }}
+
+        local function getItemByType(items, itemType)
+            for _, item in ipairs(items) do
+                if item.type == itemType then
+                    return item
+                end
+            end
+            return nil
+        end
+
+        local function makeItemPayload(slotType)
+            local item = getItemByType(data.avatar.items, slotType)
+            if item ~= nil then
+                return {
+                    {
+                        1, -- TODO: invId
+                        item.item_id,
+                        item.color_number,
+                        item.color_value
+                    }
+                }
+            else
+                return {{}}
+            end
+        end
+
+        local fieldHandlers = {
+            setFairyDNA = function()
+                return {
+                    {
+                        data.talent,
+                        data.avatar.proportions.head,
+                        data.avatar.proportions.height,
+                        data.avatar.proportions.body,
+                        data.avatar.hair_back,
+                        data.avatar.hair_front,
+                        data.avatar.face,
+                        data.avatar.eye,
+                        data.avatar.wing,
+                        data.avatar.hair_color,
+                        0, -- hair_color2? What is this
+                        data.avatar.eye_color,
+                        data.avatar.skin_color,
+                        data.avatar.wing_color,
+                        data.gender
+                    }
+                }
+            end,
+            setFairyPose = function()
+                return {
+                    {
+                        data.avatar.rotations.head_rot,
+                        data.avatar.rotations.ul_arm_rot,
+                        data.avatar.rotations.ur_arm_rot,
+                        data.avatar.rotations.ll_arm_rot,
+                        data.avatar.rotations.lr_arm_rot,
+                        data.avatar.rotations.ul_leg_rot,
+                        data.avatar.rotations.ur_leg_rot,
+                        data.avatar.rotations.ll_leg_rot,
+                        data.avatar.rotations.lr_leg_rot
+                    }
+                }
+            end,
+            setHeadItem = function()
+                return makeItemPayload("HeadItem")
+            end,
+            setNecklace = function()
+                return makeItemPayload("Necklace")
+            end,
+            setChestItem = function()
+                return makeItemPayload("Shirt")
+            end,
+            setBelt = function()
+                return makeItemPayload("Belt")
+            end,
+            setSkirt = function()
+                return makeItemPayload("Skirt")
+            end,
+            setWrist = function()
+                return makeItemPayload("WristItem")
+            end,
+            setAnkle = function()
+                return makeItemPayload("AnkleItem")
+            end,
+            setShoes = function()
+                return makeItemPayload("Shoes")
+            end
+        }
+
+        local handler = fieldHandlers[field]
+        if handler then
+            fieldData = handler()
         else
             if Field2Api[field] ~= nil then
                 fieldData = {data[Field2Api[field]]}
                 if fieldData == {nil} then
-                    participant:warn(string.format("\"%s\" is missing in API response, returning default value", field))
+                    participant:warn(string.format('"%s" is missing in API response, returning default value', field))
                     packedFieldData[field] = dcField:getDefaultValue()
                     goto continue
                 end
             else
-                participant:warn(string.format("\"%s\" is not in Field2Api, returning default value", field))
+                participant:warn(string.format('"%s" is not in Field2Api, returning default value', field))
                 packedFieldData[field] = dcField:getDefaultValue()
                 goto continue
             end
@@ -240,9 +308,9 @@ function handleGetStoredValues(participant, dgi)
             local packedDgi = datagramiterator.new(packedDg)
             packedFieldData[field] = packedDgi:readRemainder()
         else
-            participant:warn(string.format("\"%s\" has failed to pack!", field))
+            participant:warn(string.format('"%s" has failed to pack!', field))
         end
-    ::continue::
+        ::continue::
     end
 
     ::finish::
@@ -299,13 +367,18 @@ function handleSetStoredValues(participant, dgi)
             value = value[1]
         end
         if field == "setFairyDNA" then
+            -- TODO: Do we need to do anything here like we do in World of Cars?
+            -- https://github.com/WorldOfCarsRE/game-server/blob/main/config/APIDatabase.lua#L327
+            -- TODO: Do we need to do anything here like we do in World of Cars?
+            -- https://github.com/WorldOfCarsRE/game-server/blob/main/config/APIDatabase.lua#L327
             -- We do the objectName check to ensure that the DNA gets updated once on the API
             -- in case setFairyDNA is updated on DistributedFairyPlayer.
             -- (It's still a good idea to call setFairyDNA on the AI)
             if data.objectName == "DistributedFairyPlayer" then
                 goto finish
             end
-            -- TODO
+            -- TODO: Do we need to do anything here like we do in World of Cars?
+            -- https://github.com/WorldOfCarsRE/game-server/blob/main/config/APIDatabase.lua#L327
         else
             if Field2Api[field] ~= nil then
                 Api2Value[Field2Api[field]] = value
