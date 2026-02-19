@@ -1,5 +1,6 @@
 from game.fairies.uberdog import HolidayManagerUD
 from game.fairies.distributed import FairiesRealmAI
+from game.fairies.minigame import DistributedTalentMinigame/AI
 
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.
@@ -366,12 +367,12 @@ dclass DistributedAnimationEvent {
 
 // 69
 dclass DistributedTalentMinigame : DistributedInstanceBaseAI {
-    setGameID(int16) required ownrecv; // 312
-    startGame(uint8) ownsend; // 313
-    reportScore(int32) ownsend; // 314
-    endGame(uint8) ownsend; // 315
+    setGameID(int16) required broadcast ram; // 312
+    startGame(uint8) clsend; // 313
+    reportScore(int32) clsend; // 314
+    endGame(uint8) clsend; // 315
     setRewards(Reward[]) ram ownrecv; // 316
-    chooseReward(int16) ownsend; // 317
+    chooseReward(int16) clsend; // 317
 }
 
 // 70

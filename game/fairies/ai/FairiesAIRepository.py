@@ -9,6 +9,8 @@ from game.fairies.fairy.DistributedFairyPlayerAI import DistributedFairyPlayerAI
 from game.fairies.distributed.FairiesRealmAI import FairiesRealmAI
 from game.fairies.distributed.FairiesGlobals import *
 from game.fairies.distributed.MongoInterface import MongoInterface
+from game.fairies.minigame import MinigameConstants
+from game.fairies.minigame.DistributedTalentMinigameAI import DistributedTalentMinigameAI
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.server.ServerBase import ServerBase
 from game.otp.server.ServerGlobals import WORLD_OF_CARS_ONLINE
@@ -28,6 +30,8 @@ class FairiesAIRepository(AIDistrict, ServerBase):
 
         for dclass in self.dclassesByName:
             print(self.dclassesByName[dclass].getName(), self.dclassesByName[dclass].getNumber())
+
+        print(self.dclassesByName["DistributedTalentMinigameAI"].getFieldByName("reportScore"))
 
     def getGameDoId(self):
         return OTP_DO_ID_FAIRIES
@@ -55,6 +59,11 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         self.district.generateOtpObject(
                 OTP_DO_ID_FAIRIES, OTP_ZONE_ID_DISTRICTS,
                 doId=self.districtId)
+
+        for zoneId in MinigameConstants.ZONE_TO_GAME:
+            minigame = DistributedTalentMinigameAI(self)
+            minigame.setGameID(MinigameConstants.getGameIdForZone(zoneId))
+            minigame.generateWithRequired(zoneId)
 
         # mark district as avaliable
         self.district.b_setAvailable(1)
@@ -87,7 +96,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         dbo = DatabaseObject(self, carPlayer.doId)
         # Add more fields if needed. (Good spot to look if the field you want
         # is an ownrequired field, but no required or ram.)
-        dbo.readObject(carPlayer, ["setCarCoins", "setYardStocks"])
+        dbo.readObject(carPlayer, [])
 
     def readFairyPlayer(self, racecarId, fields = None, doneEvent = '') -> DistributedFairyPlayerAI:
         dbo = DatabaseObject(self, racecarId, doneEvent)
