@@ -300,18 +300,18 @@ struct PopcornBluePrint {
 
 // 61
 dclass FairiesRealm : DistributedDistrict {
-    setParentingRules(string, string) broadcast ram; // 280
-    setPopulationLevel(uint32) required broadcast ram; // 281
+    unk_276(); // 276
+    unk_277(); // 277
     unk_278(); // 278
     unk_279(); // 279
-    unk_280(); // 280
-    unk_281(); // 281
+    setParentingRules(string, string) broadcast ram; // 280
+    setPopulationLevel(uint32) required broadcast ram; // 281
     setServerTime(uint32) clsend; // 282
 }
 
-struct PopcornGrouping {
-    PopcornBluePrint[] rules;
-}
+// 62
+dclass unk_62 {
+};
 
 // 63
 dclass DistributedInstanceBaseAI {
@@ -320,6 +320,8 @@ dclass DistributedInstanceBaseAI {
 
 // 64
 dclass DistributedMeadow : DistributedInstanceBaseAI {
+    unk_283(); // 283
+    unk_284(); // 284
     setAssetURL(string) db required clrecv; // 285
     setMute(uint8) ram broadcast; // 286
     setCrowdBarriers(uint8) ram broadcast; // 287
@@ -554,7 +556,6 @@ dclass FairyMgr {
 
 // 78
 dclass DistributedFairyBase: TalkPath_owner, TalkPath_whisper {
-    unk_462(); // 462
     setName(string) required ownrequired broadcast db ownrecv; // 463
     setPosition(uint32, uint32) ram required ownsend broadcast ownrequired; // 464
     setPositionCurve(uint32, uint32, uint32, uint32, uint32, uint32, uint32, int32) ram required ownsend broadcast; // 465
@@ -1024,6 +1025,10 @@ dclass DistributedSimoneSays : DistributedMeadowGame {
     roundEnd(int16[]); // 794
     roundScore(int16[]); // 795
     emoteSelected(int8); // 796
+}
+
+struct PopcornGrouping {
+    PopcornBluePrint[] rules;
 }
 
 // 115
