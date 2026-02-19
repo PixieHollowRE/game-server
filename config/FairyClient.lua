@@ -408,6 +408,9 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
     local account = json.decode(retrieveAccount("userName=" .. urlencode(playToken)))
     local fairy = json.decode(retrieveFairy(client, "playToken=" .. urlencode(playToken)))
 
+    userTable.avatarName = fairy.name
+    client:userTable(userTable)
+
     local resp = datagram:new()
     resp:addUint16(CLIENT_LOGIN_FAIRIES_RESP)
     resp:addUint8(0) -- Return code

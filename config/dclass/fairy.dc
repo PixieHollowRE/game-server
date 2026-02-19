@@ -591,7 +591,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     setOutfitDB(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64); // 488
     setStatus(uint8, uint8, uint8, uint8) clsend; // 489
     setSCEmote(uint32, uint16); // 490
-    setChatMessage(string); // 491
+    setChatMessage(string) ownsend broadcast; // 491
     setWhisperSCEmoteTo(uint32, uint16); // 492
     setWhisperSCEmoteFrom(uint32, uint16); // 493
     setActualZoneId(uint32) clsend; // 494
