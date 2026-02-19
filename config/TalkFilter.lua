@@ -24,26 +24,26 @@ end
 WHITELIST = {}
 function readWhitelist()
     local io = require("io")
-    local f, err = io.open("../assets/chat_whitelist.xml")
+    local f, err = io.open("../assets/localization/WhiteListEnglish_words.txt")
     assert(not err, err)
     for line in f:lines() do
         WHITELIST[line] = true
     end
 end
--- TODO: readWhitelist()
--- print("TalkFilter: Successfully loaded whitelist.")
+readWhitelist()
+print("TalkFilter: Successfully loaded whitelist.")
 
 SPEEDCHAT = {}
 function readChatPhrases()
     local io = require("io")
-    local f, err = io.open("../assets/speedchat.txt")
+    local f, err = io.open("../assets/localization/SpeedChatEnglish_words.txt")
     assert(not err, err)
     for line in f:lines() do
         SPEEDCHAT[line] = true
     end
 end
--- TODO: readChatPhrases()
--- print("TalkFilter: Successfully loaded SpeedChat phrases.")
+readChatPhrases()
+print("TalkFilter: Successfully loaded SpeedChat phrases.")
 
 function isWordOnWhitelist(word)
     -- Test without stripping out the punctuations first
