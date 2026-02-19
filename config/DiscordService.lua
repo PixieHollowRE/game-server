@@ -8,23 +8,20 @@ local json = require("json")
 
 function sendToDiscord(hook, color, name, message, fields)
     local embed = {
-        {
-            ["color"] = color,
-            ["title"] = "**" .. name .. "**",
-            ["description"] = message,
-            ["fields"] = fields
-        }
-    }
+          {
+              ["color"] = color,
+              ["title"] = "**".. name .."**",
+              ["description"] = message,
+              ["fields"] = fields
+          }
+      }
 
-    http.post(
-        hook,
-        {
-            body = json.encode({username = name, embeds = embed}),
-            headers = {
-                ["Content-Type"] = "application/json"
-            }
+    http.post(hook, {
+        body=json.encode({username = name, embeds = embed}),
+        headers={
+            ["Content-Type"]="application/json"
         }
-    )
+    })
 end
 
 function init(participant)
@@ -45,37 +42,31 @@ function handleCentralLoggerRequest(participant, dgi)
     local category = dgi:readString()
     local targetAvId = dgi:readUint32()
 
-    sendToDiscord(
-        webhookUrl,
-        1127128,
-        "Reports",
-        "Someone is reporting to us!",
+    sendToDiscord(webhookUrl, 1127128, "Reports", "Someone is reporting to us!", {
         {
-            {
-                name = "Message",
-                value = message,
-                inline = true
-            },
-            {
-                name = "Category",
-                value = category,
-                inline = true
-            },
-            {
-                name = "Target Avatar Id",
-                value = targetAvId,
-                inline = true
-            },
-            {
-                name = "Sender Avatar Id",
-                value = participant:getAvatarIdFromSender(),
-                inline = true
-            },
-            {
-                name = "Server Type",
-                value = SERVER_TYPE,
-                inline = true
-            }
+            name = "Message",
+            value = message,
+            inline = true
+        },
+        {
+            name = "Category",
+            value = category,
+            inline = true
+        },
+        {
+            name = "Target Avatar Id",
+            value = targetAvId,
+            inline = true
+        },
+        {
+            name = "Sender Avatar Id",
+            value = participant:getAvatarIdFromSender(),
+            inline = true
+        },
+        {
+            name = "Server Type",
+            value = SERVER_TYPE,
+            inline = true
         }
-    )
+    })
 end

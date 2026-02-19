@@ -23,28 +23,28 @@ CLIENT_OBJECT_DISABLE_RESP = 25
 
 CLIENT_DONE_SET_ZONE_RESP = 48
 
-CLIENT_DISCONNECT_GENERIC = 1
-CLIENT_DISCONNECT_RELOGIN = 100
-CLIENT_DISCONNECT_OVERSIZED_DATAGRAM = 106
-CLIENT_DISCONNECT_NO_HELLO = 107
-CLIENT_DISCONNECT_CHAT_AUTH_ERROR = 120
-CLIENT_DISCONNECT_ACCOUNT_ERROR = 122
-CLIENT_DISCONNECT_NO_HEARTBEAT = 345
-CLIENT_DISCONNECT_INVALID_MSGTYPE = 108
-CLIENT_DISCONNECT_TRUNCATED_DATAGRAM = 109
-CLIENT_DISCONNECT_ANONYMOUS_VIOLATION = 113
-CLIENT_DISCONNECT_FORBIDDEN_INTEREST = 115
-CLIENT_DISCONNECT_MISSING_OBJECT = 117
-CLIENT_DISCONNECT_FORBIDDEN_FIELD = 118
-CLIENT_DISCONNECT_FORBIDDEN_RELOCATE = 119
-CLIENT_DISCONNECT_BAD_VERSION = 125
-CLIENT_DISCONNECT_FIELD_CONSTRAINT = 127
+CLIENT_DISCONNECT_GENERIC                = 1
+CLIENT_DISCONNECT_RELOGIN                = 100
+CLIENT_DISCONNECT_OVERSIZED_DATAGRAM     = 106
+CLIENT_DISCONNECT_NO_HELLO               = 107
+CLIENT_DISCONNECT_CHAT_AUTH_ERROR        = 120
+CLIENT_DISCONNECT_ACCOUNT_ERROR          = 122
+CLIENT_DISCONNECT_NO_HEARTBEAT           = 345
+CLIENT_DISCONNECT_INVALID_MSGTYPE        = 108
+CLIENT_DISCONNECT_TRUNCATED_DATAGRAM     = 109
+CLIENT_DISCONNECT_ANONYMOUS_VIOLATION    = 113
+CLIENT_DISCONNECT_FORBIDDEN_INTEREST     = 115
+CLIENT_DISCONNECT_MISSING_OBJECT         = 117
+CLIENT_DISCONNECT_FORBIDDEN_FIELD        = 118
+CLIENT_DISCONNECT_FORBIDDEN_RELOCATE     = 119
+CLIENT_DISCONNECT_BAD_VERSION            = 125
+CLIENT_DISCONNECT_FIELD_CONSTRAINT       = 127
 CLIENT_DISCONNECT_SESSION_OBJECT_DELETED = 153
 
 LOGOUT_REASON_ACCOUNT_DISABLED = 152
 
 DATABASE_OBJECT_TYPE_ACCOUNT = 1
-DATABASE_OBJECT_TYPE_AVATAR = 2
+DATABASE_OBJECT_TYPE_AVATAR  = 2
 
 -- Internal message types
 STATESERVER_OBJECT_UPDATE_FIELD = 2004
@@ -71,8 +71,8 @@ function unhexlify(s)
         error("unhexlify: hexstring must contain even number of digits")
     end
     local a = {}
-    for i = 1, #s, 2 do
-        local hs = string.sub(s, i, i + 1)
+    for i=1,#s,2 do
+        local hs = string.sub(s, i, i+1)
         local code = tonumber(hs, 16)
         if not code then
             error(string.format("unhexlify: '%s' is not avalid hex number", hs))
@@ -101,41 +101,32 @@ avatarSpeedChatPlusStates = {}
 -- Lua role.
 
 function urlencode(str)
-    if not str then
-        return ""
-    end
-    str = string.gsub(str, "\n", "\r\n")
-    str =
-        string.gsub(
-        str,
-        "([^%w %-%_%.~])",
-        function(c)
-            return string.format("%%%02X", string.byte(c))
-        end
-    )
-    str = string.gsub(str, " ", "+")
-    return str
+  if not str then
+    return ""
+  end
+  str = string.gsub(str, "\n", "\r\n")
+  str = string.gsub(str, "([^%w %-%_%.~])", function(c)
+    return string.format("%%%02X", string.byte(c))
+  end)
+  str = string.gsub(str, " ", "+")
+  return str
 end
 
 function retrieveAccount(data)
     -- TODO: Retries
-    local response, error_message =
-        http.get(
-        API_BASE .. "retrieveAccount",
-        {
-            query = data,
-            headers = {
-                ["Authorization"] = API_TOKEN
-            }
+    local response, error_message = http.get(API_BASE .. "retrieveAccount", {
+        query=data,
+        headers={
+            ["Authorization"]=API_TOKEN
         }
-    )
+    })
 
     if error_message then
-        print(string.format('FairyClient: retrieveAccount returned an error! "%s"', error_message))
+        print(string.format("FairyClient: retrieveAccount returned an error! \"%s\"", error_message))
         return "{}"
     end
     if response.status_code ~= 200 then
-        print(string.format('FairyClient: retrieveAccount returned %d!, "%s"', response.status_code, response.body))
+        print(string.format("FairyClient: retrieveAccount returned %d!, \"%s\"", response.status_code, response.body))
         return "{}"
     end
     return response.body
@@ -145,26 +136,22 @@ function retrieveFairy(client, data)
     local connAttempts = 0
 
     while (connAttempts < 3) do
-        local response, error_message =
-            http.get(
-            API_BASE .. "retrieveFairy",
-            {
-                query = data,
-                headers = {
-                    ["User-Agent"] = USER_AGENT,
-                    ["Authorization"] = API_TOKEN
-                }
+        local response, error_message = http.get(API_BASE .. "retrieveFairy", {
+            query=data,
+            headers={
+                ["User-Agent"]=USER_AGENT,
+                ["Authorization"]=API_TOKEN
             }
-        )
+        })
 
         if error_message then
-            print(string.format('FairyClient: retrieveFairy returned an error! "%s"', error_message))
+            print(string.format("FairyClient: retrieveFairy returned an error! \"%s\"", error_message))
             connAttempts = connAttempts + 1
             goto retry
         end
 
         if response.status_code ~= 200 then
-            print(string.format('FairyClient: retrieveFairy returned %d!, "%s"', response.status_code, response.body))
+            print(string.format("FairyClient: retrieveFairy returned %d!, \"%s\"", response.status_code, response.body))
             connAttempts = connAttempts + 1
             goto retry
         end
@@ -197,8 +184,8 @@ function receiveDatagram(client, dgi)
     elseif msgType == CLIENT_DISCONNECT then
         client:handleDisconnect()
     elseif msgType == CLIENT_LOGIN_FAIRIES then
-        -- We have reached the only message types unauthenticated clients can use.
         handleLogin(client, dgi)
+    -- We have reached the only message types unauthenticated clients can use.
     elseif not client:authenticated() then
         client:sendDisconnect(CLIENT_DISCONNECT_GENERIC, "First datagram is not CLIENT_LOGIN_FAIRIES", true)
     elseif msgType == CLIENT_SET_INTEREST then
@@ -214,11 +201,7 @@ function receiveDatagram(client, dgi)
     end
 
     if dgi:getRemainingSize() ~= 0 then
-        client:sendDisconnect(
-            CLIENT_DISCONNECT_OVERSIZED_DATAGRAM,
-            string.format("Datagram contains excess data.\n%s", tostring(dgi)),
-            true
-        )
+        client:sendDisconnect(CLIENT_DISCONNECT_OVERSIZED_DATAGRAM, string.format("Datagram contains excess data.\n%s", tostring(dgi)), true)
     end
 end
 
@@ -236,22 +219,14 @@ function handleLogin(client, dgi)
 
     -- Check if version and hash matches
     if version ~= SERVER_VERSION then
-        client:sendDisconnect(
-            CLIENT_DISCONNECT_BAD_VERSION,
-            string.format("Client version mismatch: client=%s, server=%s", version, SERVER_VERSION),
-            true
-        )
+        client:sendDisconnect(CLIENT_DISCONNECT_BAD_VERSION, string.format("Client version mismatch: client=%s, server=%s", version, SERVER_VERSION), true)
         return
     end
     -- Doesn't seem dcFile.getHash() matches the client.
     -- We'll just hardcode the stock Pixie Hollow client hashVal.
     -- This shouldn't change as we won't be adding new content anyways.
     if hash ~= 3495383147 then
-        client:sendDisconnect(
-            CLIENT_DISCONNECT_BAD_VERSION,
-            string.format("Client DC hash mismatch: client=%d, server=%d", hash, CLIENT_HASH),
-            true
-        )
+        client:sendDisconnect(CLIENT_DISCONNECT_BAD_VERSION, string.format("Client DC hash mismatch: client=%d, server=%d", hash, CLIENT_HASH), true)
         return
     end
 
@@ -262,82 +237,77 @@ function handleLogin(client, dgi)
     local linkedToParent
     local accountDisabled
     if PRODUCTION_ENABLED then
-        -- TODO: Send discord webhook.
         local json = require("json")
         local crypto = require("crypto")
-        local ok, err =
-            pcall(
-            function()
-                local decodedToken, err = crypto.base64_decode(playToken)
-                if err then
-                    error(err)
-                    return
-                end
-                local encrypted, err = json.decode(decodedToken)
-                if err then
-                    error(err)
-                    return
-                end
-                local encryptedData, err = crypto.base64_decode(encrypted.data)
-                if err then
-                    error(err)
-                    return
-                end
-                local iv, err = crypto.base64_decode(encrypted.iv)
-                if err then
-                    error(err)
-                    return
-                end
-
-                local data, err =
-                    crypto.decrypt(encryptedData, "aes-cbc", unhexlify(PLAY_TOKEN_KEY), crypto.RAW_DATA, iv)
-                if err then
-                    error(err)
-                    return
-                end
-                local jsonData, err = json.decode(data)
-                if err then
-                    error(err)
-                    return
-                end
-
-                -- Retrieve data from the API response.
-                playToken = jsonData.playToken
-                if tonumber(jsonData.OpenChat) == 1 then
-                    openChat = true
-                else
-                    openChat = false
-                end
-
-                if tonumber(jsonData.Member) == 1 then
-                    isPaid = true
-                else
-                    isPaid = false
-                end
-
-                local timestamp = jsonData.Timestamp
-                dislId = tonumber(jsonData.dislId)
-                accountType = jsonData.accountType
-                linkedToParent = jsonData.LinkedToParent
-
-                if tonumber(jsonData.SpeedChatPlus) == 1 then
-                    speedChatPlus = true
-                else
-                    speedChatPlus = false
-                end
-
-                if tonumber(jsonData.Banned) == 1 or tonumber(jsonData.Terminated) == 1 then
-                    accountDisabled = true
-                else
-                    accountDisabled = false
-                end
-
-                if WANT_TOKEN_EXPIRATIONS and timestamp < os.time() then
-                    client:sendDisconnect(CLIENT_DISCONNECT_ACCOUNT_ERROR, "Token has expired.", true)
-                    return
-                end
+        local ok, err = pcall(function()
+            local decodedToken, err = crypto.base64_decode(playToken)
+            if err then
+                error(err)
+                return
             end
-        )
+            local encrypted, err = json.decode(decodedToken)
+            if err then
+                error(err)
+                return
+            end
+            local encryptedData, err = crypto.base64_decode(encrypted.data)
+            if err then
+                error(err)
+                return
+            end
+            local iv, err = crypto.base64_decode(encrypted.iv)
+            if err then
+                error(err)
+                return
+            end
+
+            local data, err = crypto.decrypt(encryptedData, "aes-cbc", unhexlify(PLAY_TOKEN_KEY), crypto.RAW_DATA, iv)
+            if err then
+                error(err)
+                return
+            end
+            local jsonData, err = json.decode(data)
+            if err then
+                error(err)
+                return
+            end
+
+            -- Retrieve data from the API response.
+            playToken = jsonData.playToken
+            if tonumber(jsonData.OpenChat) == 1 then
+                openChat = true
+            else
+                openChat = false
+            end
+
+            if tonumber(jsonData.Member) == 1 then
+                isPaid = true
+            else
+                isPaid = false
+            end
+
+            local timestamp = jsonData.Timestamp
+            dislId = tonumber(jsonData.dislId)
+            accountType = jsonData.accountType
+            linkedToParent = jsonData.LinkedToParent
+
+            if tonumber(jsonData.SpeedChatPlus) == 1 then
+                speedChatPlus = true
+            else
+                speedChatPlus = false
+            end
+
+            if tonumber(jsonData.Banned) == 1 or tonumber(jsonData.Terminated) == 1 then
+                accountDisabled = true
+            else
+                accountDisabled = false
+            end
+
+            if WANT_TOKEN_EXPIRATIONS and timestamp < os.time() then
+                client:sendDisconnect(CLIENT_DISCONNECT_ACCOUNT_ERROR, "Token has expired.", true)
+                return
+            end
+        end)
 
         if not ok then
             -- Bad play token
@@ -345,6 +315,7 @@ function handleLogin(client, dgi)
             client:sendDisconnect(CLIENT_DISCONNECT_ACCOUNT_ERROR, "Invalid play token", true)
             return
         end
+        -- TODO: Send discord webhook.
     else
         -- Production is not enabled
         -- We need these dummy values
@@ -370,63 +341,23 @@ function handleLogin(client, dgi)
     local account = json.decode(retrieveAccount("userName=" .. urlencode(playToken)))
     local accountId = account._id
     -- Query the account object
-    client:getDatabaseValues(
-        accountId,
-        "Account",
-        {"ACCOUNT_AV_SET"},
-        function(doId, success, fields)
-            if not success then
-                client:sendDisconnect(
-                    CLIENT_DISCONNECT_ACCOUNT_ERROR,
-                    "The Account object was unable to be queried.",
-                    true
-                )
-                return
-            end
-
-            client:setDatabaseValues(
-                accountId,
-                "Account",
-                {
-                    LAST_LOGIN = os.date("%a %b %d %H:%M:%S %Y")
-                }
-            )
-
-            loginAccount(
-                client,
-                fields,
-                accountId,
-                playToken,
-                openChat,
-                isPaid,
-                dislId,
-                linkedToParent,
-                accountType,
-                speedChatPlus,
-                accountDisabled
-            )
+    client:getDatabaseValues(accountId, "Account", {"ACCOUNT_AV_SET"}, function (doId, success, fields)
+        if not success then
+            client:sendDisconnect(CLIENT_DISCONNECT_ACCOUNT_ERROR, "The Account object was unable to be queried.", true)
+            return
         end
-    )
+
+        client:setDatabaseValues(accountId, "Account", {
+            LAST_LOGIN = os.date("%a %b %d %H:%M:%S %Y"),
+        })
+
+        loginAccount(client, fields, accountId, playToken, openChat, isPaid, dislId, linkedToParent, accountType, speedChatPlus, accountDisabled)
+    end)
 end
 
-function loginAccount(
-    client,
-    account,
-    accountId,
-    playToken,
-    openChat,
-    isPaid,
-    dislId,
-    linkedToParent,
-    accountType,
-    speedChatPlus,
-    accountDisabled)
+function loginAccount(client, account, accountId, playToken, openChat, isPaid, dislId, linkedToParent, accountType, speedChatPlus, accountDisabled)
     if accountDisabled then
-        client:sendDisconnect(
-            LOGOUT_REASON_ACCOUNT_DISABLED,
-            "There has been a reported violation of our Terms of Use connected to this account. For safety purposes, we have placed a temporary hold on the account.  For more details, please review the messages sent to the email address associated with this account.",
-            false
-        )
+        client:sendDisconnect(LOGOUT_REASON_ACCOUNT_DISABLED, "There has been a reported violation of our Terms of Use connected to this account. For safety purposes, we have placed a temporary hold on the account.  For more details, please review the messages sent to the email address associated with this account.", false)
         return
     end
 
@@ -434,9 +365,7 @@ function loginAccount(
     local ejectDg = datagram:new()
     client:addServerHeaderWithAccountId(ejectDg, accountId, CLIENTAGENT_EJECT)
     ejectDg:addUint16(CLIENT_DISCONNECT_RELOGIN)
-    ejectDg:addString(
-        "You have been disconnected because someone else just logged in using your account on another computer."
-    )
+    ejectDg:addString("You have been disconnected because someone else just logged in using your account on another computer.")
     client:routeDatagram(ejectDg)
 
     -- Subscribe to our puppet channel.
@@ -462,7 +391,7 @@ function loginAccount(
     -- Log the event
     client:writeServerEvent("account-login", "FairyClient", string.format("%d", accountId))
 
-    -- Moderation handler
+   -- Moderation handler
     if accountType ~= "Player" then
         -- This account is allowed to perform moderation actions.
         local dg = datagram:new()
@@ -571,7 +500,7 @@ function handleAddOwnership(client, doId, parent, zone, dc, dgi)
     local dbFields = {}
 
     local dcClass = dcFile:getClass(dc)
-    client:debug(string.format('Handling ownership generation for class "%s"', dcClass:getName()))
+    client:debug(string.format("Handling ownership generation for class \"%s\"", dcClass:getName()))
 
     local numFields = dcClass:getNumFields()
     for i = 0, numFields - 1, 1 do
@@ -588,105 +517,77 @@ function handleAddOwnership(client, doId, parent, zone, dc, dgi)
     end
 
     -- TODO: Handle if the object isn't in database.
-    client:getDatabaseValues(
-        doId,
-        dcClass:getName(),
-        dbFields,
-        function(_, success, databaseFields)
-            local requiredField2Value = {}
-            local otherField2Value = {}
-            local packer = dcpacker:new()
+    client:getDatabaseValues(doId, dcClass:getName(), dbFields, function (_, success, databaseFields)
+        local requiredField2Value = {}
+        local otherField2Value = {}
+        local packer = dcpacker:new()
 
-            -- First, we unpack all the required fields:
-            for _, requiredField in ipairs(requiredFields) do
-                local value = packer:unpackField(requiredField, dgi)
-                requiredField2Value[requiredField] = value
-            end
-
-            -- Then the other fields, if any:
-            if dgi:getRemainingSize() > 0 then
-                local numFields = dgi:readUint16()
-                for i = 1, numFields, 1 do
-                    local fieldId = dgi:readUint16()
-                    local dcField = dcFile:getFieldByIndex(fieldId)
-                    local value = packer:unpackField(dcField, dgi)
-                    otherField2Value[dcField:getName()] = value
-                end
-            end
-
-            -- Now, populate the ownrequired fields with data.
-            local generateData = datagram:new()
-            for _, ownRequiredField in ipairs(ownRequiredFields) do
-                local value = requiredField2Value[ownRequiredField]
-                local otherValue = otherField2Value[ownRequiredField:getName()]
-                if value ~= nil then
-                    client:debug(
-                        string.format(
-                            'Packing found ownrequired field "%s": %s',
-                            ownRequiredField:getName(),
-                            inspect(value)
-                        )
-                    )
-                    packer:packField(ownRequiredField, generateData, value)
-                elseif otherValue ~= nil then
-                    client:debug(
-                        string.format(
-                            'Packing found ownrequired field from OTHER "%s": %s',
-                            ownRequiredField:getName(),
-                            inspect(otherValue)
-                        )
-                    )
-                    packer:packField(ownRequiredField, generateData, otherValue)
-                    otherField2Value[ownRequiredField:getName()] = nil
-                elseif databaseFields[ownRequiredField:getName()] ~= nil then
-                    client:debug(
-                        string.format(
-                            'Packing found ownrequired field from database "%s": %s',
-                            ownRequiredField:getName(),
-                            inspect(databaseFields[ownRequiredField:getName()])
-                        )
-                    )
-                    packer:packField(ownRequiredField, generateData, databaseFields[ownRequiredField:getName()])
-                else
-                    -- TODO:  This might need fetching some stuff from the API server, because not
-                    -- everything is set to "required", even though the owner generate message needs them.
-                    client:warn(
-                        string.format(
-                            'No value for ownrequired field "%s".  Adding default value',
-                            ownRequiredField:getName()
-                        )
-                    )
-                    generateData:addData(ownRequiredField:getDefaultValue())
-                end
-            end
-
-            -- Add leftover OTHER fields
-            local numOtherFields = 0
-            local otherData = datagram:new()
-            for fieldName, value in pairs(otherField2Value) do
-                numOtherFields = numOtherFields + 1
-                local dcField = dcClass:getFieldByName(fieldName)
-                otherData:addUint16(dcField:getNumber())
-                packer:packField(dcField, otherData, value)
-            end
-
-            packer:delete()
-
-            local resp = datagram:new()
-            resp:addUint16(CLIENT_CREATE_OBJECT_REQUIRED_OTHER_OWNER_RESP)
-            resp:addUint16(dc) -- dclassId
-            resp:addUint32(doId) -- doId
-            resp:addUint32(parent) -- parentId
-            resp:addUint32(zone) -- zoneId
-            -- resp:addString(name) -- setName
-            resp:addDatagram(generateData)
-            if numOtherFields > 0 then
-                resp:addUint16(numOtherFields)
-                resp:addDatagram(otherData)
-            end
-            client:sendDatagram(resp)
+        -- First, we unpack all the required fields:
+        for _, requiredField in ipairs(requiredFields) do
+            local value = packer:unpackField(requiredField, dgi)
+            requiredField2Value[requiredField] = value
         end
-    )
+
+        -- Then the other fields, if any:
+        if dgi:getRemainingSize() > 0 then
+            local numFields = dgi:readUint16()
+            for i = 1, numFields, 1 do
+                local fieldId = dgi:readUint16()
+                local dcField = dcFile:getFieldByIndex(fieldId)
+                local value = packer:unpackField(dcField, dgi)
+                otherField2Value[dcField:getName()] = value
+            end
+        end
+
+        -- Now, populate the ownrequired fields with data.
+        local generateData = datagram:new()
+        for _, ownRequiredField in ipairs(ownRequiredFields) do
+            local value = requiredField2Value[ownRequiredField]
+            local otherValue = otherField2Value[ownRequiredField:getName()]
+            if value ~= nil then
+                client:debug(string.format("Packing found ownrequired field \"%s\": %s", ownRequiredField:getName(), inspect(value)))
+                packer:packField(ownRequiredField, generateData, value)
+            elseif otherValue ~= nil then
+                client:debug(string.format("Packing found ownrequired field from OTHER \"%s\": %s", ownRequiredField:getName(), inspect(otherValue)))
+                packer:packField(ownRequiredField, generateData, otherValue)
+                otherField2Value[ownRequiredField:getName()] = nil
+            elseif databaseFields[ownRequiredField:getName()] ~= nil then
+                client:debug(string.format("Packing found ownrequired field from database \"%s\": %s", ownRequiredField:getName(), inspect(databaseFields[ownRequiredField:getName()])))
+                packer:packField(ownRequiredField, generateData, databaseFields[ownRequiredField:getName()])
+            else
+                -- TODO:  This might need fetching some stuff from the API server, because not
+                -- everything is set to "required", even though the owner generate message needs them.
+                client:warn(string.format("No value for ownrequired field \"%s\".  Adding default value", ownRequiredField:getName()))
+                generateData:addData(ownRequiredField:getDefaultValue())
+            end
+        end
+
+        -- Add leftover OTHER fields
+        local numOtherFields = 0
+        local otherData = datagram:new()
+        for fieldName, value in pairs(otherField2Value) do
+            numOtherFields = numOtherFields + 1
+            local dcField = dcClass:getFieldByName(fieldName)
+            otherData:addUint16(dcField:getNumber())
+            packer:packField(dcField, otherData, value)
+        end
+
+        packer:delete()
+
+        local resp = datagram:new()
+        resp:addUint16(CLIENT_CREATE_OBJECT_REQUIRED_OTHER_OWNER_RESP)
+        resp:addUint16(dc) -- dclassId
+        resp:addUint32(doId) -- doId
+        resp:addUint32(parent) -- parentId
+        resp:addUint32(zone) -- zoneId
+        -- resp:addString(name) -- setName
+        resp:addDatagram(generateData)
+        if numOtherFields > 0 then
+            resp:addUint16(numOtherFields)
+            resp:addDatagram(otherData)
+        end
+        client:sendDatagram(resp)
+    end)
 end
 
 -- setTalk from client
@@ -704,24 +605,14 @@ function handleClientDistributedFairyPlayer_setTalk(client, doId, fieldId, data)
 
     -- Log it for moderation purposes.
     local cleanMessage, _ = filterWhitelist(message, false)
-    client:writeServerEvent(
-        "chat-message",
-        "FairyClient",
-        string.format("%d|%d|%s|%s", accountId, avatarId, message, cleanMessage)
-    )
+    client:writeServerEvent("chat-message", "FairyClient", string.format("%d|%d|%s|%s", accountId, avatarId, message, cleanMessage))
 
     local dg = datagram:new()
     -- We set the sender field to the doId instead of our channel to make sure
     -- we can receive the broadcast.
     dg:addServerHeader(doId, doId, STATESERVER_OBJECT_UPDATE_FIELD)
     dg:addUint32(doId)
-    client:packFieldToDatagram(
-        dg,
-        "DistributedFairyPlayer",
-        "setTalk",
-        {avatarId, accountId, avatarName, message, {}, 0},
-        true
-    )
+    client:packFieldToDatagram(dg, "DistributedFairyPlayer", "setTalk", {avatarId, accountId, avatarName, message, {}, 0}, true)
     client:routeDatagram(dg)
 end
 
@@ -752,13 +643,7 @@ function handleDistributedFairyPlayer_setTalk(client, doId, fieldId, data)
     local dg = datagram:new()
     dg:addUint16(CLIENT_OBJECT_UPDATE_FIELD)
     dg:addUint32(doId)
-    client:packFieldToDatagram(
-        dg,
-        "DistributedFairyPlayer",
-        "setTalk",
-        {avatarId, accountId, avatarName, message, modifications, 0},
-        true
-    )
+    client:packFieldToDatagram(dg, "DistributedFairyPlayer", "setTalk", {avatarId, accountId, avatarName, message, modifications, 0}, true)
     client:sendDatagram(dg)
 end
 
@@ -785,13 +670,7 @@ function handleClientDistributedFairyPlayer_setTalkWhisper(client, doId, fieldId
     -- we can receive the broadcast.
     dg:addServerHeader(doId, doId, STATESERVER_OBJECT_UPDATE_FIELD)
     dg:addUint32(doId)
-    client:packFieldToDatagram(
-        dg,
-        "DistributedFairyPlayer",
-        "setTalkWhisper",
-        {avatarId, accountId, avatarName, cleanMessage, modifications, 0},
-        true
-    )
+    client:packFieldToDatagram(dg, "DistributedFairyPlayer", "setTalkWhisper", {avatarId, accountId, avatarName, cleanMessage, modifications, 0}, true)
     client:routeDatagram(dg)
 end
 

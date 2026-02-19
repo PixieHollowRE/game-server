@@ -1,6 +1,6 @@
 -- From https://stackoverflow.com/a/22831842
-function string.starts(String, Start)
-    return string.sub(String, 1, string.len(Start)) == Start
+function string.starts(String,Start)
+    return string.sub(String,1,string.len(Start))==Start
 end
 
 -- https://gist.github.com/VADemon/afb10dbb0d10d99aeb21449752da6285
@@ -8,7 +8,7 @@ function regexEscape(str)
     return string.gsub(str, "[%(%)%.%%%+%-%*%?%[%^%$%]]", "%%%1")
 end
 
-string.replace = function(str, this, that)
+string.replace = function (str, this, that)
     return string.gsub(str, regexEscape(this), string.gsub(that, "%%", "%%%%")) -- only % needs to be escaped for 'that'
 end
 
@@ -16,9 +16,7 @@ local function replaceModifiedText(str, modifications)
     local cleanMessage = str
     for _, modification in ipairs(modifications) do
         local length = modification[2] - modification[1] + 1
-        cleanMessage =
-            string.sub(cleanMessage, 0, modification[1]) ..
-            string.rep("*", length) .. string.sub(cleanMessage, modification[1] + 1 + length)
+        cleanMessage = string.sub(cleanMessage, 0, modification[1]) .. string.rep("*", length) .. string.sub(cleanMessage, modification[1] + 1 + length)
     end
     return cleanMessage
 end
