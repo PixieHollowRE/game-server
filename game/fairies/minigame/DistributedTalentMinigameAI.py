@@ -11,3 +11,14 @@ class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
 
     def getGameID(self):
         return self.gameID
+
+    def reportScore(self, score):
+        print("reportScore", score)
+
+    def endGame(self, finalScore):
+        print("endGame", finalScore)
+
+        avatarId = self.air.getAvatarIdFromSender()
+
+        rewards = []
+        self.sendUpdateToAvatarId(avatarId, "setRewards", [rewards])
