@@ -19,6 +19,9 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def getDISLid(self) -> int:
         return self.DISLid
 
+    def setAccess(self, access):
+        self.sendUpdateToAvatarId(self.doId, "setAccess", [access])
+
     def announceGenerate(self):
         self.air.incrementPopulation()
 
