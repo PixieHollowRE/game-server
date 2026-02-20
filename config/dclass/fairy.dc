@@ -585,10 +585,10 @@ dclass DistributedFairyNPC : DistributedFairyBase {
 
 // 80
 dclass DistributedFairyPlayer : DistributedFairyBase {
-    setHelpFlags(uint32[]) clsend required ownrequired broadcast db ownrecv; // 484
+    setHelpFlags(uint32[]) clsend ownrequired broadcast db ownrecv; // 484
     setBio(BioAnswer[]) required ownrequired broadcast db ownrecv; // 485
     setHasTagalong(int16) required ownrequired broadcast db ownrecv; // 486
-    setTagalongExpire(int32) required ownrequired broadcast db ownrecv; // 487
+    setTagalongExpire(int32) ownrequired broadcast db ownrecv; // 487
     setOutfitDB(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64); // 488
     setStatus(uint8, uint8, uint8, uint8) clsend; // 489
     setSCEmote(uint32, uint16); // 490
@@ -606,9 +606,9 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     setItemEvent(uint32, uint32, uint32, uint32) clsend; // 502
     statusUpdateFromFairy(uint32, uint32); // 503
     badgeAcquired(int16); // 504
-    setMeadowFlags(int32) required ownrequired broadcast db ownrecv; // 505
-    setDISLname(string) broadcast ram; // 506
-    setDISLid(uint32 = 0) required ownrequired broadcast db ownrecv; // 507
+    setMeadowFlags(int32) ownrequired broadcast db ownrecv; // 505
+    setDISLname(string) broadcast ownrecv ram; // 506
+    setDISLid(uint32 = 0) broadcast ownrecv ram db; // 507
     setPouchType(uint8); // 508
     setPouch(Stackable[]); // 509
     setStackSlot(int32, int16); // 510
@@ -618,9 +618,9 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     tradeItemForGold(int32, uint32, uint32); // 514
     tradeGoldForItem(uint32, int32, uint32); // 515
     removeFromInventory(uint64, int32); // 516
-    setLastMeadow(int32) required ownrequired broadcast db ownrecv; // 517
-    setCurrentHolidayActivity(int32, int32) required ownrequired broadcast db ownrecv; // 518
-    setAccess(uint8 = 2) ownrequired broadcast ownrecv ram; // 519
+    setLastMeadow(int32) ownrequired broadcast db ownrecv; // 517
+    setCurrentHolidayActivity(int32, int32) ownrequired broadcast db ownrecv; // 518
+    setAccess(uint8 = 2) broadcast ownrecv required ram airecv; // 519
     setAdEligible(uint8, uint32); // 520
     setQuestHistory(QuestHistory[]); // 521
     setMute(uint8); // 522
@@ -635,7 +635,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     setSpaDB(int32, int32, int16, int16, int16); // 531
     setPixiePower(int16 = 100) required ownrequired broadcast db ownrecv; // 532
     setLevel(uint8 = 1) required ownrequired broadcast db ownrecv; // 533
-    setExperiencePoints(int32) required ownrequired broadcast db ownrecv; // 534
+    setExperiencePoints(int32) ownrequired broadcast db ownrecv; // 534
     levelUpRequest() clsend; // 535
     setWingsDB(int32, int16); // 536
     consumePouchItem(int32, int32); // 537
@@ -646,9 +646,9 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     setPetEmote(uint16); // 542
     setPetDetail(PetDetail); // 543
     setPetGameScore(int16, int16, int8); // 544
-    setNametag(int8) required ownrequired broadcast db ownrecv; // 545
-    setHomeType(int32, int8) required ownrequired broadcast db ownrecv; // 546
-    setDailyChancePlayed(uint8) required ownrequired broadcast db ownrecv; // 547
+    setNametag(int8) ownrequired broadcast db ownrecv; // 545
+    setHomeType(int32, int8) ownrequired broadcast db ownrecv; // 546
+    setDailyChancePlayed(uint8) ownrequired broadcast db ownrecv; // 547
     requestDailyChance(uint32); // 548
     setDailyChanceReward(RewardExt[]); // 549
     gardenState(GardenState[]); // 550
@@ -657,9 +657,9 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     leaderBoardGiftsGiven(int8, RewardExt); // 553
     bootedFromZone(uint32); // 554
     setTimedEffects(TimedEffect[]); // 555
-    setGold(int32) required ownrequired broadcast db ownrecv; // 556
+    setGold(int32) ownrequired broadcast db ownrecv; // 556
     requestDropGame(int32, int32); // 557
-    setGardenType(int32) required ownrequired broadcast db ownrecv; // 558
+    setGardenType(int32) ownrequired broadcast db ownrecv; // 558
     setAltVersionToken(string, int16); // 559
     requestAltVersionToken(string); // 560
     requestDailyGoldTradeCapData(); // 561
