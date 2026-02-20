@@ -8,7 +8,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
     def setDISLname(self, DISLname: str):
         self.DISLname = DISLname
-        print(self.DISLname)
 
     def getDISLname(self) -> str:
         return self.DISLname
