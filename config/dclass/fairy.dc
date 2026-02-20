@@ -4,6 +4,7 @@ from game.fairies.fairy import DistributedFairyPlayerAI
 from game.fairies.fairy import DistributedFairyGMAI
 from game.fairies.instance import DistributedInstanceBaseAI
 from game.fairies.minigame import DistributedTalentMinigameAI
+from game.fairies.gateway import DistributedGatewayAI
 
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.
@@ -336,14 +337,14 @@ dclass DistributedMeadow : DistributedInstanceBaseAI {
 
 // 65
 dclass DistributedGateway {
-    setName(string) db required clrecv; // 292
-    setPosition(uint32, uint32) db required clrecv; // 293
-    setPositionByName(); // 294
-    setTargetLocationName(string) db clrecv; // 295
-    setTargetZoneID(uint32) db required clrecv; // 296
-    setOpenState(string) ram broadcast airecv; // 297
-    setVelvetRope(uint8) ram broadcast; // 298
-    setRewardList(int32[]) db clrecv; // 299
+    setName(string) required broadcast ram; // 292
+    setPosition(uint32, uint32) required broadcast ram; // 293
+    setPositionByName(string) required broadcast ram; // 294
+    setTargetLocationName(string) required broadcast ram; // 295
+    setTargetZoneID(uint32) required broadcast ram; // 296
+    setOpenState(string) required broadcast ram; // 297
+    setVelvetRope(uint8) required broadcast ram; // 298
+    setRewardList(int32[]) required broadcast ram; // 299
 }
 
 // 66

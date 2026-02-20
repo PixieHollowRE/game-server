@@ -11,6 +11,7 @@ from game.fairies.distributed.FairiesGlobals import *
 from game.fairies.distributed.MongoInterface import MongoInterface
 from game.fairies.minigame import MinigameConstants
 from game.fairies.minigame.DistributedTalentMinigameAI import DistributedTalentMinigameAI
+from game.fairies.gateway.DistributedGatewayAI import DistributedGatewayAI
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.server.ServerBase import ServerBase
 from game.otp.server.ServerGlobals import WORLD_OF_CARS_ONLINE
@@ -66,6 +67,13 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             minigame = DistributedTalentMinigameAI(self)
             minigame.setGameID(MinigameConstants.getGameIdForZone(zoneId))
             minigame.generateWithRequired(zoneId)
+
+        test = DistributedGatewayAI(self)
+        test.setName("9028") # gateway.xml
+        test.setPosition(1995, 760)
+        test.setTargetLocationName("")
+        test.setTargetZoneID(101) # Springtime Orchard
+        test.generateWithRequired(500) # Havendish Square
 
         # mark district as avaliable
         self.district.b_setAvailable(1)
