@@ -27,3 +27,4 @@ config/config.lua
 
 # Python Path
 PYTHON_PATH
+otpd/otpgo.exe
