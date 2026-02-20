@@ -157,6 +157,16 @@ dclass AvatarHandle : TalkPath_whisper {
 };
 
 dclass PlayerFriendsManager : DistributedObject, TalkPath_account {
+  unk_65(); // 65
+  unk_66(); // 66
+  unk_67(); // 67
+  unk_68(); // 68
+  unk_69(); // 69
+  unk_70(); // 70
+  unk_71(); // 71
+  unk_72(); // 72
+  unk_73(); // 73
+  unk_74(); // 74
   requestInvite(uint32 senderId, uint32 otherPlayerId, uint8 secretYesNo) airecv clsend;
   invitationFrom(uint32 playerId, string playerName);
   retractInvite(uint32 playerId);
@@ -181,16 +191,6 @@ dclass SnapshotRenderer : DistributedObject {
 };
 
 dclass CentralLogger : DistributedObject {
-  unk_80(); // 80
-  unk_81(); // 81
-  unk_82(); // 82
-  unk_83(); // 83
-  unk_84(); // 84
-  unk_85(); // 85
-  unk_86(); // 86
-  unk_87(); // 87
-  unk_88(); // 88
-  unk_89(); // 89
   unk_90(); // 90
   unk_91(); // 91
   unk_92(); // 92
@@ -198,5 +198,5 @@ dclass CentralLogger : DistributedObject {
   unk_94(); // 94
   unk_95(); // 95
   unk_96(); // 96
-  sendMessage(string, string, uint32, uint32) clsend;
+  sendMessage(string, string, uint32, uint32) clsend; // 97
 };

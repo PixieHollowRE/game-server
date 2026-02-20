@@ -422,12 +422,13 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
 
     if openChat then
         resp:addString("YES") -- openChatEnabled
+        resp:addString('CODE') -- createFriendsWithChat
+        resp:addString('YES') -- chatCodeCreationRule
     else
         resp:addString("NO") -- openChatEnabled
+        resp:addString('NO') -- createFriendsWithChat
+        resp:addString('NO') -- chatCodeCreationRule
     end
-
-    resp:addString("YES") -- createFriendsWithChat
-    resp:addString("YES") -- chatCodeCreationRule
 
     if isPaid then
         resp:addString("FULL") -- access

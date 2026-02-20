@@ -24,5 +24,5 @@ class FairiesRealmAI(DistributedDistrictAI):
 
     def setServerTime(self, refresh):
         if refresh:
-            # NOTE: Panda3Ds globalClockDelta doesn't seem to work for this.
+            # NOTE: Panda3D globalClockDelta doesn't seem to work for this.
             self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), "setServerTime", [int(time.time())])

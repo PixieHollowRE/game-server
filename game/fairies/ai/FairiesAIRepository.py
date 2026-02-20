@@ -12,7 +12,7 @@ from game.fairies.distributed.MongoInterface import MongoInterface
 from game.fairies.minigame import MinigameConstants
 from game.fairies.minigame.DistributedTalentMinigameAI import DistributedTalentMinigameAI
 from game.fairies.gateway.DistributedGatewayAI import DistributedGatewayAI
-from game.fairies.gateway.gateways import GATEWAYS
+from game.fairies.gateway.GatewayConstants import GATEWAYS
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.server.ServerBase import ServerBase
 from game.otp.server.ServerGlobals import WORLD_OF_CARS_ONLINE
@@ -113,7 +113,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         dbo = DatabaseObject(self, fairyPlayer.doId)
         # Add more fields if needed. (Good spot to look if the field you want
         # is an ownrequired field, but no required or ram.)
-        dbo.readObject(fairyPlayer, [])
+        dbo.readObject(fairyPlayer, ["setDISLid"])
 
     def readFairyPlayer(self, fairyPlayerId, fields = None, doneEvent = '') -> DistributedFairyPlayerAI:
         dbo = DatabaseObject(self, fairyPlayerId, doneEvent)

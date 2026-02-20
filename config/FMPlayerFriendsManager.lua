@@ -38,23 +38,6 @@ function init(participant)
     participant:subscribeChannel(OTP_DO_ID_PLAYER_FRIENDS_MANAGER)
 end
 
-function formatCarName(carName)
-    -- By default the name is formatted like "Wreckless,Spinna,roader" so we format it to normal "Wreckless Spinnaroader".
-    local name = ""
-    local count = 0
-
-    for part in string.gmatch(carName, "([^,]+)") do
-        if count == 1 then
-            name = name .. " " .. part
-        else
-            name = name .. part
-        end
-
-        count = count + 1
-    end
-    return name
-end
-
 function newInviteTable(inviterId, inviterData, inviteeId, inviteeData)
     return {
         inviterId = inviterId,
@@ -87,11 +70,11 @@ function urlencode(str)
   return str
 end
 
-function retrieveCar(data)
+function retrieveFairy(data)
     local connAttempts = 0
 
     while (connAttempts < 3) do
-        local response, error_message = http.get(API_BASE .. "retrieveCar", {
+        local response, error_message = http.get(API_BASE .. "retrieveFairy", {
             query=data,
             headers={
                 ["User-Agent"]=USER_AGENT,
@@ -100,13 +83,13 @@ function retrieveCar(data)
         })
 
         if error_message then
-            print(string.format("PlayerFriendsManager: retrieveCar returned an error! \"%s\""), error_message)
+            print(string.format("FMPlayerFriendsManager: retrieveFairy returned an error! \"%s\""), error_message)
             connAttempts = connAttempts + 1
             goto retry
         end
 
         if response.status_code ~= 200 then
-            print(string.format("PlayerFriendsManager: retrieveCar returned %d!, \"%s\""), response.status_code, response.body)
+            print(string.format("FMPlayerFriendsManager: retrieveFairy returned %d!, \"%s\""), response.status_code, response.body)
             connAttempts = connAttempts + 1
             goto retry
         end
@@ -116,28 +99,28 @@ function retrieveCar(data)
             return response.body
         end
 
-        -- retry goto to iterate again if we failed to retrieve our car data.
+        -- retry goto to iterate again if we failed to retrieve our fairy data.
         ::retry::
     end
 
-    -- TODO: If we're here, then we failed to get valid car data. Disconnect here
-    -- client:sendDisconnect(CLIENT_DISCONNECT_ACCOUNT_ERROR, "Failed to retrieveCar.", false)
+    -- TODO: If we're here, then we failed to get valid fairy data. Disconnect here
+    -- client:sendDisconnect(CLIENT_DISCONNECT_ACCOUNT_ERROR, "Failed to retrieveFairy.", false)
 end
 
-function setCarData(playToken, data)
+function setFairyData(playToken, data)
     local request = {playToken = urlencode(playToken), fieldData = data}
     local json = require("json")
     local result, err = json.encode(request)
 
     if err then
         print(err)
-        client:sendDisconnect(CLIENT_DISCONNECT_ACCOUNT_ERROR, "Failed to encode JSON data for setCarData.", false)
+        client:sendDisconnect(CLIENT_DISCONNECT_ACCOUNT_ERROR, "Failed to encode JSON data for setFairyData.", false)
         return
     end
 
     local connAttempts = 0
     while (connAttempts < 3) do
-        local response, error_message = http.post(API_BASE .. "setCarData", {
+        local response, error_message = http.post(API_BASE .. "setFairyData", {
             body=result,
             headers={
                 ["Authorization"]=API_TOKEN,
@@ -147,13 +130,13 @@ function setCarData(playToken, data)
         })
 
         if error_message then
-            print(string.format("PlayerFriendsManager: setCarData returned an error! \"%s\""), error_message)
+            print(string.format("FMPlayerFriendsManager: setFairyData returned an error! \"%s\""), error_message)
             connAttempts = connAttempts + 1
             goto retry
         end
 
         if response.status_code ~= 200 then
-            print(string.format("PlayerFriendsManager: setCarData returned %d!, \"%s\""), response.status_code, response.body)
+            print(string.format("FMPlayerFriendsManager: setFairyData returned %d!, \"%s\""), response.status_code, response.body)
             connAttempts = connAttempts + 1
             goto retry
         end
@@ -163,12 +146,12 @@ function setCarData(playToken, data)
             return response
         end
 
-        -- retry goto to iterate again if we failed to set our car data.
+        -- retry goto to iterate again if we failed to set our fairy data.
         ::retry::
     end
 
-    -- TODO: If we're here, then we failed to set our car data. Disconnect here
-    -- client:sendDisconnect(CLIENT_DISCONNECT_ACCOUNT_ERROR, "Failed to setCarData.", false)
+    -- TODO: If we're here, then we failed to set our fairy data. Disconnect here
+    -- client:sendDisconnect(CLIENT_DISCONNECT_ACCOUNT_ERROR, "Failed to setFairyData.", false)
 end
 
 function declareFriend(participant, avatarId, friendId)
@@ -203,7 +186,7 @@ end
 function handleDatagram(participant, msgType, dgi)
     if msgType == STATESERVER_OBJECT_UPDATE_FIELD then
         if dgi:readUint32() == OTP_DO_ID_PLAYER_FRIENDS_MANAGER then
-            participant:handleUpdateField(dgi, "PlayerFriendsManager")
+            participant:handleUpdateField(dgi, "FMPlayerFriendsManager")
         end
     elseif msgType == FRIENDMANAGER_ACCOUNT_ONLINE then
         handleOnline(participant, dgi:readUint32())
@@ -228,10 +211,10 @@ function handleOnline(participant, accountId)
     participant:debug(string.format("handleOnline - %d", accountId))
     local json = require("json")
 
-    local account = json.decode(retrieveCar(string.format("identifier=%d", accountId)))
+    local account = json.decode(retrieveFairy(string.format("identifier=%d", accountId)))
     -- Tell this account's friends that it went online.
     local friendInfo = {
-        formatCarName(account.carData.carDna.carName), -- avatarName
+        account.name, -- avatarName
         account._id, -- avatarId
         account.ownerAccount, -- playerName
         1, -- onlineYesNo
@@ -246,7 +229,7 @@ function handleOnline(participant, accountId)
 
     for _, friendId in ipairs(account.friends) do
         participant:sendUpdateToAccountId(friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "PlayerFriendsManager", "updatePlayerFriend", {accountId, friendInfo, 0})
+            "FMPlayerFriendsManager", "updatePlayerFriend", {accountId, friendInfo, 0})
 
         local dg = datagram:new()
         participant:addServerHeaderWithAccountId(dg, friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENTAGENT_DECLARE_OBJECT)
@@ -257,7 +240,7 @@ function handleOnline(participant, accountId)
 
     -- Now to send the friend list over to the just logged in account.
     for _, friendId in ipairs(account.friends) do
-        local friendAccount = json.decode(retrieveCar(string.format("identifier=%d", friendId)))
+        local friendAccount = json.decode(retrieveFairy(string.format("identifier=%d", friendId)))
 
         local dg = datagram:new()
         participant:addServerHeaderWithAccountId(dg, accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENTAGENT_DECLARE_OBJECT)
@@ -269,7 +252,7 @@ function handleOnline(participant, accountId)
         queryDBSS(participant, friendAccount._id, function (doId, activated)
             participant:debug(string.format("Is friend %d online? %s", friendAccount._id, tostring(activated)))
             friendInfo = {
-                formatCarName(friendAccount.carData.carDna.carName), -- avatarName
+                friendAccount.name, -- avatarName
                 friendAccount._id, -- avatarId
                 friendAccount.ownerAccount, -- playerName
                 activated, -- onlineYesNo
@@ -282,7 +265,7 @@ function handleOnline(participant, accountId)
                 0  -- timestamp
             }
             participant:sendUpdateToAccountId(accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-                "PlayerFriendsManager", "updatePlayerFriend", {friendId, friendInfo, 0})
+                "FMPlayerFriendsManager", "updatePlayerFriend", {friendId, friendInfo, 0})
         end)
     end
 end
@@ -291,10 +274,10 @@ function handleOffline(participant, accountId)
     participant:debug(string.format("handleOffline - %d", accountId))
     local json = require("json")
 
-    local account = json.decode(retrieveCar(string.format("identifier=%d", accountId)))
+    local account = json.decode(retrieveFairy(string.format("identifier=%d", accountId)))
     -- Tell this account's friends that it went offline.
     local friendInfo = {
-        formatCarName(account.carData.carDna.carName), -- avatarName
+        account.name, -- avatarName
         account._id, -- avatarId
         account.ownerAccount, -- playerName
         0, -- onlineYesNo
@@ -309,11 +292,11 @@ function handleOffline(participant, accountId)
 
     for _, friendId in ipairs(account.friends) do
         participant:sendUpdateToAccountId(friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "PlayerFriendsManager", "updatePlayerFriend", {accountId, friendInfo, 0})
+            "FMPlayerFriendsManager", "updatePlayerFriend", {accountId, friendInfo, 0})
     end
 end
 
-function handlePlayerFriendsManager_requestInvite(participant, fieldId, data)
+function handleFMPlayerFriendsManager_requestInvite(participant, fieldId, data)
     local senderId = participant:getAccountIdFromSender()
     local otherPlayerId = data[2]
     local secretYesNo = data[3]
@@ -329,18 +312,18 @@ function handlePlayerFriendsManager_requestInvite(participant, fieldId, data)
     end
 
     local json = require("json")
-    local inviterData = json.decode(retrieveCar(string.format("identifier=%d", senderId)))
-    local inviteeData = json.decode(retrieveCar(string.format("identifier=%d", otherPlayerId)))
+    local inviterData = json.decode(retrieveFairy(string.format("identifier=%d", senderId)))
+    local inviteeData = json.decode(retrieveFairy(string.format("identifier=%d", otherPlayerId)))
 
     local invite = newInviteTable(senderId, inviterData, otherPlayerId, inviteeData)
     invitesByInviterId[senderId] = invite
     invitesByInviteeId[otherPlayerId] = invite
 
     participant:sendUpdateToAccountId(otherPlayerId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "PlayerFriendsManager", "invitationFrom", {senderId, formatCarName(inviterData.carData.carDna.carName)})
+            "FMPlayerFriendsManager", "invitationFrom", {senderId, inviterData.name})
 end
 
-function handlePlayerFriendsManager_requestDecline(participant, fieldId, data)
+function handleFMPlayerFriendsManager_requestDecline(participant, fieldId, data)
     local senderId = participant:getAccountIdFromSender()
     local otherPlayerId = data[2]
     participant:debug(string.format("requestDecline - %d - %d", senderId, otherPlayerId))
@@ -352,7 +335,7 @@ function handlePlayerFriendsManager_requestDecline(participant, fieldId, data)
     invitesByInviteeId[otherPlayerId] = nil
 
     participant:sendUpdateToAccountId(otherPlayerId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "PlayerFriendsManager", "invitationResponse", {senderId, INVRESP_DECLINED, 0})
+            "FMPlayerFriendsManager", "invitationResponse", {senderId, INVRESP_DECLINED, 0})
 end
 
 function makeFriends(participant, invite)
@@ -372,10 +355,10 @@ function makeFriends(participant, invite)
 
     if status == INVRESP_ACCEPTED then
         table.insert(invite.inviterData.friends, invite.inviteeId)
-        setCarData(invite.inviterData.ownerAccount, {friends = invite.inviterData.friends})
+        setFairyData(invite.inviterData.ownerAccount, {friends = invite.inviterData.friends})
 
         local friendInfo = {
-            formatCarName(invite.inviteeData.carData.carDna.carName), -- avatarName
+            invite.inviteeData.name, -- avatarName
             invite.inviteeData._id, -- avatarId
             invite.inviteeData.ownerAccount, -- playerName
             1, -- onlineYesNo
@@ -389,7 +372,7 @@ function makeFriends(participant, invite)
         }
 
         participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-                "PlayerFriendsManager", "updatePlayerFriend", {invite.inviteeId, friendInfo, 0})
+                "FMPlayerFriendsManager", "updatePlayerFriend", {invite.inviteeId, friendInfo, 0})
     end
 
     status = INVRESP_ACCEPTED
@@ -399,10 +382,10 @@ function makeFriends(participant, invite)
 
     if status == INVRESP_ACCEPTED then
         table.insert(invite.inviteeData.friends, invite.inviterId)
-        setCarData(invite.inviteeData.ownerAccount, {friends = invite.inviteeData.friends})
+        setFairyData(invite.inviteeData.ownerAccount, {friends = invite.inviteeData.friends})
 
         local friendInfo = {
-            formatCarName(invite.inviterData.carData.carDna.carName), -- avatarName
+            invite.inviterData.name, -- avatarName
             invite.inviterData._id, -- avatarId
             invite.inviterData.ownerAccount, -- playerName
             1, -- onlineYesNo
@@ -416,15 +399,15 @@ function makeFriends(participant, invite)
         }
 
         participant:sendUpdateToAccountId(invite.inviteeId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-                "PlayerFriendsManager", "updatePlayerFriend", {invite.inviterId, friendInfo, 0})
+                "FMPlayerFriendsManager", "updatePlayerFriend", {invite.inviterId, friendInfo, 0})
     end
 
     participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "PlayerFriendsManager", "invitationResponse", {invite.inviteeId, status, 0})
+            "FMPlayerFriendsManager", "invitationResponse", {invite.inviteeId, status, 0})
 
 end
 
-function handlePlayerFriendsManager_setTalkAccount(participant, fieldId, data)
+function handleFMPlayerFriendsManager_setTalkAccount(participant, fieldId, data)
     local senderId = participant:getAccountIdFromSender()
     local otherAccountId = data[1]
     participant:debug(string.format("setTalkAccount - %d - %d", senderId, otherAccountId))
@@ -438,8 +421,8 @@ function handlePlayerFriendsManager_setTalkAccount(participant, fieldId, data)
     local cleanMessage, modifications = filterWhitelist(message, false)
 
     -- Log it for moderation purposes.
-    participant:writeServerEvent("chat-message-whisper", "PlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER, string.format("%d|%d|%s|%s", senderId, otherAccountId, message, cleanMessage))
+    participant:writeServerEvent("chat-message-whisper", "FMPlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER, string.format("%d|%d|%s|%s", senderId, otherAccountId, message, cleanMessage))
 
     participant:sendUpdateToAccountId(otherAccountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "PlayerFriendsManager", "setTalkAccount", {otherAccountId, senderId, data[3], cleanMessage, modifications, 0})
+            "FMPlayerFriendsManager", "setTalkAccount", {otherAccountId, senderId, data[3], cleanMessage, modifications, 0})
 end

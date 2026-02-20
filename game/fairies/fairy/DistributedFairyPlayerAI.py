@@ -8,27 +8,27 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
     def setDISLname(self, DISLname: str):
         self.DISLname = DISLname
+        print(self.DISLname)
 
     def getDISLname(self) -> str:
         return self.DISLname
 
     def setDISLid(self, DISLid: int) -> int:
         self.DISLid = DISLid
+        self.air.sendFriendManagerAccountOnline(self.DISLid)
 
     def getDISLid(self) -> int:
         return self.DISLid
 
     def announceGenerate(self):
-        # TODO: self.air.sendFriendManagerAccountOnline(self.DISLid)
-
         self.air.incrementPopulation()
 
         # Fill in the missing information from the database (i.e. coins)
-        # self.air.fillInFairyPlayer(self)
+        self.air.fillInFairyPlayer(self)
 
     def delete(self):
         # TODO: Set a post-remove message in case of an AI crash.
-        # TODO: self.air.sendFriendManagerAccountOffline(self.DISLid)
+        self.air.sendFriendManagerAccountOffline(self.DISLid)
 
         self.air.decrementPopulation()
 

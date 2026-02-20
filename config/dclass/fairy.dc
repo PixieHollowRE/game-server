@@ -718,6 +718,11 @@ dclass DistributedFairyQuestNPC : DistributedFairyNPC {
 	// 594
 	// 595
 
+dclass unk_84 {
+    unk_594(); // 594
+    unk_595(); // 595
+};
+
 // 85
 dclass FairiesBadgeManager {
     giveBadge(int32, int16); // 596

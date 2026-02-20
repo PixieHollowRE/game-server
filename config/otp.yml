@@ -24,7 +24,7 @@ uberdogs:
     - class: HolidayManager
       id: 4756
 
-    - class: PlayerFriendsManager
+    - class: FMPlayerFriendsManager
       id: 4687
 
 roles:
@@ -73,8 +73,8 @@ roles:
       output: ../logs/events-%Y%m%d_%H%M%S.log
 
     - type: lua
-      name: PlayerFriendsManager
-      lua_file: PlayerFriendsManager.lua
+      name: FMPlayerFriendsManager
+      lua_file: FMPlayerFriendsManager.lua
 
     - type: lua
       name: DiscordService
