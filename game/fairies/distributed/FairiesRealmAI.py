@@ -1,7 +1,10 @@
 from direct.directnotify.DirectNotifyGlobal import directNotify
 from direct.task import Task
+
 from game.otp.distributed.OtpDoGlobals import *
 from game.otp.distributed.DistributedDistrictAI import DistributedDistrictAI
+
+import time
 
 class FairiesRealmAI(DistributedDistrictAI):
     notify = directNotify.newCategory("FairiesRealmAI")
@@ -18,3 +21,8 @@ class FairiesRealmAI(DistributedDistrictAI):
 
     def getPopulationLevel(self):
         return self.populationLevel
+
+    def setServerTime(self, refresh):
+        if refresh:
+            # NOTE: Panda3Ds globalClockDelta doesn't seem to work for this.
+            self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), "setServerTime", [int(time.time())])

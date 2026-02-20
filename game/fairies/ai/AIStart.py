@@ -56,8 +56,8 @@ for i in range(1, 20+1):
         districtName = ConfigVariableString(
             "district-name%s"%postfix,
             {
-                1: 'Alignment',
-                2: 'Axle'
+                1: 'Hidden Ridge',
+                2: 'Blueberry Forest'
             }.get(i, str(i))
         ).getValue()
 

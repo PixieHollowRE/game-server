@@ -310,7 +310,7 @@ dclass FairiesRealm : DistributedDistrict {
     unk_279(); // 279
     setParentingRules(string, string) broadcast ram; // 280
     setPopulationLevel(uint32) required broadcast ram; // 281
-    setServerTime(uint32) clsend; // 282
+    setServerTime(uint32) clsend airecv; // 282
 }
 
 // 62
