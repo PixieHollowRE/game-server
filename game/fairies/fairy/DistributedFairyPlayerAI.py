@@ -23,7 +23,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.air.incrementPopulation()
 
         # Fill in the missing information from the database (i.e. coins)
-        self.air.fillInFairyPlayer(self)
+        # self.air.fillInFairyPlayer(self)
 
     def delete(self):
         # TODO: Set a post-remove message in case of an AI crash.

@@ -329,7 +329,7 @@ function handleLogin(client, dgi)
         end
         dislId = 1
         linkedToParent = false
-        accountType = "Administrator"
+        accountType = "Player" -- Administrator
         speedChatPlus = false
         if WANT_SPEEDCHAT_PLUS then
             speedChatPlus = true
@@ -464,7 +464,8 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
 
     local playerFields = {
         setAccess = {setAccess},
-        setDISLname = {playToken}
+        setDISLname = {playToken},
+        setDISLid = {accountId}
     }
 
     if accountType ~= "Player" then

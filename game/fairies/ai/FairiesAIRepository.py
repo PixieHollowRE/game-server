@@ -30,10 +30,10 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         self.staffMembers: List[int] = []
         self.accountMap: Dict[int, str] = {}
 
-        for dclass in self.dclassesByName:
-            print(self.dclassesByName[dclass].getName(), self.dclassesByName[dclass].getNumber())
+        # for dclass in self.dclassesByName:
+            # print(self.dclassesByName[dclass].getName(), self.dclassesByName[dclass].getNumber())
 
-        print(self.dclassesByName["DistributedTalentMinigameAI"].getFieldByName("reportScore"))
+        # print(self.dclassesByName["TalkPath_account_group"].getFieldByName("setTalkAccountGroup"))
 
     def getGameDoId(self):
         return OTP_DO_ID_FAIRIES
@@ -113,7 +113,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         dbo = DatabaseObject(self, fairyPlayer.doId)
         # Add more fields if needed. (Good spot to look if the field you want
         # is an ownrequired field, but no required or ram.)
-        dbo.readObject(fairyPlayer, ["setDISLid"])
+        dbo.readObject(fairyPlayer, [])
 
     def readFairyPlayer(self, fairyPlayerId, fields = None, doneEvent = '') -> DistributedFairyPlayerAI:
         dbo = DatabaseObject(self, fairyPlayerId, doneEvent)

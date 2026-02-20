@@ -41,7 +41,7 @@ struct AvatarPendingDel {
 
 dclass Account {
   string DcObjectType db;
-  uint32array ACCOUNT_AV_SET = [0, 0, 0] required db;
+  uint32array ACCOUNT_AV_SET = [0] required db;
   uint32array pirateAvatars required db;
   uint32array HOUSE_ID_SET db;
   uint32 ESTATE_ID db;
@@ -150,23 +150,23 @@ dclass TalkPath_account {
 };
 
 dclass TalkPath_account_group {
-  setTalkAccountGroup(uint32, string, string, uint32, TalkModification [], uint8) clsend airecv;
+  setTalkAccountGroup(uint32, string, string, uint8, TalkModification [], uint8) clsend airecv;
 };
 
-dclass AvatarHandle : TalkPath_whisper {
+struct FriendInfo {
+  string avatarName;
+  uint32 avatarId;
+  string playerName;
+  uint8 onlineYesNo;
+  uint8 openChatEnabledYesNo;
+  uint8 openChatFriendshipYesNo;
+  uint8 wlChatEnabledYesNo;
+  string location;
+  string sublocation;
+  uint32 timestamp;
 };
 
-dclass PlayerFriendsManager : DistributedObject, TalkPath_account {
-  unk_65(); // 65
-  unk_66(); // 66
-  unk_67(); // 67
-  unk_68(); // 68
-  unk_69(); // 69
-  unk_70(); // 70
-  unk_71(); // 71
-  unk_72(); // 72
-  unk_73(); // 73
-  unk_74(); // 74
+dclass PlayerFriendsManager : DistributedObject, TalkPath_account, TalkPath_account_group {
   requestInvite(uint32 senderId, uint32 otherPlayerId, uint8 secretYesNo) airecv clsend;
   invitationFrom(uint32 playerId, string playerName);
   retractInvite(uint32 playerId);
@@ -174,6 +174,7 @@ dclass PlayerFriendsManager : DistributedObject, TalkPath_account {
   requestDecline(uint32 senderId, uint32 playerId) airecv clsend;
   requestDeclineWithReason(uint32, uint32, uint32) airecv clsend;
   requestRemove(uint32, uint32) airecv clsend;
+  rejectRemove(uint32, uint32);
   secretResponse(string);
   rejectSecret(string);
   rejectUseSecret(string);
@@ -191,7 +192,6 @@ dclass SnapshotRenderer : DistributedObject {
 };
 
 dclass CentralLogger : DistributedObject {
-  unk_90(); // 90
   unk_91(); // 91
   unk_92(); // 92
   unk_93(); // 93

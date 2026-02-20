@@ -164,7 +164,7 @@ function handleGetStoredValues(participant, dgi)
 
     if data.objectName == "Account" then
         -- FairyClient only use ACCOUNT_AV_SET, so let's set that up
-        local avSet = {data.playerId, data.racecarId, data.statusId}
+        local avSet = {data.playerId}
         local packedDg = datagram:new()
         if packer:packField(dcClass:getFieldByName("ACCOUNT_AV_SET"), packedDg, avSet) then
             local packedDgi = datagramiterator.new(packedDg)
