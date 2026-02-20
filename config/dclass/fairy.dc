@@ -675,8 +675,8 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     showDelayedAd(int16, int16); // 571
     setMaxOutfitSlots(int8); // 572
     setSavedOutfits(SavedOutfit[]); // 573
-    requestGetMaxOutfitSlots(); // 574
-    requestGetSavedOutfits(); // 575
+    requestGetMaxOutfitSlots() ownsend airecv; // 574
+    requestGetSavedOutfits() ownsend airecv; // 575
     requestAddSavedOutfit(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64); // 576
     requestUpdateSavedOutfit(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64); // 577
     requestRemoveSavedOutfits(LongType[]); // 578
