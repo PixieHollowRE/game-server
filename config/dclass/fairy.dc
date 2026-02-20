@@ -558,7 +558,7 @@ dclass FairyMgr {
 dclass DistributedFairyBase: TalkPath_owner, TalkPath_whisper {
     setName(string) required ownrequired broadcast db ownrecv; // 463
     setPosition(uint32, uint32) ram required ownsend broadcast ownrequired; // 464
-    setPositionCurve(uint32, uint32, uint32, uint32, uint32, uint32, uint32, int32) ram required ownsend broadcast; // 465
+    setPositionCurve(uint32, uint32, uint32, uint32, uint32, uint32, uint32, int32) ram ownsend broadcast; // 465
     setRotation(uint32) ram required ownsend broadcast ownrequired; // 466
     setFairyDNA(FairyDNA) required ownrequired broadcast db ownrecv; // 467
     setFairyPose(FairyPose) required ownrequired broadcast db ownrecv; // 468
