@@ -60,6 +60,8 @@ class FairiesAIRepository(AIDistrict, ServerBase):
                 OTP_DO_ID_FAIRIES, OTP_ZONE_ID_DISTRICTS,
                 doId=self.districtId)
 
+        self.setAIReceiver(self.district.getDoId(), self.ourChannel)
+
         for zoneId in MinigameConstants.ZONE_TO_GAME:
             minigame = DistributedTalentMinigameAI(self)
             minigame.setGameID(MinigameConstants.getGameIdForZone(zoneId))
@@ -92,14 +94,14 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         dg.addUint32(accountId)
         self.send(dg)
 
-    def fillInCarsPlayer(self, carPlayer) -> None:
-        dbo = DatabaseObject(self, carPlayer.doId)
+    def fillInFairyPlayer(self, fairyPlayer) -> None:
+        dbo = DatabaseObject(self, fairyPlayer.doId)
         # Add more fields if needed. (Good spot to look if the field you want
         # is an ownrequired field, but no required or ram.)
-        dbo.readObject(carPlayer, [])
+        dbo.readObject(fairyPlayer, [])
 
-    def readFairyPlayer(self, racecarId, fields = None, doneEvent = '') -> DistributedFairyPlayerAI:
-        dbo = DatabaseObject(self, racecarId, doneEvent)
+    def readFairyPlayer(self, fairyPlayerId, fields = None, doneEvent = '') -> DistributedFairyPlayerAI:
+        dbo = DatabaseObject(self, fairyPlayerId, doneEvent)
         return dbo.readFairyPlayer(fields)
 
     def sendPopulation(self):
