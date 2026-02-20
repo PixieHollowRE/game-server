@@ -8,6 +8,7 @@ class DistributedGatewayAI(DistributedObjectAI):
         self.gatewayPosition: tuple = 0, 0
         self.targetLocationName: str = ""
         self.targetZoneID: int = 0
+        self.rewardList: list[int] = []
 
     def setName(self, gatewayName):
         self.gatewayName = gatewayName
@@ -43,5 +44,8 @@ class DistributedGatewayAI(DistributedObjectAI):
     def getVelvetRope(self):
         return 0
 
+    def setRewardList(self, rewardList):
+        self.rewardList = rewardList
+
     def getRewardList(self):
-        return []
+        return self.rewardList
