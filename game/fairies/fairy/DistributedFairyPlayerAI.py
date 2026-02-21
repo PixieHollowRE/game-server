@@ -1,3 +1,5 @@
+from game.otp.otpbase import OTPGlobals
+
 from .DistributedFairyBaseAI import DistributedFairyBaseAI
 
 class DistributedFairyPlayerAI(DistributedFairyBaseAI):
@@ -20,7 +22,8 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         return self.DISLid
 
     def setAccess(self, access):
-        self.sendUpdateToAvatarId(self.doId, "setAccess", [access])
+        if access == OTPGlobals.AccessFull:
+            self.sendUpdateToAvatarId(self.doId, "setAccess", [access])
 
     def announceGenerate(self):
         self.air.incrementPopulation()
