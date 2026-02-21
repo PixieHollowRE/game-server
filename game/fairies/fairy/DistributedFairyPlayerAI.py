@@ -5,8 +5,8 @@ from .DistributedFairyBaseAI import DistributedFairyBaseAI
 class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def __init__(self, air):
         DistributedFairyBaseAI.__init__(self, air)
-        self.DISLname = ''
-        self.DISLid = 0
+        self.DISLname: str = ''
+        self.DISLid: int = 0
 
     def setDISLname(self, DISLname: str):
         self.DISLname = DISLname

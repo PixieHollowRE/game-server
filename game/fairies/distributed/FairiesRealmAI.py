@@ -11,7 +11,7 @@ class FairiesRealmAI(DistributedDistrictAI):
 
     def __init__(self, air, name="untitled"):
         DistributedDistrictAI.__init__(self, air, name)
-        self.populationLevel = 0
+        self.populationLevel: int = 0
 
     def generate(self):
         DistributedDistrictAI.generate(self)
