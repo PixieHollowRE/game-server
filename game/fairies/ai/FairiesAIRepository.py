@@ -14,6 +14,8 @@ from game.fairies.minigame.DistributedTalentMinigameAI import DistributedTalentM
 from game.fairies.gateway.DistributedGatewayAI import DistributedGatewayAI
 from game.fairies.gateway.GatewayConstants import GATEWAYS
 from game.fairies.fairy.npc.DistributedFairyQuestNPCAI import DistributedFairyQuestNPCAI
+from game.fairies.fairy import FamousFairyData
+from game.fairies.ai import ZoneConstants
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.server.ServerBase import ServerBase
 from game.otp.server.ServerGlobals import WORLD_OF_CARS_ONLINE
@@ -84,8 +86,12 @@ class FairiesAIRepository(AIDistrict, ServerBase):
                 gate.generateWithRequired(zoneId)
 
         # DistributedFairyQuestNPC testing
-        tutorialFairyQuestNpc = DistributedFairyQuestNPCAI(self)
-        tutorialFairyQuestNpc.generateWithRequired(ZoneConstants.PIXIE_DUST_MILL)
+        tutorialTerence = DistributedFairyQuestNPCAI(self)
+        tutorialTerence.setName(str(FamousFairyData.TERENCE_DO_ID))
+        tutorialTerence.setFairyDNA(FamousFairyData.TERENCE_DNA)
+        tutorialTerence.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_TERENCE)
+        tutorialTerence.setQuestGiverId(FamousFairyData.TERENCE_DO_ID)
+        tutorialTerence.generateWithRequired(ZoneConstants.PIXIE_DUST_MILL)
 
         # mark district as avaliable
         self.district.b_setAvailable(1)

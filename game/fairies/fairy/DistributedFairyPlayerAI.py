@@ -3,8 +3,9 @@ from game.otp.otpbase import OTPGlobals
 from .DistributedFairyBaseAI import DistributedFairyBaseAI
 
 class DistributedFairyPlayerAI(DistributedFairyBaseAI):
-    def __init__(self, air):
+    def __init__(self, air) -> None:
         DistributedFairyBaseAI.__init__(self, air)
+
         self.DISLname: str = ''
         self.DISLid: int = 0
 
