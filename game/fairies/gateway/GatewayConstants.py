@@ -90,11 +90,11 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetZoneID": ZoneConstants.PIXIE_DUST_MILL,
         },
         {
-            # Fairy Tale Theatre
+            # Fairy Tale Theater
             "name": "9179",
             "position": (851, 439),
             "targetLocationName": "",
-            "targetZoneID": ZoneConstants.FAIRY_TALE_THEATRE,
+            "targetZoneID": ZoneConstants.FAIRY_TALE_THEATER,
         },
         {
             # Neverfruit Grove
@@ -130,6 +130,100 @@ GATEWAYS: dict[int, list[dict]] = {
             "position": (1995, 760),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.SPRINGTIME_ORCHARD,
+        },
+    ],
+    ZoneConstants.QUEENS_BOUTIQUE: [
+        {
+            # Havendish Square
+            "name": "9283",
+            "position": (209, 336),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
+        },
+    ],
+    ZoneConstants.FAIRY_TALE_THEATER: [
+        
+        {
+            # Havendish Square
+            "name": "9174",
+            "position": (0, 310),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
+        },
+        {
+            # Cassie's Costume Shop
+            "name": "9169",
+            "position": (1173, 176),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.CASSIES_COSTUME_SHOP,
+        },
+    ],
+    ZoneConstants.CASSIES_COSTUME_SHOP: [
+        {
+            # Fairy Tale Theater
+            "name": "9198",
+            "position": (252, 248),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.FAIRY_TALE_THEATER,
+        },
+    ],
+    ZoneConstants.THE_BALLROOM: [
+        {
+            # Havendish Square
+            "name": "9186",
+            "position": (750, 305),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
+        },
+    ],
+    ZoneConstants.THE_TEAROOM: [
+        {
+            # Havendish Square
+            "name": "9185",
+            "position": (61, 57),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
+        },   
+    ],
+    ZoneConstants.LIZZYS_HOUSE: [
+        {
+            # Havendish Square
+            "name": "9237",
+            "position": (46, 140),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
+        },
+    ],
+    ZoneConstants.FAIRY_COLISEUM: [
+        {
+            # Havendish Square
+            "name": "9174",
+            "position": (35, 253),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
+        },
+        {
+            # Marina's Place
+            "name": "9273",
+            "position": (360, 482),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.MARINAS_PLACE,
+        },
+        {
+            # Zephyr's Zoom Room
+            "name": "9276",
+            "position": (762, 219),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.ZEPHYRS_ZOOM_ROOM,
+        }, 
+    ],
+    ZoneConstants.ZEPHYRS_ZOOM_ROOM: [
+        {
+            # Fairy Coliseum
+            "name": "9277",
+            "position": (175, 303),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.FAIRY_COLISEUM,
         },
     ],
 }
