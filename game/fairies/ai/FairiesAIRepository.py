@@ -108,7 +108,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             # Send our population update.
             self.sendPopulation()
 
-        # Update the population on the district (realm as well).
+        # Update the population on the district (realm) as well.
         self.district.updatePopulationLevel()
 
     def sendFriendManagerAccountOnline(self, accountId):
