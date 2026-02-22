@@ -7,9 +7,11 @@ from direct.distributed.PyDatagram import PyDatagram
 
 from game.fairies.ai.FairiesAIMsgTypes import *
 from game.fairies.distributed.FairiesGlobals import *
+
 from game.otp.ai.AIDistrict import AIDistrict
-from game.otp.distributed.OtpDoGlobals import *
 from game.otp.uberdog.UberDog import UberDog
+
+from game.fairies.uberdog.HolidayManagerUD import HolidayManagerUD
 
 
 class FairiesUberDog(UberDog):
@@ -37,7 +39,10 @@ class FairiesUberDog(UberDog):
         # schedule for execution on socket close
         self.addPostSocketClose(datagram)
 
-        self.holidayManager = self.generateGlobalObject(OTP_DO_ID_CARS_HOLIDAY_MANAGER, "HolidayManager")
+        holidayManager = HolidayManagerUD(self)
+        holidayManager.generateOtpObject(
+            self.getGameDoId(), OTP_ZONE_ID_DISTRICTS, # COMMUNITY_ALERTS_ALL
+            doId=self.allocateChannel())
 
     def handlePlayGame(self, msgType, di):
         # Handle Fairies specific message types before

@@ -1,9 +1,14 @@
 from direct.distributed.DistributedObjectUD import DistributedObjectUD
-import time
 
 class HolidayManagerUD(DistributedObjectUD):
     def __init__(self, air) -> None:
-        DistributedObjectUD.__init__(self, air)
+        super().__init__(air)
 
-    def getHolidayEvents(self):
-        return [['car_show_off_week_1', time.time(), time.time()]]
+    def getTimeSpan(self) -> list[str]:
+        return []
+
+    def getTimeSpanMessage(self) -> str:
+        return "Welcome to the test server. Missing features and bugs are to be expected. Enjoy!"
+
+    def getShopsOpen(self) -> int:
+        return 1

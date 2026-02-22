@@ -4,6 +4,7 @@ from game.fairies.fairy import DistributedFairyPlayerAI
 from game.fairies.fairy import DistributedFairyGMAI
 from game.fairies.fairy.npc import DistributedFairyNPCAI
 from game.fairies.fairy.npc import DistributedFairyQuestNPCAI
+from game.fairies.fairy.npc import DistributedFairyShopkeeperNPCAI
 from game.fairies.instance import DistributedInstanceBaseAI
 from game.fairies.minigame import DistributedTalentMinigameAI
 from game.fairies.gateway import DistributedGatewayAI
@@ -794,29 +795,29 @@ dclass DistributedCraftingMinigame : DistributedInstanceBaseAI {
 
 // 90
 dclass HolidayManager {
-    setTimeSpan(string[]); // 642
+    setTimeSpan(string[]) required broadcast ram; // 642
     setTimeSpanHeartbeat(string[], int32); // 643
-    setTimeSpanMessage(string); // 644
+    setTimeSpanMessage(string) required broadcast ram; // 644
     setRequestMeadowMute(uint32, uint8); // 645
     triggerBadgeEvent(string, int32, uint32, int32); // 646
     reloadConfigFile(string, string); // 647
     reloadShopData(uint32); // 648
     reloadStockLimitData(); // 649
     reloadAltVersionTokens(); // 650
-    setShopsOpen(int8); // 651
+    setShopsOpen(int8) required broadcast ram; // 651
 }
 
 // 91
 dclass DistributedFairyShopkeeperNPC : DistributedFairyNPC {
-    setShopId(int16); // 652
-    setShopItems(ShopCollection[]); // 653
+    setShopId(int16) required broadcast ram; // 652
+    setShopItems(ShopCollection[]) required broadcast ram; // 653
     setRequestPurchase(PurchaseItem[], int8); // 654
     setPurchase(uint16); // 655
     setTryOn(LiteShopItem[]); // 656
     setTriedOnItems(ShopTriedOnItems[]); // 657
     setRequestPurchasePet(PurchaseItem, int16, int16, int8); // 658
     setRequestDyeItem(uint64, int16, int16, int8, int8); // 659
-    setDyePrice(int32, int16, int16, int16, int16); // 660
+    setDyePrice(int32 dyeCostItemId, int16 dye1Price, int16 dye2Price, int16 dye1Gold, int16 dye2Gold) required broadcast ram; // 660
     setRequestGiftSet(PurchaseItem, uint32, uint32, int16, int32); // 661
     setStockLimits(StockUpdate[]); // 662
 }

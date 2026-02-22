@@ -14,6 +14,7 @@ from game.fairies.minigame.DistributedTalentMinigameAI import DistributedTalentM
 from game.fairies.gateway.DistributedGatewayAI import DistributedGatewayAI
 from game.fairies.gateway.GatewayConstants import GATEWAYS
 from game.fairies.fairy.npc.DistributedFairyQuestNPCAI import DistributedFairyQuestNPCAI
+from game.fairies.fairy.npc.DistributedFairyShopkeeperNPCAI import DistributedFairyShopkeeperNPCAI
 from game.fairies.fairy import FamousFairyData
 from game.fairies.ai import ZoneConstants
 from game.otp.ai.AIDistrict import AIDistrict
@@ -67,7 +68,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
 
         self.setAIReceiver(self.district.getDoId(), self.ourChannel)
 
-        for zoneId in MinigameConstants.ZONE_TO_GAME:
+        for zoneId in ZoneConstants.GAMES_ZONE_LIST:
             minigame = DistributedTalentMinigameAI(self)
             minigame.setGameID(MinigameConstants.getGameIdForZone(zoneId))
             minigame.generateWithRequired(zoneId)
@@ -91,7 +92,14 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         tutorialTerence.setFairyDNA(FamousFairyData.TERENCE_DNA)
         tutorialTerence.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_TERENCE)
         tutorialTerence.setQuestGiverId(FamousFairyData.TERENCE_DO_ID)
-        tutorialTerence.generateWithRequired(ZoneConstants.PIXIE_DUST_MILL)
+        # tutorialTerence.generateWithRequired(ZoneConstants.PIXIE_DUST_MILL)
+
+        shopNpcTest = DistributedFairyShopkeeperNPCAI(self)
+        shopNpcTest.setName(FamousFairyData.GALE)
+        shopNpcTest.setPosition(100, 100)
+        shopNpcTest.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_GALE)
+        # TODO: shopNpcTest.setShopItems()
+        shopNpcTest.generateWithRequired(ZoneConstants.GALES_OUTFITTERS)
 
         # mark district as avaliable
         self.district.b_setAvailable(1)

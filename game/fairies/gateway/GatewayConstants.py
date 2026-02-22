@@ -1,6 +1,6 @@
 from game.fairies.ai import ZoneConstants
 
-GATEWAYS = {
+GATEWAYS: dict[int, list[dict]] = {
     ZoneConstants.ACORN_SUMMIT: [
         {
             # Fairy Fireworks
