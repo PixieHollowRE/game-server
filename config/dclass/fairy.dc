@@ -2,6 +2,8 @@ from game.fairies.uberdog import HolidayManagerUD
 from game.fairies.distributed import FairiesRealmAI
 from game.fairies.fairy import DistributedFairyPlayerAI
 from game.fairies.fairy import DistributedFairyGMAI
+from game.fairies.fairy.npc import DistributedFairyNPCAI
+from game.fairies.fairy.npc import DistributedFairyQuestNPCAI
 from game.fairies.instance import DistributedInstanceBaseAI
 from game.fairies.minigame import DistributedTalentMinigameAI
 from game.fairies.gateway import DistributedGatewayAI
@@ -584,7 +586,7 @@ dclass DistributedFairyBase: TalkPath_owner, TalkPath_whisper {
 
 // 79
 dclass DistributedFairyNPC : DistributedFairyBase {
-	setFamousFairyId(int32); // 483
+	setFamousFairyId(int32) required broadcast ram; // 483
 }
 
 // 80
@@ -705,7 +707,7 @@ dclass DistributedFamousFairyGM : DistributedFairyGM {
 
 // 83
 dclass DistributedFairyQuestNPC : DistributedFairyNPC {
-    setQuestGiverId(int32); // 587
+    setQuestGiverId(int32) required broadcast ram; // 587
     requestQuestChoices(int8); // 588
     setQuestChoices(QuestId[], QuestState[]); // 589
     setQuestChoice(int32); // 590

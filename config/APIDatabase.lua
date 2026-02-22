@@ -108,7 +108,9 @@ Api2Field = {
 
     -- DistributedFairyPlayer
     accountId = "setDISLid",
-    name = "setName"
+    name = "setName",
+    moreOptions = "setMoreOptions",
+    tutorialBitmask = "setHelpFlags"
 }
 
 Field2Api = {}

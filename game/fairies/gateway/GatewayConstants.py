@@ -1,11 +1,13 @@
+from game.fairies.ai import ZoneConstants
+
 GATEWAYS = {
-    200: [
+    ZoneConstants.ACORN_SUMMIT: [
         {
             # Fairy Fireworks
             "name": "9024",
             "position": (460, 52),
             "targetLocationName": "",
-            "targetZoneID": 50010,
+            "targetZoneID": ZoneConstants.FAIRY_FIREWORKS_GAME,
             "rewardList": [8001, 8002, 8003]
         },
         {
@@ -13,51 +15,51 @@ GATEWAYS = {
             "name": "9228",
             "position": (967, 185),
             "targetLocationName": "",
-            "targetZoneID": 50046,
+            "targetZoneID": ZoneConstants.VIDIAS_DAILY_SPIN,
         },
         {
             # Summit Style
             "name": "9023",
             "position": (964, 402),
             "targetLocationName": "",
-            "targetZoneID": 110002,
-        },  
+            "targetZoneID": ZoneConstants.SUMMIT_STYLE,
+        },
         {
             # Pumpkin Patch
             "name": "9201",
             "position": (70, 870),
             "targetLocationName": "",
-            "targetZoneID": 203,
+            "targetZoneID": ZoneConstants.PUMPKIN_PATCH,
         },
         {
             # Maple Tree Hill
             "name": "9072",
             "position": (900, 920),
             "targetLocationName": "",
-            "targetZoneID": 202,
+            "targetZoneID": ZoneConstants.MAPLE_TREE_HILL,
         },
         {
             # Cottonpuff Field
             "name": "9080",
             "position": (1460, 800),
             "targetLocationName": "",
-            "targetZoneID": 201,
-        },        
+            "targetZoneID": ZoneConstants.COTTONPUFF_SQUARE,
+        },
         {
             # Snowcap Glade
             "name": "9108",
             "position": (1650, 300),
             "targetLocationName": "",
-            "targetZoneID": 301,
+            "targetZoneID": ZoneConstants.SNOWCAP_GLADE,
         },
     ],
-    500: [
+    ZoneConstants.HAVENDISH_SQUARE: [
         {
             # Springtime Orchard
             "name": "9028",
             "position": (1995, 760),
             "targetLocationName": "",
-            "targetZoneID": 101
+            "targetZoneID": ZoneConstants.SPRINGTIME_ORCHARD,
         },
     ]
 }

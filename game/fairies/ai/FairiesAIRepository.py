@@ -13,6 +13,7 @@ from game.fairies.minigame import MinigameConstants
 from game.fairies.minigame.DistributedTalentMinigameAI import DistributedTalentMinigameAI
 from game.fairies.gateway.DistributedGatewayAI import DistributedGatewayAI
 from game.fairies.gateway.GatewayConstants import GATEWAYS
+from game.fairies.fairy.npc.DistributedFairyQuestNPCAI import DistributedFairyQuestNPCAI
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.server.ServerBase import ServerBase
 from game.otp.server.ServerGlobals import WORLD_OF_CARS_ONLINE
@@ -33,7 +34,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         # for dclass in self.dclassesByName:
             # print(self.dclassesByName[dclass].getName(), self.dclassesByName[dclass].getNumber())
 
-        # print(self.dclassesByName["TalkPath_account_group"].getFieldByName("setTalkAccountGroup"))
+        # print(self.dclassesByName["DistributedFairyQuestNPCAI"].getFieldByName("setQuestGiverId"))
 
     def getGameDoId(self):
         return OTP_DO_ID_FAIRIES
@@ -69,7 +70,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             minigame.setGameID(MinigameConstants.getGameIdForZone(zoneId))
             minigame.generateWithRequired(zoneId)
 
-        for zone_id, gateways in GATEWAYS.items():
+        for zoneId, gateways in GATEWAYS.items():
             for gw in gateways:
                 gate = DistributedGatewayAI(self)
                 gate.setName(gw["name"])
@@ -77,10 +78,14 @@ class FairiesAIRepository(AIDistrict, ServerBase):
                 gate.setTargetLocationName(gw["targetLocationName"])
                 gate.setTargetZoneID(gw["targetZoneID"])
 
-                if reward_list := gw.get("rewardList"):
-                    gate.setRewardList(reward_list)
+                if rewardList := gw.get("rewardList"):
+                    gate.setRewardList(rewardList)
 
-                gate.generateWithRequired(zone_id)
+                gate.generateWithRequired(zoneId)
+
+        # DistributedFairyQuestNPC testing
+        tutorialFairyQuestNpc = DistributedFairyQuestNPCAI(self)
+        tutorialFairyQuestNpc.generateWithRequired(ZoneConstants.PIXIE_DUST_MILL)
 
         # mark district as avaliable
         self.district.b_setAvailable(1)
