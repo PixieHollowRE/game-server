@@ -608,7 +608,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     teleportResponseTo(uint32, int8); // 498
     teleportResponse(uint32, int8, uint32, uint32, uint32); // 499
     setOptionsMask(int32); // 500
-    setMoreOptions(string) clsend; // 501
+    setMoreOptions(string) clsend db; // 501
     setItemEvent(uint32, uint32, uint32, uint32) clsend; // 502
     statusUpdateFromFairy(uint32, uint32); // 503
     badgeAcquired(int16); // 504
