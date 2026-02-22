@@ -4,14 +4,18 @@ from direct.task import Task
 from game.otp.distributed.OtpDoGlobals import *
 from game.otp.distributed.DistributedDistrictAI import DistributedDistrictAI
 
+from . import RealmGlobals
+
 import time
+import json
 
 class FairiesRealmAI(DistributedDistrictAI):
     notify = directNotify.newCategory("FairiesRealmAI")
 
     def __init__(self, air, name="untitled"):
         DistributedDistrictAI.__init__(self, air, name)
-        self.populationLevel: int = 0
+
+        self.realmPopulationLevels: list[int] = json.loads(config.GetString("realm-population-levels"))
 
     def generate(self):
         DistributedDistrictAI.generate(self)
@@ -19,8 +23,20 @@ class FairiesRealmAI(DistributedDistrictAI):
     def delete(self):
         DistributedDistrictAI.delete(self)
 
+    def updatePopulationLevel(self):
+        self.sendUpdate("setPopulationLevel", [self.getPopulationLevel()])
+
     def getPopulationLevel(self):
-        return self.populationLevel
+        realmPop = self.air.getPopulation()
+
+        if realmPop >= self.realmPopulationLevels[3]:
+            return RealmGlobals.FULL_LEVEL
+        elif realmPop >= self.realmPopulationLevels[2]:
+            return RealmGlobals.CROWDED_LEVEL
+        elif realmPop >= self.realmPopulationLevels[1]:
+            return RealmGlobals.IDEAL_LEVEL
+        else:
+            return RealmGlobals.QUIET_LEVEL
 
     def setServerTime(self, refresh):
         if refresh:

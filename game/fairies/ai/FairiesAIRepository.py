@@ -108,6 +108,9 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             # Send our population update.
             self.sendPopulation()
 
+        # Update the population on the district (realm as well).
+        self.district.updatePopulationLevel()
+
     def sendFriendManagerAccountOnline(self, accountId):
         dg = PyDatagram()
         dg.addServerHeader(OTP_DO_ID_PLAYER_FRIENDS_MANAGER, self.ourChannel, FRIENDMANAGER_ACCOUNT_ONLINE)
