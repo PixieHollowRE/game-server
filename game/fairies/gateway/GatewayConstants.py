@@ -43,7 +43,7 @@ GATEWAYS = {
             "name": "9080",
             "position": (1460, 800),
             "targetLocationName": "",
-            "targetZoneID": ZoneConstants.COTTONPUFF_SQUARE,
+            "targetZoneID": ZoneConstants.COTTONPUFF_FIELD,
         },
         {
             # Snowcap Glade
@@ -54,6 +54,76 @@ GATEWAYS = {
         },
     ],
     ZoneConstants.HAVENDISH_SQUARE: [
+        {
+            # Fairy Coliseum
+            "name": "9274",
+            "position": (65, 90),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.FAIRY_COLISEUM
+        },
+        {
+            # Cottonpuff Field
+            "name": "9083",
+            "position": (2, 314),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.COTTONPUFF_FIELD
+        },
+        {
+            # Queen's Boutique
+            "name": "9282",
+            "position": (40, 23),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.QUEENS_BOUTIQUE
+        },
+        {
+            # Cassie's Costume Shop
+            "name": "9214",
+            "position": (270, 100),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.CASSIES_COSTUME_SHOP
+        },
+        {
+            # Pixie Dust Mill
+            "name": "9267",
+            "position": (290, 1160),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.PIXIE_DUST_MILL
+        },
+        {
+            # Fairy Tale Theatre
+            "name": "9179",
+            "position": (851, 439),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.FAIRY_TALE_THEATRE
+        },
+        {
+            # Neverfruit Grove
+            "name": "9161",
+            "position": (990, 1145),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.NEVERFRUIT_GROVE
+        },
+        {
+            # Ballroom
+            "name": "9188",
+            "position": (1272, 388),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.THE_BALLROOM
+        },
+        {
+            # Pixie Postings
+            "name": "9206", # 9206 (Spring), 9225 (Summer), 9181 (Autumn), 9183 (Winter)
+            "position": (1635, 949),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.PIXIE_POSTINGS
+        },
+        {
+            # Tearoom
+            "name": "9180",
+            "position": (2001, 457),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.THE_TEAROOM
+        },
         {
             # Springtime Orchard
             "name": "9028",
