@@ -6,13 +6,13 @@ class FairyPose:
     def __init__(self) -> None:
         self.head_rot: int = 0
         self.ul_arm_rot: int = 0
-        self.ur_arm_rot: int = 0
+        self.ur_arm_rot: int = 10
         self.ll_arm_rot: int = 0
-        self.lr_arm_rot: int = 0
+        self.lr_arm_rot: int = -28
         self.ul_leg_rot: int = 0
         self.ur_leg_rot: int = 0
         self.ll_leg_rot: int = 0
-        self.lr_leg_rot: int = 0
+        self.lr_leg_rot: int = 15
 
     @classmethod
     def unpackFromTuple(cls, data: Sequence[int]) -> FairyPose:

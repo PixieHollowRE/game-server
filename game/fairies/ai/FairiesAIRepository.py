@@ -92,12 +92,15 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         tutorialTerence.setFairyDNA(FamousFairyData.TERENCE_DNA)
         tutorialTerence.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_TERENCE)
         tutorialTerence.setQuestGiverId(FamousFairyData.TERENCE_DO_ID)
-        # tutorialTerence.generateWithRequired(ZoneConstants.PIXIE_DUST_MILL)
+        tutorialTerence.setRoomID(1)
+        tutorialTerence.generateWithRequiredAndId(FamousFairyData.TERENCE_DO_ID, self.districtId, ZoneConstants.PIXIE_DUST_MILL)
 
         shopNpcTest = DistributedFairyShopkeeperNPCAI(self)
+        shopNpcTest.setShopId(3)
         shopNpcTest.setName(FamousFairyData.GALE)
         shopNpcTest.setPosition(100, 100)
         shopNpcTest.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_GALE)
+        shopNpcTest.setRoomID(1)
         # TODO: shopNpcTest.setShopItems()
         shopNpcTest.generateWithRequired(ZoneConstants.GALES_OUTFITTERS)
 
