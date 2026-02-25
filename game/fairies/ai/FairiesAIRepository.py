@@ -93,7 +93,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         tutorialTerence.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_TERENCE)
         tutorialTerence.setQuestGiverId(FamousFairyData.TERENCE_DO_ID)
         tutorialTerence.setRoomID(1)
-        tutorialTerence.generateWithRequiredAndId(FamousFairyData.TERENCE_DO_ID, self.districtId, ZoneConstants.PIXIE_DUST_MILL)
+        tutorialTerence.generateWithRequired(ZoneConstants.PIXIE_DUST_MILL)
 
         shopNpcTest = DistributedFairyShopkeeperNPCAI(self)
         shopNpcTest.setShopId(3)
