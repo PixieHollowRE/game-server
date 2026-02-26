@@ -337,7 +337,7 @@ dclass DistributedMeadow : DistributedInstanceBaseAI {
     setHotspotTrigger(int16); // 288
     setHotspotFrame(int16,int16); // 289
     setHotspotStates(uint32, HotspotState[]); // 290
-    requestHotspotStates() clsend; // 291
+    requestHotspotStates() clsend airecv; // 291
 }
 
 // 65
@@ -649,7 +649,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     setWingsDB(int32, int16); // 536
     consumePouchItem(int32, int32); // 537
     pouchItemGranted(int32, int32); // 538
-    setHotspotTriggered(int16, int16); // 539
+    setHotspotTriggered(int16, int16) clsend airecv; // 539
     setScriptLine(int16); // 540
     setPetFeed(uint32, int32, int32); // 541
     setPetEmote(uint16); // 542
