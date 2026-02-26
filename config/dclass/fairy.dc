@@ -11,6 +11,7 @@ from game.fairies.gateway import DistributedGatewayAI
 from game.fairies.uberdog import FairiesBadgeManagerUD
 from game.fairies.ai import FairiesBadgeManagerAI
 from game.fairies.meadow import DistributedMeadowAI
+from game.fairies.ai import FairiesMagicWordManagerAI
 
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.
@@ -845,8 +846,8 @@ dclass GameMasterController {
 
 // 94
 dclass FairiesMagicWordManager : DistributedObject {
-    setID(int8); // 673
-    setMagicWord(string, uint32, uint32, string); // 674
+    setID(int8) required broadcast ram; // 673
+    setMagicWord(string, uint32, uint32, string) clsend airecv; // 674
     setMagicWordResponse(string); // 675
 }
 

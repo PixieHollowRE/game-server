@@ -18,6 +18,7 @@ from game.fairies.fairy.npc.DistributedFairyQuestNPCAI import DistributedFairyQu
 from game.fairies.fairy.npc.DistributedFairyShopkeeperNPCAI import DistributedFairyShopkeeperNPCAI
 from game.fairies.fairy import FamousFairyData
 from game.fairies.ai import ZoneConstants
+from game.fairies.ai.FairiesMagicWordManagerAI import FairiesMagicWordManagerAI
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.server.ServerBase import ServerBase
 from game.otp.server.ServerGlobals import WORLD_OF_CARS_ONLINE
@@ -152,6 +153,14 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         cassiesShop.generateWithRequired(ZoneConstants.CASSIES_COSTUME_SHOP)
 
         self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
+
+        # The Magic Word Manager
+        self.magicWordManager = FairiesMagicWordManagerAI(self)
+        self.magicWordManager.generateOtpObject(
+            self.getGameDoId(), COMMUNITY_ALERTS_ALL,
+            doId=self.allocateChannel())
+
+        self.setAIReceiver(self.magicWordManager.getDoId(), self.ourChannel)
 
         # mark district as avaliable
         self.district.b_setAvailable(1)
