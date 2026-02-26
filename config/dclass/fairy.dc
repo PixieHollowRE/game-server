@@ -10,6 +10,7 @@ from game.fairies.minigame import DistributedTalentMinigameAI
 from game.fairies.gateway import DistributedGatewayAI
 from game.fairies.uberdog import FairiesBadgeManagerUD
 from game.fairies.ai import FairiesBadgeManagerAI
+from game.fairies.meadow import DistributedMeadowAI
 
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.

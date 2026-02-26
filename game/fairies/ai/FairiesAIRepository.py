@@ -9,6 +9,7 @@ from game.fairies.fairy.DistributedFairyPlayerAI import DistributedFairyPlayerAI
 from game.fairies.distributed.FairiesRealmAI import FairiesRealmAI
 from game.fairies.distributed.FairiesGlobals import *
 from game.fairies.distributed.MongoInterface import MongoInterface
+from game.fairies.meadow.DistributedMeadowAI import DistributedMeadowAI
 from game.fairies.minigame import MinigameConstants
 from game.fairies.minigame.DistributedTalentMinigameAI import DistributedTalentMinigameAI
 from game.fairies.gateway.DistributedGatewayAI import DistributedGatewayAI
@@ -72,6 +73,10 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             minigame = DistributedTalentMinigameAI(self)
             minigame.setGameID(MinigameConstants.getGameIdForZone(zoneId))
             minigame.generateWithRequired(zoneId)
+
+        for zoneId in ZoneConstants.SHOPS_ZONE_LIST:
+            shop = DistributedMeadowAI(self)
+            shop.generateWithRequired(zoneId)
 
         for zoneId, gateways in GATEWAYS.items():
             for gw in gateways:
