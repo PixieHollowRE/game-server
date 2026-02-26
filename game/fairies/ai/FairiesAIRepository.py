@@ -98,11 +98,22 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         shopNpcTest = DistributedFairyShopkeeperNPCAI(self)
         shopNpcTest.setShopId(3)
         shopNpcTest.setName(FamousFairyData.GALE)
-        shopNpcTest.setPosition(100, 100)
+        shopNpcTest.setFairyDNA(FamousFairyData.GALE_DNA)
+        shopNpcTest.setPosition(434, 429)
         shopNpcTest.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_GALE)
         shopNpcTest.setRoomID(1)
         # TODO: shopNpcTest.setShopItems()
         shopNpcTest.generateWithRequired(ZoneConstants.GALES_OUTFITTERS)
+
+        cassiesShop = DistributedFairyShopkeeperNPCAI(self)
+        cassiesShop.setShopId(4)
+        cassiesShop.setName(FamousFairyData.CASSIE)
+        cassiesShop.setFairyDNA(FamousFairyData.CASSIE_DNA)
+        cassiesShop.setPosition(500, 350)
+        cassiesShop.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_CASSIE)
+        cassiesShop.setRoomID(1)
+        # TODO: cassiesShop.setShopItems()
+        cassiesShop.generateWithRequired(ZoneConstants.CASSIES_COSTUME_SHOP)
 
         self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
 
