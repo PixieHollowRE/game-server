@@ -331,12 +331,12 @@ dclass DistributedInstanceBaseAI {
 dclass DistributedMeadow : DistributedInstanceBaseAI {
     unk_283(); // 283
     unk_284(); // 284
-    setAssetURL(string) db required clrecv; // 285
-    setMute(uint8) ram broadcast; // 286
-    setCrowdBarriers(uint8) ram broadcast; // 287
-    setHotspotTrigger(int16) ram broadcast; // 288
-    setHotspotFrame(int16,int16) ram broadcast; // 289
-    setHotspotStates(uint32, HotspotState[]) ram broadcast airecv; // 290
+    setAssetURL(string) required broadcast ram; // 285
+    setMute(uint8); // 286
+    setCrowdBarriers(uint8) required broadcast ram; // 287
+    setHotspotTrigger(int16); // 288
+    setHotspotFrame(int16,int16); // 289
+    setHotspotStates(uint32, HotspotState[]); // 290
     requestHotspotStates() clsend; // 291
 }
 
