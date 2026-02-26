@@ -11,3 +11,6 @@ class DistributedFairyQuestNPCAI(DistributedFairyNPCAI):
 
     def getQuestGiverId(self) -> int:
         return self.questGiverId
+
+    def requestQuestChoices(self, questSeed: int) -> None:
+        self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), "setQuestChoices", [[], []])
