@@ -100,6 +100,14 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         tutorialTerence.setRoomID(1)
         tutorialTerence.generateWithRequired(ZoneConstants.PIXIE_DUST_MILL)
 
+        tinkerbellQuest = DistributedFairyQuestNPCAI(self)
+        tinkerbellQuest.setName(str(FamousFairyData.TINKERBELL_DO_ID))
+        tinkerbellQuest.setFairyDNA(FamousFairyData.TINKERBELL_DNA)
+        tinkerbellQuest.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_TINKERBELL)
+        tinkerbellQuest.setQuestGiverId(FamousFairyData.TINKERBELL_DO_ID)
+        tinkerbellQuest.setRoomID(1)
+        tinkerbellQuest.generateWithRequired(ZoneConstants.TINKERS_NOOK)
+
         TEST_SHOP_DATA = [
             (
                 1, # collectionId

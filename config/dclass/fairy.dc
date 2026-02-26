@@ -712,7 +712,7 @@ dclass DistributedFamousFairyGM : DistributedFairyGM {
 // 83
 dclass DistributedFairyQuestNPC : DistributedFairyNPC {
     setQuestGiverId(int32) required broadcast ram; // 587
-    requestQuestChoices(int8); // 588
+    requestQuestChoices(int8) clsend airecv; // 588
     setQuestChoices(QuestId[], QuestState[]); // 589
     setQuestChoice(int32); // 590
     requestStepComplete(QuestId, uint64[]); // 591

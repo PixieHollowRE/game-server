@@ -1,6 +1,8 @@
 # Terence's fixed object ID
 TERENCE_DO_ID = 15507
 
+TINKERBELL_DO_ID = 15504
+
 # Famous Fairy IDs (from npcToFamousFairy mapping in FamousFairyData)
 FAMOUS_FAIRY_TERENCE = 35
 FAMOUS_FAIRY_FAWN = 2
@@ -66,5 +68,23 @@ CASSIE_DNA = (
     24, # eye_color
     103, # skin_color
     109, # wing_color
+    1
+)
+
+TINKERBELL_DNA = (
+    12, # talent
+    95, # head
+    100, # height
+    88, # body
+    5528, # hair_back
+    5022, # hair_front
+    4524, # face
+    4024, # eye
+    6005, # wing
+    73, # hair_color
+    73, # hair_color2
+    63, # eye_color
+    106, # skin_color
+    165, # wing_color
     1
 )
