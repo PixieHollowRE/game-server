@@ -37,7 +37,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         # for dclass in self.dclassesByName:
             # print(self.dclassesByName[dclass].getName(), self.dclassesByName[dclass].getNumber())
 
-        # print(self.dclassesByName["DistributedFairyQuestNPCAI"].getFieldByName("setQuestGiverId"))
+        # print(self.dclassesByName["FairiesBadgeManagerAI"].getFieldByName("setBadges"))
 
     def getGameDoId(self):
         return OTP_DO_ID_FAIRIES
@@ -103,6 +103,8 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         shopNpcTest.setRoomID(1)
         # TODO: shopNpcTest.setShopItems()
         shopNpcTest.generateWithRequired(ZoneConstants.GALES_OUTFITTERS)
+
+        self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
 
         # mark district as avaliable
         self.district.b_setAvailable(1)

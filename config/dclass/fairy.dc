@@ -8,6 +8,8 @@ from game.fairies.fairy.npc import DistributedFairyShopkeeperNPCAI
 from game.fairies.instance import DistributedInstanceBaseAI
 from game.fairies.minigame import DistributedTalentMinigameAI
 from game.fairies.gateway import DistributedGatewayAI
+from game.fairies.uberdog import FairiesBadgeManagerUD
+from game.fairies.ai import FairiesBadgeManagerAI
 
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.
@@ -745,7 +747,7 @@ dclass FairiesBadgeManager {
 // 86
 dclass PetMgr {
     setPet(uint32, PetDNA, int16, int16, int16); // 608
-    petProfileRequest(uint32); // 609
+    petProfileRequest(uint32) clsend airecv; // 609
     petProfileResponse(uint32, PetDNA, PetDetail); // 610
     petAteFood(uint32, int32); // 611
     petHealed(uint32); // 612

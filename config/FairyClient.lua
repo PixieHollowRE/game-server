@@ -53,6 +53,10 @@ STATESERVER_OBJECT_SET_ZONE = 2008
 
 CLIENTAGENT_EJECT = 3004
 
+CHANNEL_PUPPET_ACTION = 4004
+
+ACCOUNT_AVATAR_USAGE = 3005
+
 CENTRAL_LOGGER_REQUEST = 15000
 
 ALLOW_MODERATION_ACTIONS = 3007
@@ -475,6 +479,12 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
     end
     client:objectSetOwner(avatarId, true)
 
+    -- Let the UberDog know about our avatar usage.
+    sendUsage(client, userTable.playToken, userTable.openChat, 0, avatarId, accountId, userTable.isPaid, false)
+
+    -- Let the UberDog know about our avatar usage (going offline post remove).
+    sendUsage(client, userTable.playToken, userTable.openChat, avatarId, 0, accountId, userTable.isPaid, true)
+
     avatarSpeedChatPlusStates[avatarId] = userTable.speedChatPlus
 end
 
@@ -485,6 +495,70 @@ function handleAddInterest(client, dgi)
     local zones = {}
     table.insert(zones, dgi:readUint32())
     client:handleAddInterest(handle, context, parent, zones)
+end
+
+function sendUsage(client, playToken, openChat, priorAvatar, newAvatar, accountId, isPaid, postRemove)
+    -- Log avatar usage
+    local playerName = playToken
+    local playerNameApproved = 1
+    local openChatEnabled = "NO"
+    local createFriendsWithChat = "NO"
+    local chatCodeCreation = "NO"
+
+    if openChat then
+        openChatEnabled = "YES"
+        createFriendsWithChat = "CODE"
+        chatCodeCreation = "YES"
+    end
+
+    local avatarId
+
+    if priorAvatar ~= 0 then
+        avatarId = priorAvatar
+    else
+        avatarId = newAvatar
+    end
+
+    local dg = datagram:new()
+    dg:addServerHeader(CHANNEL_PUPPET_ACTION, avatarId, ACCOUNT_AVATAR_USAGE)
+
+    dg:addUint32(priorAvatar) -- priorAvatar
+    dg:addUint32(newAvatar) -- newAvatar
+    dg:addUint16(0) -- newAvatarType
+    dg:addUint32(accountId) -- accountId
+    dg:addString(openChatEnabled) -- openChatEnabled
+    dg:addString(createFriendsWithChat) -- createFriendsWithChat
+    dg:addString(chatCodeCreation) -- chatCodeCreation
+
+    if isPaid then
+        dg:addString("FULL") -- piratesAccess
+    else
+        dg:addString("VELVET") -- piratesAccess
+    end
+
+    dg:addInt32(0) -- familyAccountId
+    dg:addInt32(accountId) -- playerAccountId
+
+    dg:addString(playerName) -- playerName
+    dg:addInt8(playerNameApproved) -- playerNameApproved
+
+    -- maxAvatars
+    -- NOTE: Sunrise only supports one Fairy or Sparrow Man character per account.
+    -- Sunrise is aiming for accuracy as close as possible, even if the client may allow it still.
+
+    -- Prior to November 10, 2011, you could create up to three fairies or sparrow men.
+    -- After that date, you could only create one fairy per Disney account.
+    local maxAvatars = 1
+
+    dg:addInt32(maxAvatars) -- maxAvatars
+
+    dg:addInt16(0) -- numFamilyMembers
+
+    if postRemove then
+        client:addPostRemove(dg)
+    else
+        client:routeDatagram(dg)
+    end
 end
 
 function handleAddOwnership(client, doId, parent, zone, dc, dgi)

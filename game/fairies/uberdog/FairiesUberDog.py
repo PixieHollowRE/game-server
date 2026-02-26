@@ -30,6 +30,8 @@ class FairiesUberDog(UberDog):
         return OTP_DO_ID_FAIRIES
 
     def createObjects(self):
+        UberDog.createObjects(self)
+
         # Since we'll be generating objects to the State Server, we should
         # tell it to delete objects when this server goes down.
         datagram = PyDatagram()
@@ -39,10 +41,12 @@ class FairiesUberDog(UberDog):
         # schedule for execution on socket close
         self.addPostSocketClose(datagram)
 
-        holidayManager = HolidayManagerUD(self)
-        holidayManager.generateOtpObject(
-            self.getGameDoId(), OTP_ZONE_ID_DISTRICTS, # COMMUNITY_ALERTS_ALL
+        self.holidayManager = HolidayManagerUD(self)
+        self.holidayManager.generateOtpObject(
+            self.getGameDoId(), COMMUNITY_ALERTS_ALL,
             doId=self.allocateChannel())
+
+        self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
 
     def handlePlayGame(self, msgType, di):
         # Handle Fairies specific message types before

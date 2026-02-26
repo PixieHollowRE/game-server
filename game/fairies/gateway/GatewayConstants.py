@@ -142,7 +142,6 @@ GATEWAYS: dict[int, list[dict]] = {
         },
     ],
     ZoneConstants.FAIRY_TALE_THEATER: [
-        
         {
             # Havendish Square
             "name": "9174",
@@ -183,7 +182,7 @@ GATEWAYS: dict[int, list[dict]] = {
             "position": (61, 57),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
-        },   
+        },
     ],
     ZoneConstants.LIZZYS_HOUSE: [
         {
@@ -215,7 +214,7 @@ GATEWAYS: dict[int, list[dict]] = {
             "position": (762, 219),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.ZEPHYRS_ZOOM_ROOM,
-        }, 
+        },
     ],
     ZoneConstants.ZEPHYRS_ZOOM_ROOM: [
         {

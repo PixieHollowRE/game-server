@@ -27,6 +27,12 @@ uberdogs:
     - class: FMPlayerFriendsManager
       id: 4687
 
+    - class: FairiesBadgeManager
+      id: 4690
+
+    - class: PetMgr
+      id: 4691
+
 roles:
     - type: clientagent
       # Clients connect in raw TCP.
