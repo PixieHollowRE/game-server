@@ -672,7 +672,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     setGardenType(int32) ownrequired broadcast db ownrecv; // 558
     setAltVersionToken(string, int16); // 559
     requestAltVersionToken(string); // 560
-    requestDailyGoldTradeCapData(); // 561
+    requestDailyGoldTradeCapData() clsend airecv; // 561
     setDailyGoldTradeCap(int32); // 562
     setAmountGoldTradedForToday(int32); // 563
     requestPopUpId(); // 564
@@ -816,7 +816,7 @@ dclass DistributedFairyShopkeeperNPC : DistributedFairyNPC {
     setShopItems(ShopCollection[]) required broadcast ram; // 653
     setRequestPurchase(PurchaseItem[], int8); // 654
     setPurchase(uint16); // 655
-    setTryOn(LiteShopItem[]); // 656
+    setTryOn(LiteShopItem[]) clsend airecv; // 656
     setTriedOnItems(ShopTriedOnItems[]); // 657
     setRequestPurchasePet(PurchaseItem, int16, int16, int8); // 658
     setRequestDyeItem(uint64, int16, int16, int8, int8); // 659

@@ -100,6 +100,29 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         tutorialTerence.setRoomID(1)
         tutorialTerence.generateWithRequired(ZoneConstants.PIXIE_DUST_MILL)
 
+        TEST_SHOP_DATA = [
+            (
+                1, # collectionId
+                1, # currencyId (COLLECTION_CURRENCYSUPPORT_BOTH)
+                [ # items
+                (
+                    77515, # itemId (Pink Bunny Ears)
+                    100, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    0, # specialType
+                    100, # price
+                    0, # status
+                    0, # howAcquired
+                    100 # memberGoldPrice
+                )
+                ],
+                [ # outfits
+                ]
+            )
+        ]
+
         shopNpcTest = DistributedFairyShopkeeperNPCAI(self)
         shopNpcTest.setShopId(3)
         shopNpcTest.setName(FamousFairyData.GALE)
@@ -107,7 +130,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         shopNpcTest.setPosition(434, 429)
         shopNpcTest.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_GALE)
         shopNpcTest.setRoomID(1)
-        # TODO: shopNpcTest.setShopItems()
+        shopNpcTest.setShopItems(TEST_SHOP_DATA)
         shopNpcTest.generateWithRequired(ZoneConstants.GALES_OUTFITTERS)
 
         cassiesShop = DistributedFairyShopkeeperNPCAI(self)
@@ -117,7 +140,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         cassiesShop.setPosition(500, 350)
         cassiesShop.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_CASSIE)
         cassiesShop.setRoomID(1)
-        # TODO: cassiesShop.setShopItems()
+        cassiesShop.setShopItems(TEST_SHOP_DATA)
         cassiesShop.generateWithRequired(ZoneConstants.CASSIES_COSTUME_SHOP)
 
         self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
