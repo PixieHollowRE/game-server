@@ -8,7 +8,7 @@ GATEWAYS: dict[int, list[dict]] = {
             "position": (460, 52),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.FAIRY_FIREWORKS_GAME,
-            "rewardList": [8001, 8002, 8003],
+            "rewardList": [8001, 8002, 8013],
         },
         {
             # Vidia's Daily Spin
@@ -223,6 +223,44 @@ GATEWAYS: dict[int, list[dict]] = {
             "position": (175, 303),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.FAIRY_COLISEUM,
+        },
+    ],
+    ZoneConstants.EVERGREEN_OVERLOOK: [
+        {
+            # Chilly Falls
+            "name": "9120",
+            "position": (840, 398),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.CHILLY_FALLS,
+        },
+        {
+            # Kits
+            "name": "9280",
+            "position": (908, 1082),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.KITS_PLACE,
+        },
+        {
+            # Snowflake Sweep
+            "name": "9125",
+            "position": (645, 1500),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.SNOWFLAKE_SWEEP_GAME,
+            "rewardList": [8003, 8015, 8016],
+        },
+        {
+            # Snowcap Glade
+            "name": "9114",
+            "position": (35, 1618),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.SNOWCAP_GLADE,
+        },
+        {
+            # Havendish Square
+            "name": "9177",
+            "position": (875, 1600),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
         },
     ],
 }
