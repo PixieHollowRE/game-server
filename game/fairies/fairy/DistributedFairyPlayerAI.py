@@ -45,3 +45,12 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         # TODO
         self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), "setDailyGoldTradeCap", [0])
         self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), "setAmountGoldTradedForToday", [0])
+
+    def requestGetSavedOutfits(self):
+        # TODO
+        self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), "setMaxOutfitSlots", [1])
+        self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), "setSavedOutfits", [[]])
+
+    def requestAddSavedOutfit(self, headId: int, necklaceId: int, shirtId: int, beltId: int, skirtId: int, wristId: int, ankleId: int, shoesId: int):
+        # TODO
+        self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), "setSavedOutfits", [[]])

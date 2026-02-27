@@ -600,7 +600,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     setBio(BioAnswer[]) required ownrequired broadcast db ownrecv; // 485
     setHasTagalong(int16) required ownrequired broadcast db ownrecv; // 486
     setTagalongExpire(int32) ownrequired broadcast db ownrecv; // 487
-    setOutfitDB(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64); // 488
+    setOutfitDB(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64) ownsend airecv; // 488
     setStatus(uint8, uint8, uint8, uint8) clsend; // 489
     setSCEmote(uint32, uint16) broadcast ownsend airecv; // 490
     setChatMessage(string) ownsend broadcast; // 491
@@ -688,7 +688,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     setSavedOutfits(SavedOutfit[]); // 573
     requestGetMaxOutfitSlots() ownsend airecv; // 574
     requestGetSavedOutfits() ownsend airecv; // 575
-    requestAddSavedOutfit(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64); // 576
+    requestAddSavedOutfit(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64) ownsend airecv; // 576
     requestUpdateSavedOutfit(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64); // 577
     requestRemoveSavedOutfits(LongType[]); // 578
     requestSendSavedOutfitSlotPurchaseRequest(); // 579
