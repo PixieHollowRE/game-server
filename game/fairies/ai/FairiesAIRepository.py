@@ -19,6 +19,8 @@ from game.fairies.fairy.npc.DistributedFairyShopkeeperNPCAI import DistributedFa
 from game.fairies.fairy import FamousFairyData
 from game.fairies.ai import ZoneConstants
 from game.fairies.ai.FairiesMagicWordManagerAI import FairiesMagicWordManagerAI
+from game.fairies.shop.ShopConstants import SHOPS
+from game.fairies.shop.ShopData import SHOPDATA
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.server.ServerBase import ServerBase
 from game.otp.server.ServerGlobals import WORLD_OF_CARS_ONLINE
@@ -76,9 +78,9 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             minigame.setGameID(MinigameConstants.getGameIdForZone(zoneId))
             minigame.generateWithRequired(zoneId)
 
-        for zoneId in ZoneConstants.SHOPS_ZONE_LIST:
-            shop = DistributedMeadowAI(self)
-            shop.generateWithRequired(zoneId)
+        for zoneId in ZoneConstants.SHOPS_ZONE_LIST + ZoneConstants.MEADOW_ZONES_LIST:
+            meadow = DistributedMeadowAI(self)
+            meadow.generateWithRequired(zoneId)
 
         for zoneId, gateways in GATEWAYS.items():
             for gw in gateways:
@@ -133,25 +135,18 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             )
         ]
 
-        shopNpcTest = DistributedFairyShopkeeperNPCAI(self)
-        shopNpcTest.setShopId(3)
-        shopNpcTest.setName(FamousFairyData.GALE)
-        shopNpcTest.setFairyDNA(FamousFairyData.GALE_DNA)
-        shopNpcTest.setPosition(434, 429)
-        shopNpcTest.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_GALE)
-        shopNpcTest.setRoomID(1)
-        shopNpcTest.setShopItems(TEST_SHOP_DATA)
-        shopNpcTest.generateWithRequired(ZoneConstants.GALES_OUTFITTERS)
+        for zone, shopConfig in SHOPS.items():
+            shopData = SHOPDATA.get(zone, TEST_SHOP_DATA)
+            shop = DistributedFairyShopkeeperNPCAI(self)
+            shop.setShopId(shopConfig["shopID"])
+            shop.setName(shopConfig["name"])
+            shop.setFairyDNA(shopConfig["fairyDNA"])
+            shop.setPosition(shopConfig["position"][0], shopConfig["position"][1])
+            shop.setFamousFairyId(shopConfig["famousFairyID"])
+            shop.setRoomID(1)
+            shop.setShopItems(shopData)
+            shop.generateWithRequired(zone)
 
-        cassiesShop = DistributedFairyShopkeeperNPCAI(self)
-        cassiesShop.setShopId(4)
-        cassiesShop.setName(FamousFairyData.CASSIE)
-        cassiesShop.setFairyDNA(FamousFairyData.CASSIE_DNA)
-        cassiesShop.setPosition(500, 350)
-        cassiesShop.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_CASSIE)
-        cassiesShop.setRoomID(1)
-        cassiesShop.setShopItems(TEST_SHOP_DATA)
-        cassiesShop.generateWithRequired(ZoneConstants.CASSIES_COSTUME_SHOP)
 
         self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
 

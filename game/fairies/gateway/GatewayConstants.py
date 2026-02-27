@@ -6,7 +6,7 @@ GATEWAYS: dict[int, list[dict]] = {
             # Fairy Fireworks
             "name": "9024",
             "position": (460, 52),
-            "targetLocationName": "",
+            "targetLocationName": "fromAcornSummit",
             "targetZoneID": ZoneConstants.FAIRY_FIREWORKS_GAME,
             "rewardList": [8001, 8002, 8013],
         },
@@ -14,42 +14,42 @@ GATEWAYS: dict[int, list[dict]] = {
             # Vidia's Daily Spin
             "name": "9228",
             "position": (967, 185),
-            "targetLocationName": "",
+            "targetLocationName": "fromAcornSummit",
             "targetZoneID": ZoneConstants.VIDIAS_DAILY_SPIN,
         },
         {
             # Summit Style
             "name": "9023",
             "position": (964, 402),
-            "targetLocationName": "",
+            "targetLocationName": "shopEntrance",
             "targetZoneID": ZoneConstants.SUMMIT_STYLE,
         },
         {
             # Pumpkin Patch
             "name": "9201",
             "position": (70, 870),
-            "targetLocationName": "",
+            "targetLocationName": "fromAcornSummit",
             "targetZoneID": ZoneConstants.PUMPKIN_PATCH,
         },
         {
             # Maple Tree Hill
             "name": "9072",
             "position": (900, 920),
-            "targetLocationName": "",
+            "targetLocationName": "fromAcornSummit",
             "targetZoneID": ZoneConstants.MAPLE_TREE_HILL,
         },
         {
             # Cottonpuff Field
             "name": "9080",
             "position": (1460, 800),
-            "targetLocationName": "",
+            "targetLocationName": "fromAcornSummit",
             "targetZoneID": ZoneConstants.COTTONPUFF_FIELD,
         },
         {
             # Snowcap Glade
             "name": "9108",
             "position": (1650, 300),
-            "targetLocationName": "",
+            "targetLocationName": "fromAcornSummit",
             "targetZoneID": ZoneConstants.SNOWCAP_GLADE,
         },
     ],

@@ -17,6 +17,10 @@ FAMOUS_FAIRY_GALE = 12
 CASSIE = "Cassie"
 FAMOUS_FAIRY_CASSIE = 28
 
+PRISM = "Prism"
+FAMOUS_FAIRY_PRISM = 17
+
+
 TERENCE_DNA = (
     6, # talent (Dust Keeper)
     95, # head
@@ -68,6 +72,24 @@ CASSIE_DNA = (
     24, # eye_color
     103, # skin_color
     109, # wing_color
+    1
+)
+
+PRISM_DNA = (
+    0, # talent
+    0, # head
+    0, # height
+    0, # body
+    0, # hair_back
+    0, # hair_front
+    0, # face
+    0, # eye
+    0, # wing
+    0, # hair_color
+    0, # hair_color2
+    0, # eye_color
+    0, # skin_color
+    0, # wing_color
     1
 )
 
