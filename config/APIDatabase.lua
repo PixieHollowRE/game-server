@@ -110,7 +110,8 @@ Api2Field = {
     accountId = "setDISLid",
     name = "setName",
     moreOptions = "setMoreOptions",
-    tutorialBitmask = "setHelpFlags"
+    tutorialBitmask = "setHelpFlags",
+    optionsBitmask = "setOptionsMask"
 }
 
 Field2Api = {}

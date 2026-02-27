@@ -586,7 +586,7 @@ dclass DistributedFairyBase: TalkPath_owner, TalkPath_whisper {
     setPetDNA(PetDNA) db broadcast; // 479
     setRenderEffects(int32) ram broadcast; // 480
     setAura(int16) ram broadcast; // 481
-    setRoomID(int32) required ownrequired broadcast db ownrecv clsend; // 482
+    setRoomID(int32) required ownrequired broadcast db ownrecv ownsend; // 482
 }
 
 // 79
@@ -596,25 +596,25 @@ dclass DistributedFairyNPC : DistributedFairyBase {
 
 // 80
 dclass DistributedFairyPlayer : DistributedFairyBase {
-    setHelpFlags(uint32[]) clsend ownrequired broadcast db ownrecv; // 484
+    setHelpFlags(uint32[]) ownsend ownrequired broadcast db ownrecv; // 484
     setBio(BioAnswer[]) required ownrequired broadcast db ownrecv; // 485
     setHasTagalong(int16) required ownrequired broadcast db ownrecv; // 486
     setTagalongExpire(int32) ownrequired broadcast db ownrecv; // 487
     setOutfitDB(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64) ownsend airecv; // 488
-    setStatus(uint8, uint8, uint8, uint8) clsend; // 489
+    setStatus(uint8, uint8, uint8, uint8) ownsend; // 489
     setSCEmote(uint32, uint16) broadcast ownsend airecv; // 490
     setChatMessage(string) ownsend broadcast; // 491
     setWhisperSCEmoteTo(uint32, uint16); // 492
     setWhisperSCEmoteFrom(uint32, uint16); // 493
-    setActualZoneId(uint32) clsend; // 494
-    setTeleportComplete() clsend; // 495
+    setActualZoneId(uint32) ownsend; // 494
+    setTeleportComplete() ownsend; // 495
     teleportRequestTo(uint32); // 496
     teleportRequest(uint32); // 497
     teleportResponseTo(uint32, int8); // 498
     teleportResponse(uint32, int8, uint32, uint32, uint32); // 499
-    setOptionsMask(int32); // 500
-    setMoreOptions(string) clsend db; // 501
-    setItemEvent(uint32, uint32, uint32, uint32) clsend; // 502
+    setOptionsMask(int32) ownsend db; // 500
+    setMoreOptions(string) ownsend db; // 501
+    setItemEvent(uint32, uint32, uint32, uint32) ownsend; // 502
     statusUpdateFromFairy(uint32, uint32); // 503
     badgeAcquired(int16); // 504
     setMeadowFlags(int32) ownrequired broadcast db ownrecv; // 505
@@ -647,11 +647,11 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     setPixiePower(int16 = 100) required ownrequired broadcast db ownrecv; // 532
     setLevel(uint8 = 1) required ownrequired broadcast db ownrecv; // 533
     setExperiencePoints(int32) ownrequired broadcast db ownrecv; // 534
-    levelUpRequest() clsend; // 535
+    levelUpRequest() ownsend; // 535
     setWingsDB(int32, int16); // 536
     consumePouchItem(int32, int32); // 537
     pouchItemGranted(int32, int32); // 538
-    setHotspotTriggered(int16, int16) clsend airecv; // 539
+    setHotspotTriggered(int16, int16) ownsend airecv; // 539
     setScriptLine(int16); // 540
     setPetFeed(uint32, int32, int32); // 541
     setPetEmote(uint16); // 542
@@ -673,7 +673,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     setGardenType(int32) ownrequired broadcast db ownrecv; // 558
     setAltVersionToken(string, int16); // 559
     requestAltVersionToken(string); // 560
-    requestDailyGoldTradeCapData() clsend airecv; // 561
+    requestDailyGoldTradeCapData() ownsend airecv; // 561
     setDailyGoldTradeCap(int32); // 562
     setAmountGoldTradedForToday(int32); // 563
     requestPopUpId(); // 564
