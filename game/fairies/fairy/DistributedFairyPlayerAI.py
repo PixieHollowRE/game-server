@@ -40,3 +40,8 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.air.decrementPopulation()
 
         DistributedFairyBaseAI.delete(self)
+
+    def requestDailyGoldTradeCapData(self):
+        # TODO
+        self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), "setDailyGoldTradeCap", [0])
+        self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), "setAmountGoldTradedForToday", [0])
