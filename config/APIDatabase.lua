@@ -205,12 +205,21 @@ function handleGetStoredValues(participant, dgi)
         local function makeItemPayload(slotType)
             local item = getItemByType(data.avatar.items, slotType)
             if item ~= nil then
+                local color1 = 0
+                local color2 = 0
+
+                if item.color_number == 1 then
+                    color1 = item.color_value
+                elseif item.color_number == 2 then
+                    color2 = item.color_value
+                end
+
                 return {
                     {
                         1, -- TODO: invId
                         item.item_id,
-                        item.color_number,
-                        item.color_value
+                        color1,
+                        color2
                     }
                 }
             else

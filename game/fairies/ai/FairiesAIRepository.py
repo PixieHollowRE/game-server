@@ -36,8 +36,9 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         self.staffMembers: List[int] = []
         self.accountMap: Dict[int, str] = {}
 
-        # for dclass in self.dclassesByName:
-            # print(self.dclassesByName[dclass].getName(), self.dclassesByName[dclass].getNumber())
+        for dclassName in self.dclassesByName:
+            dclass = self.dclassesByName[dclassName]
+            print(dclass.getName(), dclass.getNumber())
 
         # print(self.dclassesByName["FairiesBadgeManagerAI"].getFieldByName("setBadges"))
 
