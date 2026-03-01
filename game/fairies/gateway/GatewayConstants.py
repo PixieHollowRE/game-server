@@ -263,4 +263,44 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
         },
     ],
+    ZoneConstants.CHILLY_FALLS: [
+        {
+            # Evergreen Overlook
+            "name": "9103",
+            "position": (180, 820),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.EVERGREEN_OVERLOOK,
+        },
+        {
+            # Treetop Bend
+            "name": "9060",
+            "position": (833, 1568),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.TREETOP_BEND,
+        },
+        {
+            # Ember's Essentials
+            "name": "9124",
+            "position": (960, 831),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.EMBERS_ESSENTIALS,
+        },
+        {
+            # Gem Juggle
+            "name": "9269",
+            "position": (1001, 1071),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.GEM_JUGGLE_GAME,
+            "rewardList": [8003, 8015, 8018],
+        },
+    ],
+    ZoneConstants.PRISMS_PIXIE_SPA: [
+        {
+            # Palm Tree Cove
+            "name": "9300",
+            "position": (775, 283),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.PALM_TREE_COVE,
+        },
+    ],
 }
