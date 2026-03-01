@@ -281,14 +281,14 @@ GATEWAYS: dict[int, list[dict]] = {
         {
             # Ember's Essentials
             "name": "9124",
-            "position": (959, 831),
+            "position": (960, 831),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.EMBERS_ESSENTIALS,
         },
         {
             # Gem Juggle
-            "name": "9124",
-            "position": (645, 1500),
+            "name": "9269",
+            "position": (1001, 1071),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.GEM_JUGGLE_GAME,
             "rewardList": [8003, 8015, 8018],
@@ -323,6 +323,15 @@ GATEWAYS: dict[int, list[dict]] = {
             "position": (959, 831),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.GALES_OUTFITTERS,
+        }
+    ],
+    ZoneConstants.PRISMS_PIXIE_SPA: [
+        {
+            # Palm Tree Cove
+            "name": "9300",
+            "position": (775, 283),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.PALM_TREE_COVE,
         },
     ],
 }

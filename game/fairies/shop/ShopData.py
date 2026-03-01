@@ -370,18 +370,270 @@ SHOPDATA: dict[int, list[tuple]] = {
             4019, # collectionId
             8005, # currencyId
             [ # items
-            (
-                77515, # itemId (Pink Bunny Ears)
-                100, # goldPrice
-                0, # color1
-                0, # color2
-                1, # itemCount
-                0, # specialType
-                100, # price
-                0, # status
-                0, # howAcquired
-                100 # memberGoldPrice
-            )
+                (
+                    14091, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14092, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14093, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14094, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14095, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14096, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14097, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14098, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14099, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14100, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14101, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14102, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14103, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14104, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14105, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14106, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14107, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14108, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14028, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14057, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14160, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14007, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    3, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
             ],
             [ # outfits
             ]
@@ -390,18 +642,270 @@ SHOPDATA: dict[int, list[tuple]] = {
             4020, # collectionId
             8005, # currencyId
             [ # items
-            (
-                77515, # itemId (Pink Bunny Ears)
-                100, # goldPrice
-                0, # color1
-                0, # color2
-                1, # itemCount
-                0, # specialType
-                100, # price
-                0, # status
-                0, # howAcquired
-                100 # memberGoldPrice
-            )
+                (
+                    14055, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14056, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14057, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14058, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14059, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14060, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14061, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14062, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14063, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14064, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14065, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14066, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14067, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14068, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14069, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14070, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14071, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14072, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14136, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14221, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14172, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
+                (
+                    14032, # itemId (Pink Bunny Ears)
+                    1, # goldPrice
+                    0, # color1
+                    0, # color2
+                    1, # itemCount
+                    4, # specialType
+                    5, # price
+                    0, # status
+                    0, # howAcquired
+                    1 # memberGoldPrice
+                ),
             ],
             [ # outfits
             ]
