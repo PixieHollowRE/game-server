@@ -798,8 +798,8 @@ dclass GameMasterController { // 93
 };
 
 dclass FairiesMagicWordManager : DistributedObject { // 94
-    setID(int8) required; // 673
-    setMagicWord(string, uint32, uint32, string); // 674
+    setID(int8) required broadcast ram; // 673
+    setMagicWord(string, uint32, uint32, string) clsend airecv; // 674
     setMagicWordResponse(string); // 675
 };
 
