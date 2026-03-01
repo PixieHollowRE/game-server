@@ -106,23 +106,23 @@ struct TalkModification {
 };
 
 dclass TalkPath_owner { // 13
-    setTalk(uint32, uint32, string, string, TalkModification[], uint8); // 60
+    setTalk(uint32, uint32, string, string, TalkModification[], uint8) broadcast ownsend; // 60
 };
 
 dclass TalkPath_whisper { // 14
-    setTalkWhisper(uint32, uint32, string, string, TalkModification[], uint8); // 61
+    setTalkWhisper(uint32, uint32, string, string, TalkModification[], uint8) ownrecv clsend; // 61
 };
 
-struct _gap_61b4820c {
-    _gap_15101d5e();
+dclass TalkPath_group { // 15
+    setTalkGroup(uint32 fromAV, uint32 fromAC, string avatarName, string chat, TalkModification mods[], uint8 flags) clsend airecv; // 62
 };
 
 dclass TalkPath_account { // 16
-    setTalkAccount(uint32, uint32, string, string, TalkModification[], uint8); // 63
+    setTalkAccount(uint32, uint32, string, string, TalkModification[], uint8) airecv clsend; // 63
 };
 
 dclass TalkPath_account_group { // 17
-    setTalkAccountGroup(uint32, string, string, uint8, TalkModification[], uint8); // 64
+    setTalkAccountGroup(uint32, string, string, uint8, TalkModification[], uint8) clsend airecv; // 64
 };
 
 struct FriendInfo {
