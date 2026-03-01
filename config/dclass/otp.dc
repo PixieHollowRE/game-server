@@ -170,7 +170,7 @@ struct _gap_893da7dc {
 };
 
 dclass CentralLogger : DistributedObject { // 22
-    sendMessage(string, string, uint32, uint32); // 97
+    sendMessage(string, string, uint32, uint32) clsend; // 97
     _gap_a79f0e52();
 };
 
