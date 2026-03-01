@@ -101,8 +101,8 @@ struct _gap_93d3a251 {
 };
 
 struct TalkModification {
-    int16 offset;
-    int16 size;
+    uint16 offset;
+    uint16 size;
 };
 
 dclass TalkPath_owner { // 13
