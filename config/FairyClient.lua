@@ -24,7 +24,7 @@ CLIENT_OBJECT_DISABLE_RESP = 25
 CLIENT_DONE_SET_ZONE_RESP = 48
 
 CLIENT_DISCONNECT_GENERIC                = 1
-CLIENT_DISCONNECT_RELOGIN                = 100
+LOGIN_DUP                                = 100
 CLIENT_DISCONNECT_OVERSIZED_DATAGRAM     = 106
 CLIENT_DISCONNECT_NO_HELLO               = 107
 CLIENT_DISCONNECT_CHAT_AUTH_ERROR        = 120
@@ -41,7 +41,7 @@ CLIENT_DISCONNECT_BAD_VERSION            = 125
 CLIENT_DISCONNECT_FIELD_CONSTRAINT       = 127
 CLIENT_DISCONNECT_SESSION_OBJECT_DELETED = 153
 
-LOGOUT_REASON_ACCOUNT_DISABLED = 152
+LOGIN_BANNED = 152
 
 DATABASE_OBJECT_TYPE_ACCOUNT = 1
 DATABASE_OBJECT_TYPE_AVATAR  = 2
@@ -217,7 +217,7 @@ function handleLogin(client, dgi)
     dgi:readString()
 
     if client:authenticated() then
-        client:sendDisconnect(CLIENT_DISCONNECT_RELOGIN, "Authenticated client tried to login twice!", true)
+        client:sendDisconnect(LOGIN_DUP, "Authenticated client tried to login twice!", true)
         return
     end
 
@@ -361,14 +361,14 @@ end
 
 function loginAccount(client, account, accountId, playToken, openChat, isPaid, dislId, linkedToParent, accountType, speedChatPlus, accountDisabled)
     if accountDisabled then
-        client:sendDisconnect(LOGOUT_REASON_ACCOUNT_DISABLED, "There has been a reported violation of our Terms of Use connected to this account. For safety purposes, we have placed a temporary hold on the account.  For more details, please review the messages sent to the email address associated with this account.", false)
+        client:sendDisconnect(LOGIN_BANNED, "There has been a reported violation of our Terms of Use connected to this account. For safety purposes, we have placed a temporary hold on the account. For more details, please review the messages sent to the e-mail address associated with this account.", false)
         return
     end
 
     -- Eject other client if already logged in.
     local ejectDg = datagram:new()
     client:addServerHeaderWithAccountId(ejectDg, accountId, CLIENTAGENT_EJECT)
-    ejectDg:addUint16(CLIENT_DISCONNECT_RELOGIN)
+    ejectDg:addUint16(LOGIN_DUP)
     ejectDg:addString("You have been disconnected because someone else just logged in using your account on another computer.")
     client:routeDatagram(ejectDg)
 
