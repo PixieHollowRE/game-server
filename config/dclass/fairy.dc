@@ -80,6 +80,14 @@ struct LiteInvItemExt {
     int16 color2;
 }
 
+struct LiteInvItemExt2 {
+    uint64 invId;
+    int32 itemId;
+    int16 color1;
+    int16 color2;
+    int8 howAcquired;
+}
+
 struct StockUpdate {
     int32 shopZone;
     int32 itemId;
@@ -179,6 +187,14 @@ struct TimedEffect {
 
 struct SavedOutfit {
     uint64 outfitId;
+    LiteInvItemExt2 headItem;
+    LiteInvItemExt2 necklaceItem;
+    LiteInvItemExt2 shirtItem;
+    LiteInvItemExt2 beltItem;
+    LiteInvItemExt2 skirtItem;
+    LiteInvItemExt2 wristItem;
+    LiteInvItemExt2 ankleItem;
+    LiteInvItemExt2 shoesItem;
 }
 
 struct GlobalPurchaseItem {
@@ -337,7 +353,7 @@ dclass DistributedMeadow : DistributedInstanceBaseAI {
     setMute(uint8); // 286
     setCrowdBarriers(uint8) required broadcast ram; // 287
     setHotspotTrigger(int16); // 288
-    setHotspotFrame(int16,int16); // 289
+    setHotspotFrame(int16, int16); // 289
     setHotspotStates(uint32, HotspotState[]); // 290
     requestHotspotStates() clsend airecv; // 291
 }

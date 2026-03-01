@@ -147,7 +147,6 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             shop.setShopItems(shopData)
             shop.generateWithRequired(zone)
 
-
         self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
 
         # The Magic Word Manager

@@ -20,7 +20,6 @@ FAMOUS_FAIRY_CASSIE = 28
 PRISM = "Prism"
 FAMOUS_FAIRY_PRISM = 17
 
-
 TERENCE_DNA = (
     6, # talent (Dust Keeper)
     95, # head
