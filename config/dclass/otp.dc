@@ -1,202 +1,182 @@
 from direct.distributed import DistributedObject/AI/UD
-from direct.distributed import DistributedNode/AI/UD
-from direct.distributed import DistributedSmoothNode/AI
-from direct.distributed import DistributedCartesianGrid/AI
-from direct.distributed import DistributedCamera/AI/OV
 from game.otp.distributed import Account/AI/UD
-from game.otp.ai import TimeManager/AI
-from game.otp.ai import MagicWordManager/AI
-from game.otp.avatar import DistributedAvatar/AI/UD
-from game.otp.avatar import DistributedPlayer/AI
-from game.otp.friends import FriendManager/AI
-from game.otp.friends import AvatarFriendsManager/UD
-from game.otp.friends import PlayerFriendsManager/UD
-from game.otp.friends import GuildManager/AI/UD
-from game.otp.friends import FriendInfo
-from game.otp.friends import AvatarFriendInfo
 from game.otp.distributed import ObjectServer/AI/UD
 from game.otp.distributed import DistributedDistrict/AI/UD
 from game.otp.distributed import DistributedDirectory/AI
-from game.otp.distributed import DistributedTestObject/AI
-from game.otp.snapshot import SnapshotDispatcher/AI/UD
-from game.otp.snapshot import SnapshotRenderer/AI/UD
-from game.otp.uberdog import OtpAvatarManager/AI/UD
-from game.otp.uberdog import DistributedChatManager/AI/UD
-from game.otp.uberdog import SpeedchatRelay/UD
+from game.otp.friends import PlayerFriendsManager/UD
 from game.otp.distributed import CentralLogger/AI/UD
-from game.otp.web import SettingsMgr/AI/UD
-from game.otp.status import StatusDatabase/UD
-from game.otp.avatar import AvatarHandle
-
-typedef uint8 bool;
-
-typedef uint32 DoId;
-
-typedef DoId DoIdList[];
 
 struct AvatarPendingDel {
-  uint32 Avatar;
-  uint32 date;
+    uint32 Avatar;
+    uint32 date;
 };
 
 dclass Account {
-  string DcObjectType db;
-  uint32array ACCOUNT_AV_SET = [0] required db;
-  uint32array pirateAvatars required db;
-  uint32array HOUSE_ID_SET db;
-  uint32 ESTATE_ID db;
-  AvatarPendingDel ACCOUNT_AV_SET_DEL[] db;
-  string PLAYED_MINUTES db;
-  string PLAYED_MINUTES_PERIOD db;
-  string CREATED db;
-  string LAST_LOGIN db;
+    string DcObjectType db;
+    uint32array ACCOUNT_AV_SET = [0] required db;
+    uint32array pirateAvatars required db;
+    uint32array HOUSE_ID_SET db;
+    uint32 ESTATE_ID db;
+    AvatarPendingDel ACCOUNT_AV_SET_DEL[] db;
+    string PLAYED_MINUTES db;
+    string PLAYED_MINUTES_PERIOD db;
+    string CREATED db;
+    string LAST_LOGIN db;
 };
 
 struct BarrierData {
-  uint16 context;
-  string name;
-  uint32 avIds[];
+    int16 context;
+    string name;
+    uint32 avIds[];
 };
 
-dclass DistributedObject {
-  setBarrierData(BarrierData []) broadcast ram;
-  setBarrierReady(uint16) airecv clsend;
-  execCommand(string, uint32, uint32, uint32);
-  broadcastMessage() broadcast;
+dclass DistributedObject { // 3
+    setBarrierData(BarrierData[]) broadcast ram; // 15
+    setBarrierReady(uint16) airecv clsend; // 16
+    execCommand(string, uint32, uint32, uint32); // 17
+    broadcastMessage() broadcast; // 18
 };
 
 struct OSInfo {
-  string name;
-  int16 platform;
-  int16 major;
-  int16 minor;
+    string name;
+    int16 platform;
+    int16 major;
+    int16 minor;
 };
 
 struct CPUSpeed {
-  int32/1000 maxSpeed;
-  int32/1000 currentSpeed;
+    int32 maxSpeed;
+    int32 currentSpeed;
 };
 
-dclass TimeManager : DistributedObject {
-  requestServerTime(uint8) airecv clsend;
-  serverTime(uint8, int32, uint32);
-  setDisconnectReason(uint8) airecv clsend;
-  setExceptionInfo(string) airecv clsend;
-  setSignature(string, char [16], char [16]) airecv clsend;
-  setFrameRate(uint16/10, uint16/1000, uint16, string, uint32/10, uint32/10, string, uint16, uint16, uint32/10, uint32/10, uint32/10, uint32, OSInfo, CPUSpeed, uint16, uint16, string) airecv clsend;
-  setCpuInfo(string) airecv clsend;
-  checkForGarbageLeaks(bool) airecv clsend;
-  setNumAIGarbageLeaks(uint32);
-  setClientGarbageLeak(uint32, string) airecv clsend;
+struct _gap_9143e52a {
 };
 
 dclass ObjectServer {
-  setName(string) airecv ram required;
-  setDcHash(uint32) ram required;
-  setDateCreated(uint32) airecv;
+    setName(string) airecv ram required;
+    setDcHash(uint32) ram required;
+    setDateCreated(uint32) airecv;
 };
 
 dclass DistributedDirectory : DistributedObject {
-  setParentingRules(string, string) broadcast ram;
+    setParentingRules(string, string) broadcast ram;
+    _gap_f89c70b0();
+    _gap_9cd00de3();
+    _gap_1ad51ca9();
+    _gap_eb33503f();
+    _gap_f5179d68();
+    _gap_07437ba0();
+    _gap_09f7296a();
+    _gap_8237d07e();
+    _gap_001bf58d();
+    _gap_45ec1f76();
 };
 
-dclass DistributedDistrict : DistributedObject {
-  setName(string) required broadcast ram;
-  setAvailable(uint8) required broadcast ram;
+dclass DistributedDistrict : DistributedObject { // 9
+    setName(string) required broadcast ram; // 39
+    setAvailable(uint8) required broadcast ram; // 40
 };
 
-dclass DistributedNode : DistributedObject {
-  setParentStr(blob) broadcast ram ownsend airecv;
-  setParent(uint32) broadcast ram ownsend airecv;
-  setX(int16/10) broadcast ram ownsend airecv;
-  setY(int16/10) broadcast ram ownsend airecv;
-  setZ(int16/10) broadcast ram ownsend airecv;
-  setH(int16%360/10) broadcast ram ownsend airecv;
-  setP(int16%360/10) broadcast ram ownsend airecv;
-  setR(int16%360/10) broadcast ram ownsend airecv;
-  setPos : setX, setY, setZ;
-  setHpr : setH, setP, setR;
-  setPosHpr : setX, setY, setZ, setH, setP, setR;
-  setXY : setX, setY;
-  setXZ : setX, setZ;
-  setXYH : setX, setY, setH;
-  setXYZH : setX, setY, setZ, setH;
+struct _gap_3757583d {
 };
 
-dclass DistributedCartesianGrid : DistributedNode {
-  setCellWidth(uint32) required broadcast ram;
-  setParentingRules(string, string) broadcast ram;
+struct _gap_93d3a251 {
+    _gap_ee69b230();
+    _gap_c4a32837();
+    _gap_ac530d07();
+    _gap_ef5e5654();
+    _gap_3e1c41dc();
+    _gap_a3824f31();
+    _gap_8db2e751();
+    _gap_a3e4366a();
+    _gap_111c097e();
+    _gap_48f4c829();
+    _gap_45fca360();
+    _gap_ce2922f4();
+    _gap_dd82ae14();
+    _gap_e765784b();
+    _gap_94958077();
+    _gap_7cde0380();
+    _gap_fb129375();
 };
 
 struct TalkModification {
-  uint16 offset;
-  uint16 size;
+    int16 offset;
+    int16 size;
 };
 
-dclass TalkPath_owner {
-  setTalk(uint32, uint32, string, string, TalkModification [], uint8) broadcast ownsend;
+dclass TalkPath_owner { // 13
+    setTalk(uint32, uint32, string, string, TalkModification[], uint8); // 60
 };
 
-dclass TalkPath_whisper {
-  setTalkWhisper(uint32, uint32, string, string, TalkModification [], uint8) ownrecv clsend;
+dclass TalkPath_whisper { // 14
+    setTalkWhisper(uint32, uint32, string, string, TalkModification[], uint8); // 61
 };
 
-dclass TalkPath_group {
-  setTalkGroup(uint32, uint32, string, string, TalkModification [], uint8) clsend airecv;
+struct _gap_61b4820c {
+    _gap_15101d5e();
 };
 
-dclass TalkPath_account {
-  setTalkAccount(uint32, uint32, string, string, TalkModification [], uint8) airecv clsend;
+dclass TalkPath_account { // 16
+    setTalkAccount(uint32, uint32, string, string, TalkModification[], uint8); // 63
 };
 
-dclass TalkPath_account_group {
-  setTalkAccountGroup(uint32, string, string, uint8, TalkModification [], uint8) clsend airecv;
+dclass TalkPath_account_group { // 17
+    setTalkAccountGroup(uint32, string, string, uint8, TalkModification[], uint8); // 64
 };
 
 struct FriendInfo {
-  string avatarName;
-  uint32 avatarId;
-  string playerName;
-  uint8 onlineYesNo;
-  uint8 openChatEnabledYesNo;
-  uint8 openChatFriendshipYesNo;
-  uint8 wlChatEnabledYesNo;
-  string location;
-  string sublocation;
-  uint32 timestamp;
+    string avatarName;
+    uint32 avatarId;
+    string playerName;
+    int8 onlineYesNo;
+    int8 openChatEnabledYesNo;
+    int8 openChatFriendshipYesNo;
+    int8 understandableYesNo;
+    string location;
+    string sublocation;
+    uint32 timestamp;
 };
 
-dclass PlayerFriendsManager : DistributedObject, TalkPath_account, TalkPath_account_group {
-  requestInvite(uint32 senderId, uint32 otherPlayerId, uint8 secretYesNo) airecv clsend;
-  invitationFrom(uint32 playerId, string playerName);
-  retractInvite(uint32 playerId);
-  invitationResponse(uint32 doid, uint16 respCode, uint32 context);
-  requestDecline(uint32 senderId, uint32 playerId) airecv clsend;
-  requestDeclineWithReason(uint32, uint32, uint32) airecv clsend;
-  requestRemove(uint32, uint32) airecv clsend;
-  rejectRemove(uint32, uint32);
-  secretResponse(string);
-  rejectSecret(string);
-  rejectUseSecret(string);
-  updatePlayerFriend(uint32 playerId, FriendInfo info, uint8 is_newfriend);
-  removePlayerFriend(uint32 playerId);
+dclass PlayerFriendsManager : DistributedObject, TalkPath_account, TalkPath_account_group { // 19
+    requestInvite(uint32 senderId, uint32 otherPlayerId, uint8 secretYesNo) airecv clsend; // 75
+    invitationFrom(uint32 playerId, string playerName); // 76
+    retractInvite(uint32 playerId); // 77
+    invitationResponse(uint32 doid, uint16 respCode, uint32 context); // 78
+    requestDecline(uint32 senderId, uint32 playerId) airecv clsend; // 79
+    requestDeclineWithReason(uint32, uint32, uint32) airecv clsend; // 80
+    requestRemove(uint32, uint32) airecv clsend; // 81
+    rejectRemove(uint32, uint32); // 82
+    secretResponse(string); // 83
+    rejectSecret(string); // 84
+    rejectUseSecret(string); // 85
+    updatePlayerFriend(uint32 playerId, FriendInfo info, uint8 is_newfriend); // 86
+    removePlayerFriend(uint32 playerId); // 87
 };
 
-dclass SpeedchatRelay : DistributedObject, TalkPath_account {
-  forwardSpeedchat(uint32, uint8, uint32 [], uint32, string, uint8) clsend;
+struct _gap_386198b7 {
+    _gap_37194210();
+    _gap_0b8badb3();
+    _gap_724008ce();
+    _gap_24881c86();
+    _gap_d04cfc02();
+    _gap_728d6f76();
+    _gap_4510452f();
 };
 
-dclass SnapshotRenderer : DistributedObject {
-  online();
-  requestRender(uint32, uint32, string);
+struct _gap_893da7dc {
+    _gap_62d638e7();
+    _gap_43e6fafc();
 };
 
-dclass CentralLogger : DistributedObject {
-  unk_91(); // 91
-  unk_92(); // 92
-  unk_93(); // 93
-  unk_94(); // 94
-  unk_95(); // 95
-  unk_96(); // 96
-  sendMessage(string, string, uint32, uint32) clsend; // 97
+dclass CentralLogger : DistributedObject { // 22
+    sendMessage(string, string, uint32, uint32); // 97
+    _gap_a79f0e52();
+};
+
+struct _gap_1fd53fc4 {
+    _gap_3f8d5da3();
+};
+
+struct _gap_c8c904f3 {
 };

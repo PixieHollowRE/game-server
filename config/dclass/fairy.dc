@@ -17,94 +17,6 @@ from game.fairies.ai import FairiesMagicWordManagerAI
 // generate message into the one that the client expects.
 keyword ownrequired;
 
-struct HotspotState {
-  int16 hotspotId;
-  int16 frameId;
-};
-
-struct Reward {
-    int32 itemId;
-    int32 amount;
-}
-
-struct PlayerStruct {
-    uint32 fairyId;
-    uint32 DISLid;
-    uint32 district;
-    uint32 zone;
-    string name;
-    string DISLname;
-    uint8 talentId;
-    uint8 access;
-    uint8 level;
-    uint8 place;
-}
-
-struct PetDNA {
-    int32 itemId;
-    int16 color1;
-    int16 color2;
-    int32 outfitId;
-}
-
-struct RewardExt {
-    int32 itemId;
-    int32 amount;
-    int32 color1;
-    int32 color2;
-}
-
-struct InvItemExt {
-    uint64 invId;
-    int32 itemId;
-    int16 slot;
-    uint32 createdById;
-    string createdByName;
-    uint32 giftedById;
-    string giftedByName;
-    int8 quality;
-    int16 color1;
-    int16 color2;
-    int8 howAcquired;
-}
-
-struct Unlockable {
-    int32 itemId;
-    int16 itemType;
-}
-
-struct LiteInvItemExt {
-    uint64 invId;
-    int32 itemId;
-    int16 color1;
-    int16 color2;
-}
-
-struct LiteInvItemExt2 {
-    uint64 invId;
-    int32 itemId;
-    int16 color1;
-    int16 color2;
-    int8 howAcquired;
-}
-
-struct StockUpdate {
-    int32 shopZone;
-    int32 itemId;
-    int16 color1;
-    int16 numInStock;
-    int16 numAvailable;
-}
-
-struct LongType {
-    uint64 longVal;
-}
-
-struct QuestId {
-    int16 questGroup;
-    int8 questBitmaskIndex;
-}
-
 struct FairyDNA {
     int16 talent;
     int8 head;
@@ -121,7 +33,7 @@ struct FairyDNA {
     int16 skin_color;
     int16 wing_color;
     int8 gender;
-}
+};
 
 struct FairyPose {
     int32 head_rot;
@@ -133,49 +45,7 @@ struct FairyPose {
     int32 ur_leg_rot;
     int32 ll_leg_rot;
     int32 lr_leg_rot;
-}
-
-struct BioAnswer {
-    int16 questionId;
-    int16 answerId;
-}
-
-struct Stackable {
-    int32 itemId;
-    int16 slot;
-    int32 amount;
-}
-
-struct QuestHistory {
-    int16 questGroup;
-    uint32 questBitmask;
-    int32 acceptTimeForLastDone;
-}
-
-struct PetDetail {
-    int16 name1;
-    int16 name2;
-    int8 hunger;
-    int8 happiness;
-    int8 health;
-    int8 status;
-    int16 foodToFill;
-    int32 growth;
-    int8 golden;
-}
-
-struct GardenState {
-    int32 plotNum;
-    int32 plantId;
-    int32 seedId;
-    int32 stage;
-    int32 stages;
-    int32 tendingNeeded;
-    int32 skillNeeded;
-    int32 endDateTime;
-    int32 wiltDelay;
-    int32 stageDuration;
-}
+};
 
 struct TimedEffect {
     int16 effect_type;
@@ -183,57 +53,88 @@ struct TimedEffect {
     int16 reset_value;
     uint32 end_time;
     int32 recipe_id;
-}
+};
 
-struct SavedOutfit {
-    uint64 outfitId;
-    LiteInvItemExt2 headItem;
-    LiteInvItemExt2 necklaceItem;
-    LiteInvItemExt2 shirtItem;
-    LiteInvItemExt2 beltItem;
-    LiteInvItemExt2 skirtItem;
-    LiteInvItemExt2 wristItem;
-    LiteInvItemExt2 ankleItem;
-    LiteInvItemExt2 shoesItem;
-}
-
-struct GlobalPurchaseItem {
+struct InvItemExt {
+    uint64 invId;
     int32 itemId;
-    uint16 amount;
-}
+    int16 slot;
+    uint32 createdById;
+    string createdByName;
+    uint32 giftedById;
+    string giftedByName;
+    int8 quality;
+    int16 color1;
+    int16 color2;
+    int8 howAcquired;
+};
 
-struct MiscItem {
+struct LiteInvItemExt {
+    uint64 invId;
     int32 itemId;
-    int32 ingredId;
-    int16 ingredPrice;
-    int16 goldPrice;
-    int16 memberGoldPrice;
-}
+    int16 color1;
+    int16 color2;
+};
 
-struct QuestState {
-    int8 category;
-    int8 status;
-}
+struct LiteInvItemExt2 {
+    uint64 invId;
+    int32 itemId;
+    int16 color1;
+    int16 color2;
+    int8 howAcquired;
+};
 
-struct EarnedBadge {
-    int16 badgeId;
-    string dateEarned;
-}
+struct BioAnswer {
+    int16 questionId;
+    int16 answerId;
+};
 
 struct BadgeProgress {
     int16 badgeId;
     int16 progress;
-}
+};
 
-struct FairyParty {
-    uint8[] partyName;
-    uint32 ownerId;
-    string ownerName;
-    uint32 populationLevel;
-    int32 startTime;
-    int8 publicFlag;
-    uint8 themeId;
-}
+struct Stackable {
+    int32 itemId;
+    int16 slot;
+    int32 amount;
+};
+
+struct Unlockable {
+    int32 itemId;
+    int16 itemType;
+};
+
+struct Reward {
+    int32 itemId;
+    int32 amount;
+};
+
+struct RewardExt {
+    int32 itemId;
+    int32 amount;
+    int16 color1;
+    int16 color2;
+};
+
+struct PurchaseItem {
+    int32 itemIndex;
+    int16 amount;
+    int16 collectionId;
+};
+
+struct GlobalPurchaseItem {
+    int32 itemId;
+    int16 amount;
+};
+
+struct MiscItem {
+    int32 itemId;
+    int32 ingredId;
+    int32 ingredPrice;
+    int16 goldPrice;
+    int16 memberGoldPrice;
+};
 
 struct ShopItem {
     int32 itemId;
@@ -246,7 +147,16 @@ struct ShopItem {
     int8 status;
     int8 howAcquired;
     int16 memberGoldPrice;
-}
+};
+
+struct OutfitItem {
+    int32 itemId;
+    int16 color1;
+    int16 color2;
+    int16 price;
+    int16 goldPrice;
+    int16 memberGoldPrice;
+};
 
 struct ShopOutfit {
     int32 outfitId;
@@ -258,97 +168,158 @@ struct ShopOutfit {
     uint32 createdById;
     int16 backgroundId;
     int16 modelId;
-    ShopItem[] items;
-}
+    OutfitItem items[];
+};
 
 struct ShopCollection {
-    uint16 collectionId;
+    int16 collectionId;
     int32 currencyId;
-    ShopItem[] items;
-    ShopOutfit[] outfits;
-}
-
-struct PurchaseItem {
-    int32 itemIndex;
-    uint16 amount;
-    uint16 collectionId;
-}
+    ShopItem items[];
+    Shopoutfit outfits[];
+};
 
 struct LiteShopItem {
     int32 itemIndex;
     int16 collectionId;
-}
+};
 
 struct ShopTriedOnItems {
     uint32 fairyId;
-    LiteShopItem[] itemsTriedOn;
-}
+    LiteShopItem itemsTriedOn[];
+};
 
-struct Microgame {
-    int32[] mechAssetIds;
-    int32[] sfxIds;
-    int16 spellId;
-    int16 spellCopyId;
-    int8 mechId;
-    int8 mechLevel;
-}
+struct StockUpdate {
+    int32 shopZone;
+    int32 itemId;
+    int16 color1;
+    int16 numInStock;
+    int16 numAvailable;
+};
+
+struct QuestId {
+    int16 questGroup;
+    int8 questBitmaskIndex;
+};
+
+struct QuestState {
+    int8 category;
+    int8 status;
+};
+
+struct QuestHistory {
+    int16 questGroup;
+    uint32 questBitmask;
+    int32 acceptTimeForLastDone;
+};
+
+struct PlayerStruct {
+    uint32 fairyId;
+    uint32 DISLid;
+    uint32 district;
+    uint32 zone;
+    string name;
+    string DISLname;
+    int8 talentId;
+    int8 access;
+    int8 level;
+    int8 place;
+};
 
 struct Rank {
     uint32 fairyId;
     int32 score;
     Reward reward;
-    uint8 rank;
-}
+    int8 rank;
+};
 
-struct Card {
-    int8 value;
-    int8 suit;
-}
+struct FairyParty {
+    int8 partyName[];
+    uint32 ownerId;
+    string ownerName;
+    uint32 populationLevel;
+    int32 startTime;
+    int8 publicFlag;
+    int8 themeId;
+};
 
-struct MermaidTreasureBoard {
-    MermaidTreasurePiece[] pieces;
-    uint8[] hitPositions;
-    int8 boardId;
-}
+struct HitPointData {
+    int8 verbId;
+    int16 hitPoints;
+};
 
-struct MermaidTreasurePiece {
-    int8 treasureId;
+struct PetDNA {
+    int32 itemId;
+    int16 color1;
+    int16 color2;
+    int32 outfitId;
+};
+
+struct PetDetail {
+    int16 name1;
+    int16 name2;
+    int8 hunger;
+    int8 happiness;
+    int8 health;
     int8 status;
-    uint8 rotation;
-    int8 xoffset;
-    int8 yoffset;
-}
+    int16 foodToFill;
+    int32 growth;
+    int8 golden;
+};
 
 struct PopcornBluePrint {
     int32 valueOne;
     int32 valueTwo;
     int32 valueThree;
-}
+};
 
-// 61
-dclass FairiesRealm : DistributedDistrict {
-    unk_276(); // 276
-    unk_277(); // 277
-    unk_278(); // 278
-    unk_279(); // 279
+struct PopcornGrouping {
+    PopcornBluePrint rules[];
+};
+
+struct GardenState {
+    int32 plotNum;
+    int32 plantId;
+    int32 seedId;
+    int32 stage;
+    int32 stages;
+    int32 tendingNeeded;
+    int32 skillNeeded;
+    int32 endDateTime;
+    int32 wiltDelay;
+    int32 stageDuration;
+};
+
+struct SavedOutfit {
+    uint64 outfitId;
+    LiteInvItemExt2 headItem;
+    LiteInvItemExt2 necklaceItem;
+    LiteInvItemExt2 shirtItem;
+    LiteInvItemExt2 beltItem;
+    LiteInvItemExt2 skirtItem;
+    LiteInvItemExt2 wristItem;
+    LiteInvItemExt2 ankleItem;
+    LiteInvItemExt2 shoesItem;
+};
+
+struct LongType {
+    uint64 longVal;
+};
+
+dclass FairiesRealm : DistributedDistrict { // 61
     setParentingRules(string, string) broadcast ram; // 280
     setPopulationLevel(uint32) required broadcast ram; // 281
     setServerTime(uint32) clsend airecv; // 282
-}
-
-// 62
-dclass unk_62 {
 };
 
-// 63
-dclass DistributedInstanceBaseAI {
+struct HotspotState {
+    int16 hotspotId;
+    int16 frameId;
+};
 
-}
+dclass DistributedInstanceBaseAI { // 63
+};
 
-// 64
-dclass DistributedMeadow : DistributedInstanceBaseAI {
-    unk_283(); // 283
-    unk_284(); // 284
+dclass DistributedMeadow : DistributedInstanceBaseAI { // 64
     setAssetURL(string) required broadcast ram; // 285
     setMute(uint8); // 286
     setCrowdBarriers(uint8) required broadcast ram; // 287
@@ -356,10 +327,9 @@ dclass DistributedMeadow : DistributedInstanceBaseAI {
     setHotspotFrame(int16, int16); // 289
     setHotspotStates(uint32, HotspotState[]); // 290
     requestHotspotStates() clsend airecv; // 291
-}
+};
 
-// 65
-dclass DistributedGateway {
+dclass DistributedGateway { // 65
     setName(string) required broadcast ram; // 292
     setPosition(uint32, uint32) required broadcast ram; // 293
     setPositionByName(string) required broadcast ram; // 294
@@ -368,59 +338,53 @@ dclass DistributedGateway {
     setOpenState(string) required broadcast ram; // 297
     setVelvetRope(uint8) required broadcast ram; // 298
     setRewardList(int32[]) required broadcast ram; // 299
-}
+};
 
-// 66
-dclass DistributedSpawnStack {
-    setItemID(uint32) required clrecv; // 300
-    setName(string) required clrecv; // 301
-    setPosition(uint32, uint32) required clrecv; // 302
-    setColorIDs(uint32[]) clrecv; // 303
-    setItemCount(uint32) ram broadcast airecv; // 304
-    setServingSize(uint32) clrecv; // 305
-    setEligible(uint8) ram ownrecv; // 306
-    setCollectRequest(uint8) ownsend; // 307
-}
+dclass DistributedSpawnStack { // 66
+    setItemID(uint32) required; // 300
+    setName(string) required; // 301
+    setPosition(uint32, uint32) required; // 302
+    setColorIDs(uint32[]) required; // 303
+    setItemCount(uint32) required; // 304
+    setServingSize(uint32) required; // 305
+    setEligible(uint8); // 306
+    setCollectRequest(uint8); // 307
+};
 
-// 67
-dclass DistributedMultiplayerSpawnStack : DistributedSpawnStack {
-    setCountdown(int16) ram broadcast airecv; // 308
-    setRecipients(uint32[]) ram broadcast airecv; // 309
-}
+dclass DistributedMultiplayerSpawnStack : DistributedSpawnStack { // 67
+    setCountdown(int16) required; // 308
+    setRecipients(uint32[]) required; // 309
+};
 
-// 68
-dclass DistributedAnimationEvent {
-    setID(uint32) required broadcast; // 310
-    setStartTime(uint32) broadcast; // 311
-}
+dclass DistributedAnimationEvent { // 68
+    setID(uint32) required; // 310
+    setStartTime(uint32) required; // 311
+};
 
-// 69
-dclass DistributedTalentMinigame : DistributedInstanceBaseAI {
+dclass DistributedTalentMinigame : DistributedInstanceBaseAI { // 69
     setGameID(int16) required broadcast ram; // 312
     startGame(uint8) clsend; // 313
     reportScore(int32) clsend airecv; // 314
     endGame(uint8) clsend airecv; // 315
     setRewards(Reward[]) ram ownrecv; // 316
     chooseReward(int16) clsend; // 317
-}
+};
 
-// 70
-dclass FairiesHomeRealm : DistributedDistrict {
-    setParentingRules(string, string) broadcast ram; // 318
-    createHomeRequest(uint32) ownsend; // 319
-    addHomeObject(uint64, uint32, uint32, uint32, uint8, uint8, uint8) ownsend broadcast; // 320
-    removeHomeObject(uint64, uint32) ownsend broadcast; // 321
-    removeHomeHotspotObject(uint32) broadcast; // 322
-    setServerTime(uint32) clsend; // 323
-    setPetState(uint32, int8) broadcast; // 324
-    requestDropGame(uint64, int32, int32, int32, int32, uint32, uint8, uint8, int16) ownsend; // 325
-    bootRequest(uint32) ownsend; // 326
-}
+dclass FairiesHomeRealm : DistributedDistrict { // 70
+    setParentingRules(string, string); // 318
+    createHomeRequest(uint32); // 319
+    addHomeObject(uint64, uint32, uint32, uint32, uint8, uint8, uint8); // 320
+    removeHomeObject(uint64, uint32); // 321
+    removeHomeHotspotObject(uint32); // 322
+    setServerTime(uint32); // 323
+    setPetState(uint32, int8); // 324
+    requestDropGame(uint64, int32, int32, int32, int32, uint32, uint8, uint8, int16); // 325
+    bootRequest(uint32); // 326
+};
 
-// 71
-dclass DistributedHome : DistributedInstanceBaseAI {
-    setAddress(string); // 327
-    setUnlockedRooms(uint32); // 328
+dclass DistributedHome : DistributedInstanceBaseAI { // 71
+    setAddress(string) required; // 327
+    setUnlockedRooms(uint32) required; // 328
     createParty(uint8, uint8[]); // 329
     setMinigameId(uint32); // 330
     setMinigamePlayers(PlayerStruct[]); // 331
@@ -433,64 +397,60 @@ dclass DistributedHome : DistributedInstanceBaseAI {
     setHotspotTrigger(int16); // 338
     setHotspotStates(uint32, HotspotState[]); // 339
     requestHotspotStates(); // 340
-}
+};
 
-// 72
-dclass DistributedHomeItem {
-    setItemID(uint32); // 341
-    setInventoryID(uint64); // 342
+dclass DistributedHomeItem { // 72
+    setItemID(uint32) required; // 341
+    setInventoryID(uint64) required; // 342
     setHomeManagerDOID(uint32); // 343
-    setColorIDs(uint32[]); // 344
+    setColorIDs(uint32[]) required; // 344
     requestItemChange(uint32, uint32, uint32, uint8, uint8); // 345
-    setPosition(uint32, uint32, uint32); // 346
-    setFlip(uint8); // 347
-    setScale(uint8); // 348
-    setRoomID(int32); // 349
-}
+    setPosition(uint32, uint32, uint32) required; // 346
+    setFlip(uint8) required; // 347
+    setScale(uint8) required; // 348
+    setRoomID(int32) required; // 349
+};
 
-// 73
-dclass DistributedHomeHotspot {
-    setItemID(uint32); // 350
+dclass DistributedHomeHotspot { // 73
+    setItemID(uint32) required; // 350
     requestHotspotChange(int32, int32, uint32, uint8, uint8); // 351
-    setHotspotLockState(uint8); // 352
-    setPosition(uint32, uint32, uint32); // 353
-    setInventoryID(uint64); // 354
-    setRoomID(int32); // 355
-    setTagId(int32); // 356
-}
+    setHotspotLockState(uint8) required; // 352
+    setPosition(uint32, uint32, uint32) required; // 353
+    setInventoryID(uint64) required; // 354
+    setRoomID(int32) required; // 355
+    setTagId(int32) required; // 356
+};
 
-// 74
-dclass DistributedSurprise {
-    setItemId(uint32); // 357
-    setTypeId(int8); // 358
-    setTypeData(int8[]); // 359
-    setPosition(uint32, uint32); // 360
-    setRestricted(int8); // 361
-    setState(int8); // 362
+dclass DistributedSurprise { // 74
+    setItemId(uint32) required; // 357
+    setTypeId(int8) required; // 358
+    setTypeData(int8[]) required; // 359
+    setPosition(uint32, uint32) required; // 360
+    setRestricted(int8) required; // 361
+    setState(int8) required; // 362
     openRequest(int8); // 363
     openComplete(int8); // 364
-}
+};
 
-// 75
-dclass DistributedGardenPlot {
-    setFairyId(uint32); // 365
-    setPlotNum(uint32); // 366
-    setSeedId(uint32); // 367
-    setPlantId(uint32); // 368
-    setStage(uint32); // 369
-    setStages(uint32); // 370
-    setEndDateTime(uint32); // 371
-    setTendingNeeded(int32); // 372
-    setSkillNeeded(int32); // 373
-    setDustCost(uint32); // 374
-    setHelperCount(uint32); // 375
-    setMaxHelperCount(uint32); // 376
-    setInstaGrowCost(uint32); // 377
-    setCanInteract(uint8); // 378
-    setCanHelp(uint8); // 379
-    setIsWilted(uint8); // 380
-    setWiltDelay(uint32); // 381
-    setTotalInteractionTime(uint32); // 382
+dclass DistributedGardenPlot { // 75
+    setFairyId(uint32) required; // 365
+    setPlotNum(uint32) required; // 366
+    setSeedId(uint32) required; // 367
+    setPlantId(uint32) required; // 368
+    setStage(uint32) required; // 369
+    setStages(uint32) required; // 370
+    setEndDateTime(uint32) required; // 371
+    setTendingNeeded(int32) required; // 372
+    setSkillNeeded(int32) required; // 373
+    setDustCost(uint32) required; // 374
+    setHelperCount(uint32) required; // 375
+    setMaxHelperCount(uint32) required; // 376
+    setInstaGrowCost(uint32) required; // 377
+    setCanInteract(uint8) required; // 378
+    setCanHelp(uint8) required; // 379
+    setIsWilted(uint8) required; // 380
+    setWiltDelay(uint32) required; // 381
+    setTotalInteractionTime(uint32) required; // 382
     requestDust(); // 383
     requestSkill(); // 384
     requestRemove(); // 385
@@ -511,10 +471,9 @@ dclass DistributedGardenPlot {
     plantStageChanged(); // 400
     plantWilted(); // 401
     plantInteractTimeLeftUpdate(uint32); // 402
-}
+};
 
-// 76
-dclass FairyInventoryMgr {
+dclass FairyInventoryMgr { // 76
     storageItem(uint32, InvItemExt); // 403
     wardrobeItem(uint32, InvItemExt); // 404
     storageRemove(uint32, uint64); // 405
@@ -564,10 +523,9 @@ dclass FairyInventoryMgr {
     addSavedOutfit(uint32, uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64); // 449
     updateSavedOutfit(uint32, uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64); // 450
     removeSavedOutfits(uint32, LongType[]); // 451
-}
+};
 
-// 77
-dclass FairyMgr {
+dclass FairyMgr { // 77
     bringOnline(uint32, uint32, uint8); // 452
     bringOnlineGM(uint32, uint32, uint32); // 453
     addQuest(int32, QuestId); // 454
@@ -579,10 +537,9 @@ dclass FairyMgr {
     acceptedDisplayAd(uint32); // 460
     isAdEligible(uint32); // 461
     updateFairyName(uint32, string); // 462
-}
+};
 
-// 78
-dclass DistributedFairyBase: TalkPath_owner, TalkPath_whisper {
+dclass DistributedFairyBase : TalkPath_owner, TalkPath_whisper { // 78
     setName(string) required ownrequired broadcast db ownrecv; // 463
     setPosition(uint32, uint32) ram required ownsend broadcast ownrequired; // 464
     setPositionCurve(uint32, uint32, uint32, uint32, uint32, uint32, uint32, int32) ram ownsend broadcast; // 465
@@ -603,15 +560,13 @@ dclass DistributedFairyBase: TalkPath_owner, TalkPath_whisper {
     setRenderEffects(int32) ram broadcast; // 480
     setAura(int16) ram broadcast; // 481
     setRoomID(int32) required ownrequired broadcast db ownrecv ownsend; // 482
-}
+};
 
-// 79
-dclass DistributedFairyNPC : DistributedFairyBase {
-	setFamousFairyId(int32) required broadcast ram; // 483
-}
+dclass DistributedFairyNPC : DistributedFairyBase { // 79
+    setFamousFairyId(int32) required broadcast ram; // 483
+};
 
-// 80
-dclass DistributedFairyPlayer : DistributedFairyBase {
+dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     setHelpFlags(uint32[]) ownsend ownrequired broadcast db ownrecv; // 484
     setBio(BioAnswer[]) required ownrequired broadcast db ownrecv; // 485
     setHasTagalong(int16) required ownrequired broadcast db ownrecv; // 486
@@ -713,21 +668,17 @@ dclass DistributedFairyPlayer : DistributedFairyBase {
     setGlobalPurchaseData(MiscItem[]); // 582
     setGlobalPurchase(uint16); // 583
     requestSendUpdateFairyName(string); // 584
-}
+};
 
-// 81
-dclass DistributedFairyGM : DistributedFairyPlayer {
+dclass DistributedFairyGM : DistributedFairyPlayer { // 81
+};
 
-}
-
-// 82
-dclass DistributedFamousFairyGM : DistributedFairyGM {
-    setFamousFairyId(int32); // 585
+dclass DistributedFamousFairyGM : DistributedFairyGM { // 82
+    setFamousFairyId(int32) required ownrequired broadcast ownrecv; // 585
     setOrbSize(uint8); // 586
-}
+};
 
-// 83
-dclass DistributedFairyQuestNPC : DistributedFairyNPC {
+dclass DistributedFairyQuestNPC : DistributedFairyNPC { // 83
     setQuestGiverId(int32) required broadcast ram; // 587
     requestQuestChoices(int8) clsend airecv; // 588
     setQuestChoices(QuestId[], QuestState[]); // 589
@@ -735,19 +686,14 @@ dclass DistributedFairyQuestNPC : DistributedFairyNPC {
     requestStepComplete(QuestId, uint64[]); // 591
     setQuestRewardChoice(int8, QuestId); // 592
     questResponse(int8); // 593
-}
-
-// 84
-	// 594
-	// 595
-
-dclass unk_84 {
-    unk_594(); // 594
-    unk_595(); // 595
 };
 
-// 85
-dclass FairiesBadgeManager {
+struct EarnedBadge {
+    int16 badgeId;
+    string dateEarned;
+};
+
+dclass FairiesBadgeManager { // 85
     giveBadge(int32, int16); // 596
     unlockPage(int32, int16); // 597
     unlockBadge(int32, int16); // 598
@@ -759,11 +705,10 @@ dclass FairiesBadgeManager {
     pageLocked(int16); // 604
     badgeLocked(int16); // 605
     progressUpdate(int16, int16); // 606
-    badgeAcquired(int16); // 607
-}
+    badgeAcquired(EarnedBadge); // 607
+};
 
-// 86
-dclass PetMgr {
+dclass PetMgr { // 86
     setPet(uint32, PetDNA, int16, int16, int16); // 608
     petProfileRequest(uint32) clsend airecv; // 609
     petProfileResponse(uint32, PetDNA, PetDetail); // 610
@@ -777,15 +722,12 @@ dclass PetMgr {
     petConversion(); // 618
     setPetNumbers(uint32, int8, int8, int8, int32); // 619
     giftRequestWithTime(uint32, int32, int32); // 620
-}
+};
 
-// 87
-dclass FMPlayerFriendsManager : PlayerFriendsManager {
+dclass FMPlayerFriendsManager : PlayerFriendsManager { // 87
+};
 
-}
-
-// 88
-dclass RealmGuardian {
+dclass RealmGuardian { // 88
     homeTeleportRequest(uint32); // 621
     homeTeleportResponse(uint32, uint32, uint16, int8); // 622
     realmPopulationUpdate(uint32, uint16); // 623
@@ -801,21 +743,19 @@ dclass RealmGuardian {
     homeItemDyed(uint32, uint64, int16, int16); // 633
     postcardReceived(uint32, int16); // 634
     gardenTypeChanged(uint32, int32, int32); // 635
-}
+};
 
-// 89
-dclass DistributedCraftingMinigame : DistributedInstanceBaseAI {
-    setProfessionID(int16); // 636
-    setCommunityDyeIDList(uint32[]); // 637
+dclass DistributedCraftingMinigame : DistributedInstanceBaseAI { // 89
+    setProfessionID(int16) required; // 636
+    setCommunityDyeIDList(uint32[]) required; // 637
     setRecipeChoice(uint32, uint16); // 638
     setResults(uint32, uint32, uint32, uint32, int16); // 639
     setEmbellishResults(uint32, uint32, uint32, uint32, uint64); // 640
     craftingResponse(uint16); // 641
-}
+};
 
-// 90
-dclass HolidayManager {
-    setTimeSpan(string[]) required broadcast ram; // 642
+dclass HolidayManager { // 90
+    setTimeSpan(string[]) required broadcast ram; // 642 // 642
     setTimeSpanHeartbeat(string[], int32); // 643
     setTimeSpanMessage(string) required broadcast ram; // 644
     setRequestMeadowMute(uint32, uint8); // 645
@@ -825,10 +765,9 @@ dclass HolidayManager {
     reloadStockLimitData(); // 649
     reloadAltVersionTokens(); // 650
     setShopsOpen(int8) required broadcast ram; // 651
-}
+};
 
-// 91
-dclass DistributedFairyShopkeeperNPC : DistributedFairyNPC {
+dclass DistributedFairyShopkeeperNPC : DistributedFairyNPC { // 91
     setShopId(int16) required broadcast ram; // 652
     setShopItems(ShopCollection[]) required broadcast ram; // 653
     setRequestPurchase(PurchaseItem[], int8); // 654
@@ -838,89 +777,82 @@ dclass DistributedFairyShopkeeperNPC : DistributedFairyNPC {
     setRequestPurchasePet(PurchaseItem, int16, int16, int8); // 658
     setRequestDyeItem(uint64, int16, int16, int8, int8); // 659
     setDyePrice(int32 dyeCostItemId, int16 dye1Price, int16 dye2Price, int16 dye1Gold, int16 dye2Gold) required broadcast ram; // 660
-    setRequestGiftSet(PurchaseItem, uint32, uint32, int16, int32); // 661
+    setRequestGiftSet(PurchaseItem[], uint32, uint32, int16, int32); // 661
     setStockLimits(StockUpdate[]); // 662
-}
+};
 
-// 92
-dclass DistributedGiveaway : DistributedSpawnStack {
-    setEventID(uint32); // 663
-    setGiveawayID(uint32); // 664
-    setHolidayBit(int32); // 665
-    setItemEventId(int32); // 666
+dclass DistributedGiveaway : DistributedSpawnStack { // 92
+    setEventID(uint32) required; // 663
+    setGiveawayID(uint32) required; // 664
+    setHolidayBit(int32) required; // 665
+    setItemEventId(int32) required; // 666
     acquisitionRequest(); // 667
     acquisitionResponse(uint8); // 668
-}
+};
 
-// 93
-dclass GameMasterController {
+dclass GameMasterController { // 93
     setMessage(string, uint32); // 669
     requestSendMessage(string, uint32, uint32, uint32); // 670
     setSound(uint32); // 671
     triggerHotspot(int16, int16); // 672
-}
+};
 
-// 94
-dclass FairiesMagicWordManager : DistributedObject {
-    setID(int8) required broadcast ram; // 673
-    setMagicWord(string, uint32, uint32, string) clsend airecv; // 674
+dclass FairiesMagicWordManager : DistributedObject { // 94
+    setID(int8) required; // 673
+    setMagicWord(string, uint32, uint32, string); // 674
     setMagicWordResponse(string); // 675
-}
+};
 
-// 95
-dclass DistributedQuest {
-    setQuestId(QuestId); // 676
-    setStep(int8, int32); // 677
-    setAccumulator(int16); // 678
-    setStepAccumulator(); // 679
-    setStepStatus(int8); // 680
+dclass DistributedQuest { // 95
+    setQuestId(QuestId) ownrecv; // 676
+    setStep(int8, int32) ownrecv; // 677
+    setAccumulator(int16) ownrecv; // 678
+    setStepAccumulator : setStep, setAccumulator; // 679 - molecular?
+    setStepStatus(int8) ownrecv; // 680
     removeQuest(int8); // 681
-}
+};
 
-// 96
-dclass DistributedParty : DistributedObject {
-    setID(uint32); // 682
-    setName(uint8[]); // 683
-    setTheme(uint8); // 684
-    setPublic(uint8); // 685
+dclass DistributedParty : DistributedObject { // 96
+    setID(uint32) required; // 682
+    setName(uint8[]) required; // 683
+    setTheme(uint8) required; // 684
+    setPublic(uint8) required; // 685
     inviteFairies(uint32[]); // 686
-    setStartTime(int32); // 687
-    setExpiration(int32); // 688
+    setStartTime(int32) required; // 687
+    setExpiration(int32) required; // 688
     cancelParty(int8); // 689
-}
+};
 
-// 97
-dclass DistributedWilderness : DistributedMeadow {
-    setActiveFairies(int32[]); // 690
-    setActiveBarriers(uint16[]); // 691
+dclass DistributedWilderness : DistributedMeadow { // 97
+    setActiveFairies(int32[]) required; // 690
+    setActiveBarriers(uint16[]) required; // 691
     setCleanOut(); // 692
-    setDefeated(uint8); // 693
-}
+    setDefeated(uint8) required; // 693
+};
 
-// 98
-dclass DistributedWildernessGateway {
-    setWildernessId(int32); // 694
-    setItemId(int32); // 695
-    setPosition(uint32, uint32); // 696
-    setPositionByName(string); // 697
-}
+dclass DistributedWildernessGateway { // 98
+    setWildernessId(int32) required; // 694
+    setItemId(int32) required; // 695
+    setPosition(uint32, uint32) required; // 696
+    setPositionByName(string) required; // 697
+};
 
-// 99
-	// 698
-	// 699
-	// 700
-	// 701
-	// 702
-	// 703
+struct Microgame {
+    int16 spellId;
+    int16 spellCopyId;
+    int8 mechId;
+    int8 mechLevel;
+    int32 mechAssetIds[];
+    int32 sfxIds[];
+};
 
-// 100
-dclass DistributedEnemy {
-    setItemId(int32); // 704
-    setPosition(string); // 705
-    setOrigin(int16, int16, int16, int16); // 706
-    setMicrogames(Microgame[]); // 707
-    setGamesDefeated(int8[]); // 708
-    setEnemyState(uint8); // 709
+dclass DistributedEnemy { // 100
+    setItemId(int32) required; // 704
+    setPosition(string) required; // 705
+    setOrigin(int16, int16, int16, int16) required; // 706
+    setMicrogames(Microgame[]) required; // 707
+    setGamesDefeated(int8[]) required; // 708
+    setEnemyState(uint8) required; // 709
     gamePrep(int8, int32, int8[]); // 710
     gameStart(int8, int8[]); // 711
     gameUpdate(int8, int8[]); // 712
@@ -928,15 +860,14 @@ dclass DistributedEnemy {
     setEnemyEmote(int32); // 714
     requestStateChange(uint8); // 715
     gameMove(int8, int8[]); // 716
-}
+};
 
-// 101
-dclass DistributedMatchMaker : DistributedObject {
-    setLeader(uint32); // 717
-    setGameId(uint32); // 718
-    setDebugMode(uint8); // 719
-    setQuestId(QuestId); // 720
-    setPlayers(PlayerStruct[]); // 721
+dclass DistributedMatchMaker : DistributedObject { // 101
+    setLeader(uint32) required; // 717
+    setGameId(uint32) required; // 718
+    setDebugMode(uint8) required; // 719
+    setQuestId(QuestId) required; // 720
+    setPlayers(PlayerStruct[]) required; // 721
     requestJoin(uint8); // 722
     joinRejected(uint32); // 723
     requestLeave(uint8); // 724
@@ -944,65 +875,59 @@ dclass DistributedMatchMaker : DistributedObject {
     setGameTriggered(uint32); // 726
     triggerRejected(int32); // 727
     setCancel(uint8); // 728
-    setTimeCreated(uint32); // 729
-}
+    setTimeCreated(uint32) required; // 729
+};
 
-// 102
-dclass DistributedPartyMatchMaker : DistributedMatchMaker {
+dclass DistributedPartyMatchMaker : DistributedMatchMaker { // 102
+};
 
-}
-
-// 103
-dclass DistributedWildernessMatchMaker : DistributedMatchMaker {
+dclass DistributedWildernessMatchMaker : DistributedMatchMaker { // 103
     verifyJoinWithLeader(PlayerStruct); // 730
     leaderResponse(uint32, uint8); // 731
     abortVerify(PlayerStruct); // 732
-    setCountdownState(uint8); // 733
+    setCountdownState(uint8) required; // 733
     requestCountdownState(uint8); // 734
-}
+};
 
-// 104
-dclass DistributedMultiplayerMinigame : DistributedTalentMinigame {
-    setLeader(uint32); // 735
+dclass DistributedMultiplayerMinigame : DistributedTalentMinigame { // 104
+    setLeader(uint32) required; // 735
     setExpectedPlayers(PlayerStruct[]); // 736
-    setGameBegin(int32); // 737
+    setGameBegin(int32) required; // 737
     sendMessage(string); // 738
     setMessage(uint32, string); // 739
     setRewardMultiplayer(Rank[]); // 740
     terminateWithMessage(int32); // 741
     setCleanOut(); // 742
-}
+};
 
-// 105
-dclass DistributedMeadowGame {
-    setGameInfo(uint32, uint8, uint8, uint8, uint8); // 743
-    setPosition(uint32, uint32); // 744
-    setGameState(int8, int8); // 745
-    setItemId(uint32); // 746
+dclass DistributedMeadowGame { // 105
+    setGameInfo(uint32, uint8, uint8, uint8, uint8) required; // 743
+    setPosition(uint32, uint32) required; // 744
+    setGameState(int8, int8) required; // 745
+    setItemId(uint32) required; // 746
     joinRequest(); // 747
     joinResponse(uint8); // 748
     leaveRequest(); // 749
     clearCountdown(); // 750
-    setPlayers(uint32[]); // 751
+    setPlayers(uint32[]) required; // 751
     setRewards(Rank[]); // 752
     requestSetPosition(uint32, uint32); // 753
-    isSpawnedGame(int8); // 754
-}
+    isSpawnedGame(int8) required; // 754
+};
 
-// 106
-	// 755
-	// 756
+struct Card {
+    int8 value;
+    int8 suit;
+};
 
-// 107
-dclass DistributedCrazyEights : DistributedMeadowGame {
+dclass DistributedCrazyEights : DistributedMeadowGame { // 107
     setGameData(int8, Card, uint8, uint8[], uint32, uint32, uint8); // 757
     setPlayerData(Card[]); // 758
     turnRequest(int8, Card[]); // 759
     turnResponse(uint8); // 760
-}
+};
 
-// 108
-dclass DistributedDerbyCartRacing : DistributedMeadowGame {
+dclass DistributedDerbyCartRacing : DistributedMeadowGame { // 108
     chooseCarPrep(int16[]); // 761
     chooseCarUpdate(int16[]); // 762
     chooseCar(int16[]); // 763
@@ -1011,60 +936,55 @@ dclass DistributedDerbyCartRacing : DistributedMeadowGame {
     raceStart(int16[]); // 766
     raceUpdate(int16[]); // 767
     raceMove(int16[]); // 768
-}
+};
 
-// 109 & 110
-	// 769
-	// 770
-	// 771
-	// 772
-	// 773
-	// 774
-	// 775
-	// 776
+struct MermaidTreasurePiece {
+    int8 treasureId;
+    int8 status;
+    int8 rotation;
+    int8 xoffset;
+    int8 yoffset;
+};
 
-// 111 - Unused/Unfinished Game
-dclass DistributedMermaidTreasure : DistributedMeadowGame {
+struct MermaidTreasureBoard {
+    int8 boardId;
+    MermaidTreasurePiece pieces[];
+    int8 hitPositions[];
+};
+
+dclass DistributedMermaidTreasure : DistributedMeadowGame { // 111
     setGameData(uint8, int32, int32, MermaidTreasureBoard[], uint32); // 777
     setPlayerData(MermaidTreasureBoard); // 778
     turnRequest(uint8); // 779
     turnResponse(uint8, uint8); // 780
-}
+};
 
-// 112
-dclass DistributedMatchGame : DistributedMeadowGame {
+dclass DistributedMatchGame : DistributedMeadowGame { // 112
     setGameData(int8, int8, int8, int8[], uint8[], uint32, uint32); // 781
     setPlayerData(); // 782
     turnRequest(int8, uint8); // 783
     turnResponse(uint8); // 784
-}
+};
 
-// 113
-dclass DistributedRockPaperScissors : DistributedMeadowGame {
+dclass DistributedRockPaperScissors : DistributedMeadowGame { // 113
     setNpcDialogue(int16[]); // 785
     roundStart(int16); // 786
     roundUpdate(int16[]); // 787
     roundEnd(int16[]); // 788
     roundScore(int16[]); // 789
     turnRequest(int8); // 790
-}
+};
 
-// 114
-dclass DistributedSimoneSays : DistributedMeadowGame {
+dclass DistributedSimoneSays : DistributedMeadowGame { // 114
     setNpcDialogue(int16[]); // 791
     roundStart(int16); // 792
     roundUpdate(int16[]); // 793
     roundEnd(int16[]); // 794
     roundScore(int16[]); // 795
     emoteSelected(int8); // 796
-}
+};
 
-struct PopcornGrouping {
-    PopcornBluePrint[] rules;
-}
-
-// 115
-dclass DistributedPassPopCorn : DistributedMeadowGame {
+dclass DistributedPassPopCorn : DistributedMeadowGame { // 115
     setNpcDialogue(int16[]); // 797
     setBluePrints(PopcornBluePrint[]); // 798
     nextRule(uint32, PopcornBluePrint[], uint8); // 799
@@ -1075,14 +995,7 @@ dclass DistributedPassPopCorn : DistributedMeadowGame {
     cardChoosen(uint32, uint8, PopcornBluePrint[]); // 804
     cardClicked(uint32, uint8); // 805
     cardGroupings(uint32, uint8, PopcornGrouping[]); // 806
-}
-
-// 116
-    // 807
-    // 808
-    // 809
-    // 810
-    // 811
+};
 
 struct LbEntry {
     uint32 avId;
@@ -1090,13 +1003,12 @@ struct LbEntry {
     string avName;
     int32 addrNum;
     string addrStr;
-}
+};
 
-// 117
-dclass LeaderBoardMgr {
+dclass LeaderBoardMgr { // 117
     putToLeaderBoard(uint32, int16, int32); // 812
     addToLeaderBoard(uint32, int16, int16); // 813
     lbRequest(int16, int8); // 814
     lbResponse(int16, int8, LbEntry[]); // 815
     forceRollover(int8); // 816
-}
+};

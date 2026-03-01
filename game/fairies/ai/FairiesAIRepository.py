@@ -44,7 +44,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             if not dclass.isStruct():
                 print(dclass.getName(), dclass.getNumber())
 
-        # print(self.dclassesByName["DistributedFairyBase"].getFieldByName("setName"))
+        print(self.dclassesByName["DistributedFairyBase"].getFieldByName("setName"))
 
     def getGameDoId(self):
         return OTP_DO_ID_FAIRIES
