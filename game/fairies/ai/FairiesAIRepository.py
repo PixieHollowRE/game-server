@@ -23,7 +23,7 @@ from game.fairies.shop.ShopConstants import SHOPS
 from game.fairies.shop.ShopData import SHOPDATA
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.server.ServerBase import ServerBase
-from game.otp.server.ServerGlobals import WORLD_OF_CARS_ONLINE
+from game.otp.server.ServerGlobals import PIXIE_HOLLOW
 
 
 class FairiesAIRepository(AIDistrict, ServerBase):
@@ -40,9 +40,11 @@ class FairiesAIRepository(AIDistrict, ServerBase):
 
         for dclassName in self.dclassesByName:
             dclass = self.dclassesByName[dclassName]
-            print(dclass.getName(), dclass.getNumber())
 
-        # print(self.dclassesByName["FairiesBadgeManagerAI"].getFieldByName("setBadges"))
+            if not dclass.isStruct():
+                print(dclass.getName(), dclass.getNumber())
+
+        # print(self.dclassesByName["DistributedFairyBase"].getFieldByName("setName"))
 
     def getGameDoId(self):
         return OTP_DO_ID_FAIRIES
@@ -201,7 +203,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         data = {
             'token': config.GetString('api-token'),
             'population': self.getPopulation(),
-            'serverType': WORLD_OF_CARS_ONLINE,
+            'serverType': PIXIE_HOLLOW,
             'shardName': self.districtName,
             'shardId': self.districtId
         }

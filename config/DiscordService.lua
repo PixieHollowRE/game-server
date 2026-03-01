@@ -1,7 +1,7 @@
 CENTRAL_LOGGER_REQUEST = 15000
 CENTRAL_LOGGER_REQUEST_RESP = 15001
 
-SERVER_TYPE = "Pixie Hollow"
+SERVER_TYPE = 11 -- Pixie Hollow
 
 local http = require("http")
 local json = require("json")

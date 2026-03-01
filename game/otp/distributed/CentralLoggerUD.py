@@ -3,7 +3,7 @@ from direct.distributed.DistributedObjectGlobalUD import DistributedObjectGlobal
 
 from game.otp.server.ServerBase import ServerBase
 from game.otp.discord.Webhook import Webhook
-from game.otp.server.ServerGlobals import WORLD_OF_CARS_ONLINE
+from game.otp.server.ServerGlobals import PIXIE_HOLLOW
 
 import json
 
@@ -82,7 +82,7 @@ class CentralLoggerUD(DistributedObjectGlobalUD, ServerBase):
             },
             {
                 'name': 'Server Type',
-                'value': WORLD_OF_CARS_ONLINE,
+                'value': PIXIE_HOLLOW,
                 'inline': True
             }]
 

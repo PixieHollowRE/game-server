@@ -6,39 +6,8 @@ import random
 NUM_DISTRICTS = 2
 
 districtNames = [
-    'Alignment',
-    'Axle',
-    'Backfire',
-    'Biofuel',
-    'Camshaft',
-    'Catalyst',
-    'Chrome',
-    'Driveshaft',
-    'Bumper',
-    'Defogger',
-    'Exhaust',
-    'Fender',
-    'Foglight',
-    'Formula',
-    'Fumes',
-    'Gasket',
-    'Grease',
-    'Gridlock',
-    'Hatchback',
-    'Hazard',
-    'Horsepower',
-    'Hot Rod',
-    'Hydraulics',
-    'Ignition',
-    'Isolator',
-    'Lugnut',
-    'Mudflap',
-    'Muffler',
-    'Nozzle',
-    'Overdrive',
-    'Pinstripe',
-    'Relay',
-    'Reverse'
+    'Hidden Ridge',
+    'Blueberry Forest'
 ]
 
 cutDistrictNames = random.sample(districtNames, NUM_DISTRICTS)
