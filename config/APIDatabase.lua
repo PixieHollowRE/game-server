@@ -100,7 +100,7 @@ function updateObject(participant, doId, data)
     return false, ""
 end
 
--- NOTE: setFairyDNA is handled on its own
+-- NOTE: setFairyDNA and other DNA fields are handled separately
 Api2Field = {
     -- TODO: Figure out the rest
     -- Account

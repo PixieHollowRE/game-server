@@ -474,6 +474,8 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
 
     if accountType ~= "Player" then
         client:sendActivateObject(avatarId, "DistributedFairyGM", playerFields)
+        -- playerFields.setFamousFairyId = {35} -- Terence
+        -- client:sendActivateObject(avatarId, "DistributedFamousFairyGM", playerFields)
     else
         client:sendActivateObject(avatarId, "DistributedFairyPlayer", playerFields)
     end
