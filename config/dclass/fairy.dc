@@ -12,6 +12,7 @@ from game.fairies.uberdog import FairiesBadgeManagerUD
 from game.fairies.ai import FairiesBadgeManagerAI
 from game.fairies.meadow import DistributedMeadowAI
 from game.fairies.ai import FairiesMagicWordManagerAI
+from game.fairies.housing import DistributedHomeAI
 
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.
@@ -383,8 +384,8 @@ dclass FairiesHomeRealm : DistributedDistrict { // 70
 };
 
 dclass DistributedHome : DistributedInstanceBaseAI { // 71
-    setAddress(string) required; // 327
-    setUnlockedRooms(uint32) required; // 328
+    setAddress(string address) required broadcast ownrecv; // 327
+    setUnlockedRooms(uint32 unlockedRooms) required broadcast ownrecv; // 328
     createParty(uint8, uint8[]); // 329
     setMinigameId(uint32); // 330
     setMinigamePlayers(PlayerStruct[]); // 331
@@ -577,7 +578,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     setChatMessage(string) ownsend broadcast; // 491
     setWhisperSCEmoteTo(uint32, uint16); // 492
     setWhisperSCEmoteFrom(uint32, uint16); // 493
-    setActualZoneId(uint32) ownsend; // 494
+    setActualZoneId(uint32 zoneId) ownsend; // 494
     setTeleportComplete() ownsend; // 495
     teleportRequestTo(uint32); // 496
     teleportRequest(uint32); // 497
