@@ -294,6 +294,37 @@ GATEWAYS: dict[int, list[dict]] = {
             "rewardList": [8003, 8015, 8018],
         },
     ],
+    ZoneConstants.SNOWCAP_GLADE: [
+        {
+            # Evergreen Overlook
+            "name": "9101",
+            "position": (1985, 100),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.EVERGREEN_OVERLOOK,
+        },
+        {
+            # Acorn Summit
+            "name": "9075",
+            "position": (201, 632),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.ACORN_SUMMIT,
+        },
+        {
+            # Pinecone Pop
+            "name": "9246",
+            "position": (214, 124),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.PINECONE_POP_GAME,
+            "rewardList": [8011, 8015, 8016],
+        },
+        {
+            # Gale's Outfitters
+            "name": "9124",
+            "position": (959, 831),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.GALES_OUTFITTERS,
+        }
+    ],
     ZoneConstants.PRISMS_PIXIE_SPA: [
         {
             # Palm Tree Cove
