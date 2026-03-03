@@ -13,6 +13,7 @@ from game.fairies.ai import FairiesBadgeManagerAI
 from game.fairies.meadow import DistributedMeadowAI
 from game.fairies.ai import FairiesMagicWordManagerAI
 from game.fairies.housing import DistributedHomeAI
+from game.fairies.uberdog import RealmGuardianUD
 
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.
@@ -729,12 +730,12 @@ dclass FMPlayerFriendsManager : PlayerFriendsManager { // 87
 };
 
 dclass RealmGuardian { // 88
-    homeTeleportRequest(uint32); // 621
+    homeTeleportRequest(uint32) clsend airecv; // 621
     homeTeleportResponse(uint32, uint32, uint16, int8); // 622
     realmPopulationUpdate(uint32, uint16); // 623
     homePopulationUpdate(uint32, uint32, uint16); // 624
     requestRealmPopulationUpdate(int16); // 625
-    requestPartyList(int8); // 626
+    requestPartyList(int8) clsend airecv; // 626
     partyListResponse(FairyParty[]); // 627
     fairyPartyUpdate(uint32, uint32, uint32, FairyParty); // 628
     setPetState(uint32, int8); // 629

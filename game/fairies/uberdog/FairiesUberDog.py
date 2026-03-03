@@ -47,6 +47,7 @@ class FairiesUberDog(UberDog):
             doId=self.allocateChannel())
 
         self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
+        self.realmGuardian = self.generateGlobalObject(OTP_DO_ID_REALM_GUARDIAN, "RealmGuardian")
 
     def handlePlayGame(self, msgType, di):
         # Handle Fairies specific message types before

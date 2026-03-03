@@ -33,6 +33,9 @@ uberdogs:
     - class: PetMgr
       id: 4691
 
+    - class: RealmGuardian
+      id: 4755
+
 roles:
     - type: clientagent
       # Clients connect in raw TCP.
