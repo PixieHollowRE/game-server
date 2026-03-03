@@ -53,6 +53,7 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetZoneID": ZoneConstants.SNOWCAP_GLADE,
         },
     ],
+    # Havendish Gateways
     ZoneConstants.HAVENDISH_SQUARE: [
         {
             # Fairy Coliseum
@@ -225,6 +226,7 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetZoneID": ZoneConstants.FAIRY_COLISEUM,
         },
     ],
+    # Winter Gateways
     ZoneConstants.EVERGREEN_OVERLOOK: [
         {
             # Chilly Falls
@@ -324,6 +326,46 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.GALES_OUTFITTERS,
         }
+    ],
+    # Summer Gateways
+    ZoneConstants.PALM_TREE_COVE: [
+        {
+            # Neverfruit Grove
+            "name": "9159",
+            "position": (180, 215),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.NEVERFRUIT_GROVE,
+        },
+        {
+            # Prism's Pixie Spa
+            "name": "9299",
+            "position": (406, 571),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.PRISMS_PIXIE_SPA,
+        },
+        {
+            # Shelly's Shears
+            "name": "9148",
+            "position": (406, 571),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.SCHELLYS_HAIR_SALON,
+        },
+        {
+            # Butterfly Painter
+            "name": "9216",
+            "position": (1707, 602),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.BUTTERFLY_PAINTER_GAME,
+            "rewardList": [8006, 8012, 8010],
+        },
+        {
+            # Dewdrop Vale
+            "name": "9045",
+            "position": (1605, 233),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.DEWDROP_VALE,
+
+        },
     ],
     ZoneConstants.PRISMS_PIXIE_SPA: [
         {

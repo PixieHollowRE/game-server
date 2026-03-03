@@ -5,7 +5,7 @@ class HolidayManagerUD(DistributedObjectUD):
         super().__init__(air)
 
     def getTimeSpan(self) -> list[str]:
-        return ["Meadow_Spring"]
+        return ["Meadow_Spring", "Tearoom_Spring"]
 
     def getTimeSpanMessage(self) -> str:
         return "Welcome to the test server. Missing features and bugs are to be expected. Enjoy!"
