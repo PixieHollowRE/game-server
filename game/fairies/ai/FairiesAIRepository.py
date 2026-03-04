@@ -19,8 +19,7 @@ from game.fairies.fairy.npc.DistributedFairyShopkeeperNPCAI import DistributedFa
 from game.fairies.fairy import FamousFairyData
 from game.fairies.ai import ZoneConstants
 from game.fairies.ai.FairiesMagicWordManagerAI import FairiesMagicWordManagerAI
-from game.fairies.shop.ShopConstants import SHOPS
-from game.fairies.shop.ShopData import SHOPDATA
+from game.fairies.shop.ShopData import SHOPS
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.server.ServerBase import ServerBase
 from game.otp.server.ServerGlobals import PIXIE_HOLLOW
@@ -106,40 +105,9 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         tinkerbellQuest.setRoomID(1)
         tinkerbellQuest.generateWithRequired(ZoneConstants.TINKERS_NOOK)
 
-        TEST_SHOP_DATA = [
-            (
-                1, # collectionId
-                1, # currencyId (COLLECTION_CURRENCYSUPPORT_BOTH)
-                [ # items
-                (
-                    77515, # itemId (Pink Bunny Ears)
-                    100, # goldPrice
-                    0, # color1
-                    0, # color2
-                    1, # itemCount
-                    0, # specialType
-                    100, # price
-                    0, # status
-                    0, # howAcquired
-                    100 # memberGoldPrice
-                )
-                ],
-                [ # outfits
-                ]
-            )
-        ]
-
-        for zone, shopConfig in SHOPS.items():
-            shopData = SHOPDATA.get(zone, TEST_SHOP_DATA)
-            shop = DistributedFairyShopkeeperNPCAI(self)
-            shop.setShopId(shopConfig["shopID"])
-            shop.setName(shopConfig["name"])
-            shop.setFairyDNA(shopConfig["fairyDNA"])
-            shop.setPosition(shopConfig["position"][0], shopConfig["position"][1])
-            shop.setFamousFairyId(shopConfig["famousFairyID"])
-            shop.setRoomID(1)
-            shop.setShopItems(shopData)
-            shop.generateWithRequired(zone)
+        for shop in SHOPS:
+            shop_ai = DistributedFairyShopkeeperNPCAI(self)
+            shop.generate_shop(shop_ai)
 
         self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
 

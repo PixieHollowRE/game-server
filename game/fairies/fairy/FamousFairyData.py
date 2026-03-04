@@ -1,24 +1,83 @@
-# Terence's fixed object ID
+# Quest Givers have Fixed Object IDs
 TERENCE_DO_ID = 15507
 
 TINKERBELL_DO_ID = 15504
 
 # Famous Fairy IDs (from npcToFamousFairy mapping in FamousFairyData)
-FAMOUS_FAIRY_TERENCE = 35
-FAMOUS_FAIRY_FAWN = 2
-FAMOUS_FAIRY_IRIDESSA = 4
-FAMOUS_FAIRY_ROSETTA = 3
-FAMOUS_FAIRY_SILVERMIST = 1
 FAMOUS_FAIRY_TINKERBELL = 0
+FAMOUS_FAIRY_SILVERMIST = 1
+FAMOUS_FAIRY_FAWN = 2
+FAMOUS_FAIRY_ROSETTA = 3
+FAMOUS_FAIRY_IRIDESSA = 4
+
+FAMOUS_FAIRY_QUEEN = 34
+FAMOUS_FAIRY_TERENCE = 35
+FAMOUS_FAIRY_PERIWINKLE = 44
+FAMOUS_FAIRY_ELIXA = 30
+
+# Never News
+FAMOUS_FAIRY_TABBY = 5
+FAMOUS_FAIRY_KIT = 6
+FAMOUS_FAIRY_MARINA = 7
+FAMOUS_FAIRY_SWEETPEA = 8
+
+# Shopkeepers
+BELLA_ROSE = "Bella Rose"
+FAMOUS_FAIRY_BELLA_ROSE = 9
+
+BROOK = "Brook"
+FAMOUS_FAIRY_BROOK = 10
+
+DIVA_WINGS = "Diva Wings"
+FAMOUS_FAIRY_DIVA_WINGS = 11
 
 GALE = "Gale"
 FAMOUS_FAIRY_GALE = 12
 
-CASSIE = "Cassie"
-FAMOUS_FAIRY_CASSIE = 28
+HARMONY = "Harmony"
+FAMOUS_FAIRY_HARMONY = 13
+
+TRINKET = "Trinket"
+FAMOUS_FAIRY_TRINKET = 14
+
+EMBER = "Ember"
+FAMOUS_FAIRY_EMBER = 15
+
+DAISY = "Daisy"
+FAMOUS_FAIRY_DAISY = 16
 
 PRISM = "Prism"
 FAMOUS_FAIRY_PRISM = 17
+
+PHOEBE = "Phoebe"
+FAMOUS_FAIRY_PHOEBE = 19
+
+SCHELLY = "Schelly"
+FAMOUS_FAIRY_SCHELLY = 20
+
+CASSIE = "Cassie"
+FAMOUS_FAIRY_CASSIE = 28
+
+BECK = "Beck"
+FAMOUS_FAIRY_BECK = 29
+
+COAL = "Coal"
+FAMOUS_FAIRY_COAL = 31
+
+NEVILLE = "Neville"
+FAMOUS_FAIRY_NEVILLE = 33
+
+ZEPHYR = "Zephyr"
+FAMOUS_FAIRY_ZEPHYR = 41
+
+SPRING = "Spring"
+FAMOUS_FAIRY_SPRING = 42
+
+ERICA = "Erica"
+FAMOUS_FAIRY_ERICA = 43
+
+SPIKE = "Spike"
+FAMOUS_FAIRY_SPIKE = 45
 
 TERENCE_DNA = (
     6, # talent (Dust Keeper)
@@ -36,60 +95,6 @@ TERENCE_DNA = (
     106, # skin_color
     112, # wing_color
     2 # gender (Male)
-)
-
-GALE_DNA = (
-    12, # talent
-    95, # head
-    100, # height
-    88, # body
-    5504, # hair_back
-    5018, # hair_front
-    4501, # face
-    4001, # eye
-    6003, # wing
-    109, # hair_color
-    109, # hair_color2
-    129, # eye_color
-    107, # skin_color
-    128, # wing_color
-    1
-)
-
-CASSIE_DNA = (
-    12, # talent
-    105, # head
-    107, # height
-    91, # body
-    5519, # hair_back
-    5010, # hair_front
-    4519, # face
-    4013, # eye
-    6002, # wing
-    43, # hair_color
-    43, # hair_color2
-    24, # eye_color
-    103, # skin_color
-    109, # wing_color
-    1
-)
-
-PRISM_DNA = (
-    0, # talent
-    0, # head
-    0, # height
-    0, # body
-    0, # hair_back
-    0, # hair_front
-    0, # face
-    0, # eye
-    0, # wing
-    0, # hair_color
-    0, # hair_color2
-    0, # eye_color
-    0, # skin_color
-    0, # wing_color
-    1
 )
 
 TINKERBELL_DNA = (
