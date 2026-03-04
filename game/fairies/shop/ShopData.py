@@ -28,7 +28,7 @@ SHOPS = [
         shopId=2,
         shopkeeper=Shopkeeper(
             name=FamousFairyData.DIVA_WINGS,
-            position=(434, 429), # NOT PLACED
+            position=(410, 450),
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_DIVA_WINGS
         ),
         collections=[
@@ -94,7 +94,7 @@ SHOPS = [
         shopId=8,
         shopkeeper=Shopkeeper(
             name=FamousFairyData.SPRING,
-            position=(434, 429), # NOT PLACED
+            position=(500, 350),
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_SPRING
         ),
         collections=[
@@ -120,7 +120,7 @@ SHOPS = [
         shopId=2000,
         shopkeeper=Shopkeeper(
             name=FamousFairyData.DAISY,
-            position=(500, 350), # NOT PLACED
+            position=(390, 434),
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_DAISY
         ),
         collections=[
@@ -133,7 +133,7 @@ SHOPS = [
         shopId=3000,
         shopkeeper=Shopkeeper(
             name=FamousFairyData.PHOEBE,
-            position=(500, 350), # NOT PLACED
+            position=(352, 810),
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_PHOEBE
         ),
         collections=[
@@ -146,7 +146,7 @@ SHOPS = [
         shopId=4000,
         shopkeeper=Shopkeeper(
             name=FamousFairyData.SCHELLY,
-            position=(500, 350),
+            position=(290, 470),
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_SCHELLY
         ),
         collections=[
@@ -154,12 +154,12 @@ SHOPS = [
         ],
     ),
 
-    NPCShop(
+    NPCShop( # BECK IS FACING THE WRONG WAY - HOW DO I FLIP HER???
         zone=ZoneConstants.BECKS_ANIMAL_NURSERY,
         shopId=5000,
         shopkeeper=Shopkeeper(
             name=FamousFairyData.BECK,
-            position=(500, 350), # NOT PLACED
+            position=(387, 440), 
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_BECK
         ),
         collections=[
@@ -173,7 +173,8 @@ SHOPS = [
         shopkeeper=Shopkeeper(
             name=FamousFairyData.NEVILLE,
             position=(500, 350), # NOT PLACED
-            famousFairyId=FamousFairyData.FAMOUS_FAIRY_NEVILLE
+            famousFairyId=FamousFairyData.FAMOUS_FAIRY_NEVILLE,
+            gender=2
         ),
         collections=[
             TEST_SHOP_DATA
