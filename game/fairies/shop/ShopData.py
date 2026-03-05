@@ -150,7 +150,170 @@ SHOPS = [
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_SCHELLY
         ),
         collections=[
-            TEST_SHOP_DATA
+            ShopCollection(
+                collectionId=4001, # Classic Hair Fronts (Fairies)
+                currencyId=FairiesConstants.DAISY_PETALS,
+                items=[
+                    ShopItem(itemId=5001, price=10, goldPrice=2), # Simple Style
+                    ShopItem(itemId=5002, price=10, goldPrice=2), # Parted Bangs
+                    ShopItem(itemId=5003, price=10, goldPrice=2), # Center Swoops
+                    ShopItem(itemId=5004, price=10, goldPrice=2), # Sweepy Side Part
+                    ShopItem(itemId=5005, price=10, goldPrice=2), # Wind-Swept Bangs
+                    ShopItem(itemId=5006, price=10, goldPrice=2), # Sleek and Styled
+                    ShopItem(itemId=5007, price=10, goldPrice=2), # Parted Pomp
+                    ShopItem(itemId=5008, price=10, goldPrice=2), # Blunt Cut
+                    ShopItem(itemId=5009, price=10, goldPrice=2), # Swoopy Side Part
+                    ShopItem(itemId=5010, price=10, goldPrice=2), # Angled Bangs
+                    ShopItem(itemId=5011, price=10, goldPrice=2), # Pulled Back -- Wavy
+                    ShopItem(itemId=5012, price=10, goldPrice=2), # Pulled Back -- Glamorous
+                    ShopItem(itemId=5013, price=10, goldPrice=2), # Pulled Back
+                    ShopItem(itemId=5014, price=10, goldPrice=2), # Pulled Back -- Wispy
+                    ShopItem(itemId=5015, price=10, goldPrice=2), # Sweeping Bangs
+                    ShopItem(itemId=5016, price=10, goldPrice=2), # Shy Style
+                    ShopItem(itemId=5017, price=10, goldPrice=2), # Tousled Layers
+                    ShopItem(itemId=5018, price=10, goldPrice=2), # Tousled Top
+                    ShopItem(itemId=5019, price=10, goldPrice=2), # Long Strand Front
+                ],
+            ),
+            ShopCollection(
+                collectionId=4003, # Classic Hair Backs (Fairies)
+                currencyId=FairiesConstants.DAISY_PETALS,
+                items=[
+                    ShopItem(itemId=5521, price=10, goldPrice=2), # No Back
+                    ShopItem(itemId=5501, price=10, goldPrice=2), # Classic Back
+                    ShopItem(itemId=5502, price=10, goldPrice=2), # Pixie Braids
+                    ShopItem(itemId=5503, price=10, goldPrice=2), # Short Tresses
+                    ShopItem(itemId=5504, price=10, goldPrice=2), # Fluffy Short
+                    ShopItem(itemId=5505, price=10, goldPrice=2), # Styled Short
+                    ShopItem(itemId=5506, price=10, goldPrice=2), # Super Long Braid
+                    ShopItem(itemId=5507, price=10, goldPrice=2), # Berry Bouffant
+                    ShopItem(itemId=5508, price=10, goldPrice=2), # Pixie Pom Pom
+                    ShopItem(itemId=5509, price=10, goldPrice=2), # Big Hair
+                    ShopItem(itemId=5510, price=10, goldPrice=2), # Long Tresses
+                    ShopItem(itemId=5511, price=10, goldPrice=2), # Styled Long Strands
+                    ShopItem(itemId=5512, price=10, goldPrice=2), # Fairy Braids
+                    ShopItem(itemId=5513, price=10, goldPrice=2), # Long Tapered Tresses
+                    ShopItem(itemId=5514, price=10, goldPrice=2), # Long Braids
+                    ShopItem(itemId=5515, price=10, goldPrice=2), # Long and Straight
+                    ShopItem(itemId=5516, price=10, goldPrice=2), # Short and Teased
+                    ShopItem(itemId=5517, price=10, goldPrice=2), # Long Flowing Locks
+                    ShopItem(itemId=5518, price=10, goldPrice=2), # Pixie Pin Curls
+                    ShopItem(itemId=5519, price=10, goldPrice=2), # Wind-Swept Bun
+                    ShopItem(itemId=5520, price=10, goldPrice=2), # Thick Ponytails
+                    ShopItem(itemId=5522, price=10, goldPrice=2), # Puff Ball Back
+                ],
+            ),
+            ShopCollection(
+                collectionId=4004, # Stylish Hair Fronts (Fairies)
+                currencyId=FairiesConstants.DAISY_PETALS,
+                items=[
+                    ShopItem(itemId=5118, price=10, goldPrice=2), # Plaited Side Part Front
+                    ShopItem(itemId=5119, price=10, goldPrice=2), # Sideswept Barrette Front
+                    ShopItem(itemId=5121, price=10, goldPrice=2), # Curly Pompadour Front
+                    ShopItem(itemId=5122, price=10, goldPrice=2), # Short Waves Front
+                    ShopItem(itemId=5123, price=10, goldPrice=2), # Fashion Bob Front
+                    ShopItem(itemId=5120, price=10, goldPrice=2), # Beautiful Bangs
+                    ShopItem(itemId=5124, price=10, goldPrice=2), # Periwinkle's Hair Front
+                    ShopItem(itemId=5125, price=10, goldPrice=2), # Spike's Hair Front
+                    ShopItem(itemId=5126, price=10, goldPrice=2), # Long and Curly Front
+                    ShopItem(itemId=5027, price=10, goldPrice=2), # Pixie Bangs
+                    ShopItem(itemId=5113, price=10, goldPrice=2), # Original Pixie Bangs
+                    ShopItem(itemId=5028, price=10, goldPrice=2), # Pixie Pigtails
+                    ShopItem(itemId=5115, price=10, goldPrice=2), # Original Pixie Pigtails
+                    ShopItem(itemId=5029, price=10, goldPrice=2), # Star Strands Front
+                    ShopItem(itemId=5114, price=10, goldPrice=2), # Original Star Strands Front
+                    ShopItem(itemId=5030, price=10, goldPrice=2), # Side Swept Bangs
+                    ShopItem(itemId=5116, price=10, goldPrice=2), # Original Side Swept Bangs
+                    ShopItem(itemId=5032, price=10, goldPrice=2), # Fairy Mary Hair
+                    ShopItem(itemId=5075, price=10, goldPrice=2), # Cool Waves
+                    ShopItem(itemId=5077, price=10, goldPrice=2), # Classic Pulled Back
+                    ShopItem(itemId=5094, price=10, goldPrice=2), # Flowy Pigtails
+                    ShopItem(itemId=5081, price=10, goldPrice=2), # Sweet and Stylish Bun
+                    ShopItem(itemId=5080, price=10, goldPrice=2), # Puffy Bangs
+                    ShopItem(itemId=5093, price=10, goldPrice=2), # Long and Flowing Tieback
+                    ShopItem(itemId=5084, price=10, goldPrice=2), # Sleek Part
+                    ShopItem(itemId=5107, price=10, goldPrice=2), # Royal Heart Braids
+                    ShopItem(itemId=5102, price=10, goldPrice=2), # Lovely Layers
+                    ShopItem(itemId=5076, price=10, goldPrice=2), # Fairy Fishtails
+                    ShopItem(itemId=5108, price=10, goldPrice=2), # Will 'O Whisp Bangs
+                    ShopItem(itemId=5101, price=10, goldPrice=2), # Long Swept Bangs
+                    ShopItem(itemId=5089, price=10, goldPrice=2), # Braided Tieback
+                    ShopItem(itemId=5098, price=10, goldPrice=2), # Short Twists
+                    ShopItem(itemId=5092, price=10, goldPrice=2), # Long and Flitterific Locks
+                    ShopItem(itemId=5082, price=10, goldPrice=2), # Stylish Ringlets
+                    ShopItem(itemId=5033, price=10, goldPrice=2), # Side-Part Swirly Bob
+                    ShopItem(itemId=5034, price=10, goldPrice=2), # Front Swept Bangs
+                    ShopItem(itemId=5035, price=10, goldPrice=2), # Totally Tousled Bangs
+                    ShopItem(itemId=5036, price=10, goldPrice=2), # Soft Tousled Bangs
+                    ShopItem(itemId=5037, price=10, goldPrice=2), # Tight Wave Crop
+                    ShopItem(itemId=5062, price=10, goldPrice=2), # Perfect Bob
+                    ShopItem(itemId=5064, price=10, goldPrice=2), # Swift and Swooshy Locks
+                    ShopItem(itemId=5063, price=10, goldPrice=2), # Long Angled Bangs
+                    ShopItem(itemId=5066, price=10, goldPrice=2), # Braid Over Bangs
+                    ShopItem(itemId=5078, price=10, goldPrice=2), # Mouse-Ear Buns
+                    ShopItem(itemId=5099, price=10, goldPrice=2), # Pulled Back Twists
+                    ShopItem(itemId=5090, price=10, goldPrice=2), # Inverted Bob
+                    ShopItem(itemId=5087, price=10, goldPrice=2), # Rock and Roll Bangs
+                    ShopItem(itemId=5086, price=10, goldPrice=2), # Double Roll Bangs
+                    ShopItem(itemId=5100, price=10, goldPrice=2), # Triple Braid Bob
+                    ShopItem(itemId=5079, price=10, goldPrice=2), # Topsy-Turvy Short
+                    ShopItem(itemId=5105, price=10, goldPrice=2), # Twisty Locks
+                    ShopItem(itemId=5088, price=10, goldPrice=2), # Bowtie Bob
+                    ShopItem(itemId=5097, price=10, goldPrice=2), # Long and Curly Twisties
+                ],
+            ),
+            ShopCollection(
+                collectionId=4005, # Stylish Hair Backs (Fairies)
+                currencyId=FairiesConstants.DAISY_PETALS,
+                items=[
+                    ShopItem(itemId=5521, price=10, goldPrice=2), # No Back
+                    ShopItem(itemId=5602, price=10, goldPrice=2), # Sideswept Barrette Back
+                    ShopItem(itemId=5603, price=10, goldPrice=2), # Plaited Side Part Back
+                    ShopItem(itemId=5605, price=10, goldPrice=2), # Curly Pompadour Back
+                    ShopItem(itemId=5606, price=10, goldPrice=2), # Pom Pom Pigtails
+                    ShopItem(itemId=5604, price=10, goldPrice=2), # Beautiful Bangs Back
+                    ShopItem(itemId=5607, price=10, goldPrice=2), # Periwinkle's Hair Back
+                    ShopItem(itemId=5601, price=10, goldPrice=2), # Spike's Hair Back
+                    ShopItem(itemId=5608, price=10, goldPrice=2), # Long and Curly Back
+                    ShopItem(itemId=5532, price=10, goldPrice=2), # Sweet Bun
+                    ShopItem(itemId=5533, price=10, goldPrice=2), # Girly Curlies
+                    ShopItem(itemId=5534, price=10, goldPrice=2), # Pixie Ponytails Back
+                    ShopItem(itemId=5535, price=10, goldPrice=2), # Star Strands Back
+                    ShopItem(itemId=5599, price=10, goldPrice=2), # Original Star Strands Back
+                    ShopItem(itemId=5536, price=10, goldPrice=2), # Pixie Bob Back
+                    ShopItem(itemId=5537, price=10, goldPrice=2), # Long Pony
+                    ShopItem(itemId=5598, price=10, goldPrice=2), # Original Long Pony
+                    ShopItem(itemId=5569, price=10, goldPrice=2), # Cool Waves Back
+                    ShopItem(itemId=5570, price=10, goldPrice=2), # Braided-Bun
+                    ShopItem(itemId=5574, price=10, goldPrice=2), # Swept Up Hair Back
+                    ShopItem(itemId=5573, price=10, goldPrice=2), # Puffy Pigtails
+                    ShopItem(itemId=5576, price=10, goldPrice=2), # Twin Buns
+                    ShopItem(itemId=5591, price=10, goldPrice=2), # Lovely Layers Back
+                    ShopItem(itemId=5593, price=10, goldPrice=2), # Whale of a Fishtail
+                    ShopItem(itemId=5582, price=10, goldPrice=2), # High Flowing Ponytail
+                    ShopItem(itemId=5584, price=10, goldPrice=2), # Long and Flowing Hair
+                    ShopItem(itemId=5590, price=10, goldPrice=2), # Swept Up
+                    ShopItem(itemId=5581, price=10, goldPrice=2), # Bunny Tail Bun
+                    ShopItem(itemId=5572, price=10, goldPrice=2), # Long Braided Back
+                    ShopItem(itemId=5588, price=10, goldPrice=2), # Short Twists Back
+                    ShopItem(itemId=5583, price=10, goldPrice=2), # Long and Flitterific Locks Back
+                    ShopItem(itemId=5575, price=10, goldPrice=2), # Stylish Ringlets Back
+                    ShopItem(itemId=5538, price=10, goldPrice=2), # Swirly Glamour Mane
+                    ShopItem(itemId=5539, price=10, goldPrice=2), # Swept-Up Bun
+                    ShopItem(itemId=5540, price=10, goldPrice=2), # Totally Rounded Bob
+                    ShopItem(itemId=5541, price=10, goldPrice=2), # Soft Layered Locks
+                    ShopItem(itemId=5563, price=10, goldPrice=2), # Perfect Bob Back
+                    ShopItem(itemId=5565, price=10, goldPrice=2), # Swift and Swooshy Back
+                    ShopItem(itemId=5564, price=10, goldPrice=2), # Angled Bang Back
+                    ShopItem(itemId=5566, price=10, goldPrice=2), # Braid and Bun
+                    ShopItem(itemId=5571, price=10, goldPrice=2), # Draping Locks
+                    ShopItem(itemId=5580, price=10, goldPrice=2), # Super Long Ponytail
+                    ShopItem(itemId=5589, price=10, goldPrice=2), # Pulled Back Twists Back
+                    ShopItem(itemId=5579, price=10, goldPrice=2), # Wavy Silky Tresses
+                    ShopItem(itemId=5578, price=10, goldPrice=2), # Rolled and Wavy Back
+                    ShopItem(itemId=5587, price=10, goldPrice=2), # Long and Curly Twisties Back
+                ],
+            )
         ],
     ),
 
