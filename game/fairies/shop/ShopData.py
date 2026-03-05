@@ -116,6 +116,32 @@ SHOPS = [
     ),
 
     NPCShop(
+        zone=ZoneConstants.EMBERS_ESSENTIALS,
+        shopId=1002,
+        shopkeeper=Shopkeeper(
+            name=FamousFairyData.EMBER,
+            position=(433, 432),
+            famousFairyId=FamousFairyData.FAMOUS_FAIRY_EMBER
+        ),
+        collections=[
+            TEST_SHOP_DATA
+        ]
+    ),
+
+    NPCShop(
+        zone=ZoneConstants.TREETOP_HOUSEWARES,
+        shopId=1002,
+        shopkeeper=Shopkeeper(
+            name=FamousFairyData.TRINKET,
+            position=(425, 444),
+            famousFairyId=FamousFairyData.FAMOUS_FAIRY_TRINKET
+        ),
+        collections=[
+            TEST_SHOP_DATA
+        ]
+    ),
+
+    NPCShop(
         zone=ZoneConstants.DAISYS_DYES,
         shopId=2000,
         shopkeeper=Shopkeeper(
@@ -335,7 +361,7 @@ SHOPS = [
         shopId=6000,
         shopkeeper=Shopkeeper(
             name=FamousFairyData.NEVILLE,
-            position=(500, 350), # NOT PLACED
+            position=(785, 458), # NOT PLACED
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_NEVILLE,
             gender=2
         ),
@@ -349,7 +375,7 @@ SHOPS = [
         shopId=7000,
         shopkeeper=Shopkeeper(
             name=FamousFairyData.BROOK,
-            position=(500, 350), # NOT PLACED
+            position=(418, 453), # NOT PLACED
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_BROOK
         ),
         collections=[
