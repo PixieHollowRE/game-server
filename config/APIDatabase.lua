@@ -111,7 +111,8 @@ Api2Field = {
     name = "setName",
     moreOptions = "setMoreOptions",
     tutorialBitmask = "setHelpFlags",
-    optionsBitmask = "setOptionsMask"
+    optionsBitmask = "setOptionsMask",
+    bio = "setBio"
 }
 
 Field2Api = {}
