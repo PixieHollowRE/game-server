@@ -1,5 +1,6 @@
 from game.fairies.uberdog import HolidayManagerUD
 from game.fairies.distributed import FairiesRealmAI
+from game.fairies.distributed import FairiesHomeRealmAI
 from game.fairies.fairy import DistributedFairyPlayerAI
 from game.fairies.fairy import DistributedFairyGMAI
 from game.fairies.fairy.npc import DistributedFairyNPCAI
@@ -373,12 +374,12 @@ dclass DistributedTalentMinigame : DistributedInstanceBaseAI { // 69
 };
 
 dclass FairiesHomeRealm : DistributedDistrict { // 70
-    setParentingRules(string, string); // 318
+    setParentingRules(string, string) broadcast ram; // 318
     createHomeRequest(uint32); // 319
     addHomeObject(uint64, uint32, uint32, uint32, uint8, uint8, uint8); // 320
     removeHomeObject(uint64, uint32); // 321
     removeHomeHotspotObject(uint32); // 322
-    setServerTime(uint32); // 323
+    setServerTime(uint32) clsend airecv; // 323
     setPetState(uint32, int8); // 324
     requestDropGame(uint64, int32, int32, int32, int32, uint32, uint8, uint8, int16); // 325
     bootRequest(uint32); // 326
@@ -631,7 +632,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     setPetDetail(PetDetail); // 543
     setPetGameScore(int16, int16, int8); // 544
     setNametag(int8) ownrequired broadcast db ownrecv; // 545
-    setHomeType(int32, int8) ownrequired broadcast db ownrecv; // 546
+    setHomeType(int32 = 1, int8) ownrequired broadcast db ownrecv; // 546
     setDailyChancePlayed(uint8) ownrequired broadcast db ownrecv; // 547
     requestDailyChance(uint32); // 548
     setDailyChanceReward(RewardExt[]); // 549

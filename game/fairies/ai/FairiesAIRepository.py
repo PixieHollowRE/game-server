@@ -7,6 +7,7 @@ from game.fairies.ai.FairiesAIMsgTypes import *
 from game.fairies.ai.DatabaseObject import DatabaseObject
 from game.fairies.fairy.DistributedFairyPlayerAI import DistributedFairyPlayerAI
 from game.fairies.distributed.FairiesRealmAI import FairiesRealmAI
+from game.fairies.distributed.FairiesHomeRealmAI import FairiesHomeRealmAI
 from game.fairies.distributed.FairiesGlobals import *
 from game.fairies.distributed.MongoInterface import MongoInterface
 from game.fairies.meadow.DistributedMeadowAI import DistributedMeadowAI
@@ -56,7 +57,10 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         return min(self.minChannel - self.districtId, DynamicZonesEnd) - 1
 
     def handlePlayGame(self, msgType, di):
-        AIDistrict.handlePlayGame(self, msgType, di)
+        if msgType == GENERATE_OBJECT:
+            self.handleGenerateObject(di)
+        else:
+            AIDistrict.handlePlayGame(self, msgType, di)
 
     def createObjects(self):
         self.district = FairiesRealmAI(self, self.districtName)
@@ -121,6 +125,13 @@ class FairiesAIRepository(AIDistrict, ServerBase):
 
         # mark district as avaliable
         self.district.b_setAvailable(1)
+
+        # Inform the UberDOG of this district (realm).
+        dg = PyDatagram()
+        dg.addServerHeader(CHANNEL_PUPPET_ACTION, self.ourChannel, DISTRICT_REGISTER)
+        dg.addUint32(self.district.getDoId())
+        dg.addUint32(self.ourChannel)
+        self.send(dg)
 
         if self.isProdServer():
             # Register us with the API server
@@ -189,3 +200,24 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         if accountId not in self.staffMembers:
             self.staffMembers.append(accountId)
             self.accountMap[accountId] = accountType
+
+    def handleGenerateObject(self, di):
+        sender = self.getMsgSender()
+        context = di.getUint32()
+        _type = di.getUint8()
+
+        _object = None
+        if _type == OBJECT_TYPE_REALM:
+            _object = FairiesHomeRealmAI(self)
+            _object.generateOtpObject(self.getGameDoId(), OTP_ZONE_ID_DISTRICTS)
+        else:
+            self.notify.warning(f"Ignoring unknown object type {_type} from GENERATE_OBJECT")
+            return
+
+        dg = PyDatagram()
+        dg.addServerHeader(sender, self.ourChannel, GENERATE_OBJECT_RESP)
+        dg.addUint32(context)
+        dg.addUint32(_object.doId)
+        dg.addUint32(_object.parentId)
+        dg.addUint32(_object.zoneId)
+        self.send(dg)
