@@ -1,5 +1,7 @@
 from collections.abc import Sequence
 
+from game.fairies.fairy.structs.ShopTriedOnItems import ShopTriedOnItems
+
 from .DistributedFairyNPCAI import DistributedFairyNPCAI
 
 from game.fairies.fairy.structs.ShopCollection import ShopCollection
@@ -51,3 +53,7 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
             self.dye1Gold,
             self.dye2Gold
         )
+
+    def setTryOn(self, items):
+       itemsTriedOn = ShopTriedOnItems.unpackFromTuple((self.air.getAvatarIdFromSender(), items))
+       self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), "setTriedOnItems", [[itemsTriedOn]]) 

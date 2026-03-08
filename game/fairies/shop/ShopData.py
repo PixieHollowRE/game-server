@@ -149,8 +149,278 @@ SHOPS = [
             position=(390, 434),
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_DAISY
         ),
+        # Dye Bottle Item IDs are 14000 + Color ID in colorAssets.xml
         collections=[
-            TEST_SHOP_DATA
+            ShopCollection(
+                collectionId=2003, # Seasonal Dyes
+                currencyId=FairiesConstants.DAISY_PETALS,
+                items=[
+                    ShopItem(itemId=14034, price=10, goldPrice=2), # Primrose Pink
+                    ShopItem(itemId=14231, price=10, goldPrice=2), # Sunny Orange
+                    ShopItem(itemId=14255, price=10, goldPrice=2), # Canary Yellow
+                    ShopItem(itemId=14259, price=10, goldPrice=2), # Kiwi Green
+                    ShopItem(itemId=14069, price=10, goldPrice=2), # Powder Blue
+                    ShopItem(itemId=14208, price=10, goldPrice=2), # Cerulean Blue
+                    ShopItem(itemId=14274, price=10, goldPrice=2), # Bellflower Purple
+                    ShopItem(itemId=14285, price=10, goldPrice=2), # Jazzberry Red
+                ],
+            ),
+            ShopCollection(
+                collectionId=2020, # Red & Purple Dyes 
+                currencyId=FairiesConstants.DAISY_PETALS,
+                items=[ # 57
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Rosy Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Daisy Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Camellia Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Electric Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Watermelon Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Coral Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Raspberry Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Cherry Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Pale Rose Red
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Strawberry Red
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Raspberry Red
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Scarlet Red
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Velvet Red
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Plumblossom Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Hyacinth Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Crimson Red
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Orchid Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Bunnynose Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Petal Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Friendship Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Cupcake Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Rosetta Red
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Ladybug Red
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Cherryblossom Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Ruby Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Dusty Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Thistle Pink
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Dianthus Red
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Wysteria Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Plum Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Grape Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Pale Lilac Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Mauve Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Boysenberry Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Vidia Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Hummingbird Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Lotus Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Gentian Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Indigo Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Eggplant Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Electric Indigo
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Dusk Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Fig Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Heather Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Aster Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Misty Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Amethyst Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Iris Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Electric Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Mulberry Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Shadowy Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Pale Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Royal Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Kingfisher Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Berry Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Deep Violet Purple
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Deep Magenta Purple
+                ],
+            ),
+            ShopCollection(
+                collectionId=2001, # Orange & Yellow Dyes
+                currencyId=FairiesConstants.DAISY_PETALS,
+                items=[ # 43
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                ],
+            ),
+            ShopCollection(
+                collectionId=2008, # Blue & Green Dyes
+                currencyId=FairiesConstants.DAISY_PETALS,
+                items=[ # 85
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                    ShopItem(itemId=0, price=5, goldPrice=1), #
+                ],
+            ),
+            ShopCollection(
+                collectionId=2009, # Brown & Neutral Dyes
+                currencyId=FairiesConstants.DAISY_PETALS,
+                items=[ # 47
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Driftwood Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Cherry Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Sienna Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Umber Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Dusty Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Fawn Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Bole Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Chocolate Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Seashore Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Quail Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Bear Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Ironwood Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Buried Treasure Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Fruitwood Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Copper Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Soil Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Desert Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Beetle Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Bark Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Sepia Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Caramel Tan
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Beech Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Earthy Tan
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Polished Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Mud Brown
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Snow White
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Minty White
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Crisp White
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Magnolia White
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Ivory White
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Starry White
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Mushroom White
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Carnation White
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Moonlight Gray
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Squirrel Gray
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Smokey Gray
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Charcoal Gray
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Coffee Black
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Raven Black
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Soft Gray
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Pewter Gray
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Thundercloud Gray
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Panther Black
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Never Silver
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Slate Gray
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Vidia Black
+                    ShopItem(itemId=0, price=5, goldPrice=1), # Pepper Black
+                ],
+            ),
         ],
     ),
 
@@ -343,7 +613,7 @@ SHOPS = [
         ],
     ),
 
-    NPCShop( # BECK IS FACING THE WRONG WAY - HOW DO I FLIP HER???
+    NPCShop(
         zone=ZoneConstants.BECKS_ANIMAL_NURSERY,
         shopId=5000,
         shopkeeper=Shopkeeper(
@@ -361,7 +631,7 @@ SHOPS = [
         shopId=6000,
         shopkeeper=Shopkeeper(
             name=FamousFairyData.NEVILLE,
-            position=(785, 458), # NOT PLACED
+            position=(785, 458),
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_NEVILLE,
             gender=2
         ),
@@ -375,11 +645,84 @@ SHOPS = [
         shopId=7000,
         shopkeeper=Shopkeeper(
             name=FamousFairyData.BROOK,
-            position=(418, 453), # NOT PLACED
+            position=(418, 453),
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_BROOK
         ),
         collections=[
-            TEST_SHOP_DATA
+            ShopCollection(
+                collectionId=119, # Basic Seeds
+                items=[
+                    ShopItem(itemId=89002, goldPrice=1), # Dulcie's Cookie Seeds
+                    ShopItem(itemId=89017, goldPrice=1), # Dulcie's Truffle Seeds
+                    ShopItem(itemId=89001, goldPrice=1), # Colorful Sweet Seeds
+                    ShopItem(itemId=89023, goldPrice=1), # Rainbow Sweet Seeds
+                    ShopItem(itemId=89018, goldPrice=1), # Sweet Trails Seeds
+                    ShopItem(itemId=89031, goldPrice=1), # Summer Sweets Seeds
+                ],
+            ),
+            ShopCollection(
+                collectionId=118, # Special Edition Seeds
+                items=[
+                    ShopItem(itemId=89009, goldPrice=1), # Garden Premier Seeds
+                    ShopItem(itemId=89022, goldPrice=1), # Autumn Breeze Seeds
+                    ShopItem(itemId=89021, goldPrice=1), # Winter Wardrobe Seeds
+                    ShopItem(itemId=89030, goldPrice=1), # Spring Style Seeds
+                    ShopItem(itemId=89038, goldPrice=1), # Summer Chic Seeds
+                ],
+            ),
+            ShopCollection(
+                collectionId=132, # Summer 2012 Seeds
+                items=[
+                    ShopItem(itemId=89004, goldPrice=1), # Fancy Flower Seeds
+                    ShopItem(itemId=89000, goldPrice=1), # Rainbow Dye Seeds
+                    ShopItem(itemId=89006, goldPrice=1), # Teatime Seeds
+                    ShopItem(itemId=89008, goldPrice=1), # Little Gardener Seeds
+                    ShopItem(itemId=89005, goldPrice=1), # To-Fly-For Top Seeds
+                    ShopItem(itemId=89007, goldPrice=1), # Skirt or Slacks Seeds
+                    ShopItem(itemId=89003, goldPrice=1), # Stylish Shoe Seeds
+                ],
+            ),
+            ShopCollection(
+                collectionId=131, # Fall 2012 Seeds
+                items=[
+                    ShopItem(itemId=89014, goldPrice=1), # Autumn Masquerade Dye Seeds
+                    ShopItem(itemId=89019, goldPrice=1), # Autumn Harvest Seeds
+                ],
+            ),
+            ShopCollection(
+                collectionId=130, # Winter 2012 Seeds
+                items=[
+                    ShopItem(itemId=89012, goldPrice=1), # Chilly Plants Seeds
+                    ShopItem(itemId=89013, goldPrice=1), # Winter Wonderland Dye Seeds
+                    ShopItem(itemId=89016, goldPrice=1), # Tink's Decorating Seeds
+                    ShopItem(itemId=89010, goldPrice=1), # Festive Ornament Seeds
+                    ShopItem(itemId=89011, goldPrice=1), # Flitterific Tops Seeds
+                    ShopItem(itemId=89015, goldPrice=1), # Flitterific Skirt or Slacks Seeds
+                    ShopItem(itemId=89020, goldPrice=1), # Flitterific Shoe Seeds
+                ],
+            ),
+            ShopCollection(
+                collectionId=129, # Spring 2013 Seeds
+                items=[
+                    ShopItem(itemId=89029, goldPrice=1), # Springtime Flower Seeds
+                    ShopItem(itemId=89028, goldPrice=1), # Never Dove Egg Dye Seeds
+                    ShopItem(itemId=89027, goldPrice=1), # Clover Comfort Seeds
+                    ShopItem(itemId=89024, goldPrice=1), # Springtime Top Seeds
+                    ShopItem(itemId=89025, goldPrice=1), # Springtime Skirt or Slacks Seeds
+                    ShopItem(itemId=89026, goldPrice=1), # Springtime Shoe Seeds
+                ],
+            ),
+            ShopCollection(
+                collectionId=120, # Summer 2013 Seeds
+                items=[
+                    ShopItem(itemId=89033, goldPrice=1), # Sprightly Sprouts Seeds
+                    ShopItem(itemId=89032, goldPrice=1), # Midsummer Dye Seeds
+                    ShopItem(itemId=89035, goldPrice=1), # Blooming Benches Seeds
+                    ShopItem(itemId=89036, goldPrice=1), # Tropical Tops Seeds
+                    ShopItem(itemId=89037, goldPrice=1), # Sunny Skirt or Slacks Seeds
+                    ShopItem(itemId=89034, goldPrice=1), # Summertime Shoes Seeds
+                ],
+            ),
         ],
     ),
 

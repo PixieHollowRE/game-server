@@ -323,11 +323,11 @@ dclass DistributedInstanceBaseAI { // 63
 
 dclass DistributedMeadow : DistributedInstanceBaseAI { // 64
     setAssetURL(string) required broadcast ram; // 285
-    setMute(uint8); // 286
+    setMute(uint8) broadcast; // 286
     setCrowdBarriers(uint8) required broadcast ram; // 287
-    setHotspotTrigger(int16); // 288
-    setHotspotFrame(int16, int16); // 289
-    setHotspotStates(uint32, HotspotState[]); // 290
+    setHotspotTrigger(int16) broadcast ram; // 288
+    setHotspotFrame(int16, int16) broadcast ram; // 289
+    setHotspotStates(uint32, HotspotState[]) broadcast ram; // 290
     requestHotspotStates() clsend airecv; // 291
 };
 
@@ -775,7 +775,7 @@ dclass DistributedFairyShopkeeperNPC : DistributedFairyNPC { // 91
     setRequestPurchase(PurchaseItem[], int8); // 654
     setPurchase(uint16); // 655
     setTryOn(LiteShopItem[]) clsend airecv; // 656
-    setTriedOnItems(ShopTriedOnItems[]); // 657
+    setTriedOnItems(ShopTriedOnItems[]) broadcast; // 657
     setRequestPurchasePet(PurchaseItem, int16, int16, int8); // 658
     setRequestDyeItem(uint64, int16, int16, int8, int8); // 659
     setDyePrice(int32 dyeCostItemId, int16 dye1Price, int16 dye2Price, int16 dye1Gold, int16 dye2Gold) required broadcast ram; // 660
