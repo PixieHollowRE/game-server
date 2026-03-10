@@ -1,12 +1,22 @@
 from game.fairies.ai import ZoneConstants
 
+# targetLocationName is the Location name of where you want the fairy to appear
+# on the other side (so in the other meadow). These can be found in each meadow's
+# config.xml in /meadows/zone###
+#
+# Games and Quest zones won't have one, can leave blank. Any that are left blank,
+# go to the coords of the location named "default" in the xml. I write default here
+# just purely for completion sake. It's functionally the same as leaving it as "".
+#
+# - Jessi
+
 GATEWAYS: dict[int, list[dict]] = {
     ZoneConstants.ACORN_SUMMIT: [
         {
             # Fairy Fireworks
             "name": "9024",
             "position": (460, 52),
-            "targetLocationName": "fromAcornSummit",
+            "targetLocationName": "",
             "targetZoneID": ZoneConstants.FAIRY_FIREWORKS_GAME,
             "rewardList": [8001, 8002, 8013],
         },
@@ -14,7 +24,7 @@ GATEWAYS: dict[int, list[dict]] = {
             # Vidia's Daily Spin
             "name": "9228",
             "position": (967, 185),
-            "targetLocationName": "fromAcornSummit",
+            "targetLocationName": "",
             "targetZoneID": ZoneConstants.VIDIAS_DAILY_SPIN,
         },
         {
@@ -59,28 +69,28 @@ GATEWAYS: dict[int, list[dict]] = {
             # Fairy Coliseum
             "name": "9274",
             "position": (65, 90),
-            "targetLocationName": "",
+            "targetLocationName": "fromZone500",
             "targetZoneID": ZoneConstants.FAIRY_COLISEUM,
         },
         {
             # Cottonpuff Field
             "name": "9083",
             "position": (2, 314),
-            "targetLocationName": "",
+            "targetLocationName": "fromHavendishSquare",
             "targetZoneID": ZoneConstants.COTTONPUFF_FIELD,
         },
         {
             # Queen's Boutique
             "name": "9282",
             "position": (40, 23),
-            "targetLocationName": "",
+            "targetLocationName": "shopEntrance",
             "targetZoneID": ZoneConstants.QUEENS_BOUTIQUE,
         },
         {
             # Cassie's Costume Shop
             "name": "9214",
             "position": (270, 100),
-            "targetLocationName": "",
+            "targetLocationName": "shopEntrance",
             "targetZoneID": ZoneConstants.CASSIES_COSTUME_SHOP,
         },
         {
@@ -94,21 +104,21 @@ GATEWAYS: dict[int, list[dict]] = {
             # Fairy Tale Theater
             "name": "9179",
             "position": (851, 439),
-            "targetLocationName": "",
+            "targetLocationName": "fromZone500",
             "targetZoneID": ZoneConstants.FAIRY_TALE_THEATER,
         },
         {
             # Neverfruit Grove
             "name": "9161",
             "position": (990, 1145),
-            "targetLocationName": "",
+            "targetLocationName": "default",
             "targetZoneID": ZoneConstants.NEVERFRUIT_GROVE,
         },
         {
             # Ballroom
             "name": "9188",
             "position": (1272, 388),
-            "targetLocationName": "",
+            "targetLocationName": "default",
             "targetZoneID": ZoneConstants.THE_BALLROOM,
         },
         {
@@ -122,14 +132,14 @@ GATEWAYS: dict[int, list[dict]] = {
             # Tearoom
             "name": "9180",
             "position": (2001, 457),
-            "targetLocationName": "",
+            "targetLocationName": "default",
             "targetZoneID": ZoneConstants.THE_TEAROOM,
         },
         {
             # Springtime Orchard
             "name": "9028",
             "position": (1995, 760),
-            "targetLocationName": "",
+            "targetLocationName": "default",
             "targetZoneID": ZoneConstants.SPRINGTIME_ORCHARD,
         },
     ],
@@ -138,7 +148,7 @@ GATEWAYS: dict[int, list[dict]] = {
             # Havendish Square
             "name": "9283",
             "position": (209, 336),
-            "targetLocationName": "",
+            "targetLocationName": "fromZone110004",
             "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
         },
     ],
@@ -147,14 +157,14 @@ GATEWAYS: dict[int, list[dict]] = {
             # Havendish Square
             "name": "9174",
             "position": (0, 310),
-            "targetLocationName": "",
+            "targetLocationName": "fromFairyTaleTheater",
             "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
         },
         {
             # Cassie's Costume Shop
             "name": "9169",
             "position": (1173, 176),
-            "targetLocationName": "",
+            "targetLocationName": "shopEntrance",
             "targetZoneID": ZoneConstants.CASSIES_COSTUME_SHOP,
         },
     ],
@@ -163,7 +173,7 @@ GATEWAYS: dict[int, list[dict]] = {
             # Fairy Tale Theater
             "name": "9198",
             "position": (252, 248),
-            "targetLocationName": "",
+            "targetLocationName": "fromZone110004",
             "targetZoneID": ZoneConstants.FAIRY_TALE_THEATER,
         },
     ],
@@ -172,7 +182,7 @@ GATEWAYS: dict[int, list[dict]] = {
             # Havendish Square
             "name": "9186",
             "position": (750, 305),
-            "targetLocationName": "",
+            "targetLocationName": "fromBallRoom",
             "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
         },
     ],
@@ -181,7 +191,7 @@ GATEWAYS: dict[int, list[dict]] = {
             # Havendish Square
             "name": "9185",
             "position": (61, 57),
-            "targetLocationName": "",
+            "targetLocationName": "fromTeaRoom",
             "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
         },
     ],
@@ -190,7 +200,7 @@ GATEWAYS: dict[int, list[dict]] = {
             # Havendish Square
             "name": "9237",
             "position": (46, 140),
-            "targetLocationName": "",
+            "targetLocationName": "fromZone504",
             "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
         },
     ],
@@ -199,7 +209,7 @@ GATEWAYS: dict[int, list[dict]] = {
             # Havendish Square
             "name": "9174",
             "position": (35, 253),
-            "targetLocationName": "",
+            "targetLocationName": "famousFairyHome",
             "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
         },
         {
@@ -213,7 +223,7 @@ GATEWAYS: dict[int, list[dict]] = {
             # Zephyr's Zoom Room
             "name": "9276",
             "position": (762, 219),
-            "targetLocationName": "",
+            "targetLocationName": "shopEntrance",
             "targetZoneID": ZoneConstants.ZEPHYRS_ZOOM_ROOM,
         },
     ],
@@ -222,7 +232,7 @@ GATEWAYS: dict[int, list[dict]] = {
             # Fairy Coliseum
             "name": "9277",
             "position": (175, 303),
-            "targetLocationName": "",
+            "targetLocationName": "fromZone110007",
             "targetZoneID": ZoneConstants.FAIRY_COLISEUM,
         },
     ],
@@ -232,7 +242,7 @@ GATEWAYS: dict[int, list[dict]] = {
             # Chilly Falls
             "name": "9120",
             "position": (840, 398),
-            "targetLocationName": "",
+            "targetLocationName": "fromEvergreenOverlook",
             "targetZoneID": ZoneConstants.CHILLY_FALLS,
         },
         {
@@ -254,14 +264,14 @@ GATEWAYS: dict[int, list[dict]] = {
             # Snowcap Glade
             "name": "9114",
             "position": (35, 1618),
-            "targetLocationName": "",
+            "targetLocationName": "fromEvergreenOverlook",
             "targetZoneID": ZoneConstants.SNOWCAP_GLADE,
         },
         {
             # Havendish Square
             "name": "9177",
             "position": (875, 1600),
-            "targetLocationName": "",
+            "targetLocationName": "fromEvergreenOverlook",
             "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
         },
     ],
@@ -270,21 +280,21 @@ GATEWAYS: dict[int, list[dict]] = {
             # Evergreen Overlook
             "name": "9103",
             "position": (180, 820),
-            "targetLocationName": "",
+            "targetLocationName": "fromChillyFalls",
             "targetZoneID": ZoneConstants.EVERGREEN_OVERLOOK,
         },
         {
             # Treetop Bend
             "name": "9060",
             "position": (833, 1568),
-            "targetLocationName": "",
+            "targetLocationName": "fromChillyFalls",
             "targetZoneID": ZoneConstants.TREETOP_BEND,
         },
         {
             # Ember's Essentials
             "name": "9124",
             "position": (960, 831),
-            "targetLocationName": "",
+            "targetLocationName": "shopEntrance",
             "targetZoneID": ZoneConstants.EMBERS_ESSENTIALS,
         },
         {
@@ -301,14 +311,14 @@ GATEWAYS: dict[int, list[dict]] = {
             # Evergreen Overlook
             "name": "9101",
             "position": (1985, 100),
-            "targetLocationName": "",
+            "targetLocationName": "fromSnowdriftPass",
             "targetZoneID": ZoneConstants.EVERGREEN_OVERLOOK,
         },
         {
             # Acorn Summit
             "name": "9075",
             "position": (201, 632),
-            "targetLocationName": "",
+            "targetLocationName": "fromSnowdriftPass",
             "targetZoneID": ZoneConstants.ACORN_SUMMIT,
         },
         {
@@ -320,10 +330,18 @@ GATEWAYS: dict[int, list[dict]] = {
             "rewardList": [8011, 8015, 8016],
         },
         {
-            # Gale's Outfitters
-            "name": "9124",
-            "position": (959, 831),
+            # Snowy Lullaby
+            "name": "9144",
+            "position": (1830, 550),
             "targetLocationName": "",
+            "targetZoneID": ZoneConstants.SNOWY_LULLABY_GAME,
+            "rewardList": [8011, 8015, 8016],
+        },
+        {
+            # Gale's Outfitters
+            "name": "9126",
+            "position": (1509, 215),
+            "targetLocationName": "shopEntrance",
             "targetZoneID": ZoneConstants.GALES_OUTFITTERS,
         }
     ],
@@ -333,21 +351,21 @@ GATEWAYS: dict[int, list[dict]] = {
             # Neverfruit Grove
             "name": "9159",
             "position": (180, 215),
-            "targetLocationName": "",
+            "targetLocationName": "fromZone400",
             "targetZoneID": ZoneConstants.NEVERFRUIT_GROVE,
         },
         {
             # Prism's Pixie Spa
             "name": "9299",
             "position": (406, 571),
-            "targetLocationName": "",
+            "targetLocationName": "shopEntrance",
             "targetZoneID": ZoneConstants.PRISMS_PIXIE_SPA,
         },
         {
             # Shelly's Shears
             "name": "9148",
             "position": (406, 571),
-            "targetLocationName": "",
+            "targetLocationName": "shopEntrance",
             "targetZoneID": ZoneConstants.SCHELLYS_HAIR_SALON,
         },
         {
@@ -362,7 +380,7 @@ GATEWAYS: dict[int, list[dict]] = {
             # Dewdrop Vale
             "name": "9045",
             "position": (1605, 233),
-            "targetLocationName": "",
+            "targetLocationName": "fromZone400",
             "targetZoneID": ZoneConstants.DEWDROP_VALE,
 
         },
@@ -372,7 +390,7 @@ GATEWAYS: dict[int, list[dict]] = {
             # Palm Tree Cove
             "name": "9300",
             "position": (775, 283),
-            "targetLocationName": "",
+            "targetLocationName": "fromZone114000",
             "targetZoneID": ZoneConstants.PALM_TREE_COVE,
         },
     ],
