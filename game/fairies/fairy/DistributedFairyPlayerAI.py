@@ -54,3 +54,14 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def requestAddSavedOutfit(self, headId: int, necklaceId: int, shirtId: int, beltId: int, skirtId: int, wristId: int, ankleId: int, shoesId: int):
         # TODO
         self.sendUpdateToAvatarId(self.doId, "setSavedOutfits", [[]])
+
+    def setHotspotTriggered(self, hotspotId, hotspotFrame) -> None:
+        if not (meadow := self.air.zoneToMeadow.get(self.zoneId)):
+            return
+
+        if self.zoneId == 100 and hotspotId in (0, 10): # CBH TTT Reset
+            for id in range(hotspotId + 1, hotspotId + 10):
+                meadow.sendUpdate("setHotspotFrame", [id, 3])
+            hotspotFrame = 1
+
+        meadow.sendUpdate("setHotspotFrame", [hotspotId, hotspotFrame])

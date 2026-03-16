@@ -36,6 +36,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
 
         self.staffMembers: List[int] = []
         self.accountMap: Dict[int, str] = {}
+        self.zoneToMeadow: Dict[int, DistributedMeadowAI] = {}
 
     def getGameDoId(self):
         return OTP_DO_ID_FAIRIES
@@ -74,6 +75,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         for zoneId in ZoneConstants.SHOPS_ZONE_LIST + ZoneConstants.MEADOW_ZONES_LIST:
             meadow = DistributedMeadowAI(self)
             meadow.generateWithRequired(zoneId)
+            self.zoneToMeadow[zoneId] = meadow
 
         for zoneId, gateways in GATEWAYS.items():
             for gw in gateways:

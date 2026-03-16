@@ -24,3 +24,4 @@ class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
 
         rewards = []
         self.sendUpdateToAvatarId(avatarId, "setRewards", [rewards])
+        self.totalScore = 0
