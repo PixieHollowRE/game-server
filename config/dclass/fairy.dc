@@ -577,8 +577,8 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     setStatus(uint8, uint8, uint8, uint8) ownsend; // 489
     setSCEmote(uint32, uint16) broadcast ownsend airecv; // 490
     setChatMessage(string) ownsend broadcast; // 491
-    setWhisperSCEmoteTo(uint32, uint16); // 492
-    setWhisperSCEmoteFrom(uint32, uint16); // 493
+    setWhisperSCEmoteTo(uint32, uint16) ownsend ownrecv; // 492
+    setWhisperSCEmoteFrom(uint32, uint16) ownrecv ownsend; // 493
     setActualZoneId(uint32 zoneId) ownsend; // 494
     setTeleportComplete() ownsend; // 495
     teleportRequestTo(uint32); // 496
@@ -699,7 +699,7 @@ dclass FairiesBadgeManager { // 85
     giveBadge(int32, int16); // 596
     unlockPage(int32, int16); // 597
     unlockBadge(int32, int16); // 598
-    accumulateForMe(int16); // 599
+    accumulateForMe(int16) ownsend; // 599
     accumulate(int32, int16, int16); // 600
     setBadges(EarnedBadge[], int16[], BadgeProgress[]); // 601
     pageUnlocked(int16, BadgeProgress[]); // 602

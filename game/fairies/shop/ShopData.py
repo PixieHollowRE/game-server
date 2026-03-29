@@ -169,63 +169,63 @@ SHOPS = [
                 collectionId=2020, # Red & Purple Dyes 
                 currencyId=FairiesConstants.DAISY_PETALS,
                 items=[ # 57
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Rosy Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Daisy Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Camellia Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Electric Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Watermelon Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Coral Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Raspberry Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Cherry Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Pale Rose Red
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Strawberry Red
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Raspberry Red
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Scarlet Red
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Velvet Red
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Plumblossom Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Hyacinth Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Crimson Red
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Orchid Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Bunnynose Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Petal Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Friendship Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Cupcake Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Rosetta Red
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Ladybug Red
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Cherryblossom Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Ruby Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Dusty Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Thistle Pink
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Dianthus Red
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Wysteria Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Plum Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Grape Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Pale Lilac Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Mauve Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Boysenberry Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Vidia Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Hummingbird Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Lotus Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Gentian Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Indigo Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Eggplant Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Electric Indigo
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Dusk Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Fig Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Heather Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Aster Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Misty Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Amethyst Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Iris Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Electric Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Mulberry Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Shadowy Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Pale Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Royal Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Kingfisher Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Berry Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Deep Violet Purple
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Deep Magenta Purple
+                    ShopItem(itemId=14110, price=5, goldPrice=1), # Rosy Pink
+                    ShopItem(itemId=14121, price=5, goldPrice=1), # Daisy Pink
+                    ShopItem(itemId=14016, price=5, goldPrice=1), # Camellia Pink
+                    ShopItem(itemId=14194, price=5, goldPrice=1), # Electric Pink
+                    ShopItem(itemId=14008, price=5, goldPrice=1), # Watermelon Pink
+                    ShopItem(itemId=14013, price=5, goldPrice=1), # Coral Pink
+                    ShopItem(itemId=14026, price=5, goldPrice=1), # Raspberry Pink
+                    ShopItem(itemId=14286, price=5, goldPrice=1), # Cherry Pink
+                    ShopItem(itemId=14113, price=5, goldPrice=1), # Pale Rose Red
+                    ShopItem(itemId=14045, price=5, goldPrice=1), # Strawberry Red
+                    ShopItem(itemId=14082, price=5, goldPrice=1), # Raspberry Red
+                    ShopItem(itemId=14230, price=5, goldPrice=1), # Scarlet Red
+                    ShopItem(itemId=14201, price=5, goldPrice=1), # Velvet Red
+                    ShopItem(itemId=14044, price=5, goldPrice=1), # Plumblossom Pink
+                    ShopItem(itemId=14045, price=5, goldPrice=1), # Hyacinth Pink
+                    ShopItem(itemId=14081, price=5, goldPrice=1), # Crimson Red
+                    ShopItem(itemId=14130, price=5, goldPrice=1), # Orchid Pink
+                    ShopItem(itemId=14140, price=5, goldPrice=1), # Bunnynose Pink
+                    ShopItem(itemId=14144, price=5, goldPrice=1), # Petal Pink
+                    ShopItem(itemId=14156, price=5, goldPrice=1), # Friendship Pink
+                    ShopItem(itemId=14181, price=5, goldPrice=1), # Cupcake Pink
+                    ShopItem(itemId=14174, price=5, goldPrice=1), # Rosetta Red
+                    ShopItem(itemId=14189, price=5, goldPrice=1), # Ladybug Red
+                    ShopItem(itemId=14199, price=5, goldPrice=1), # Cherryblossom Pink
+                    ShopItem(itemId=14200, price=5, goldPrice=1), # Ruby Pink
+                    ShopItem(itemId=14220, price=5, goldPrice=1), # Dusty Pink
+                    ShopItem(itemId=14283, price=5, goldPrice=1), # Thistle Pink
+                    ShopItem(itemId=14287, price=5, goldPrice=1), # Dianthus Red
+                    ShopItem(itemId=14005, price=5, goldPrice=1), # Wysteria Purple
+                    ShopItem(itemId=14014, price=5, goldPrice=1), # Plum Purple
+                    ShopItem(itemId=14073, price=5, goldPrice=1), # Grape Purple
+                    ShopItem(itemId=14061, price=5, goldPrice=1), # Pale Lilac Purple
+                    ShopItem(itemId=14072, price=5, goldPrice=1), # Mauve Purple
+                    ShopItem(itemId=14135, price=5, goldPrice=1), # Boysenberry Purple
+                    ShopItem(itemId=14183, price=5, goldPrice=1), # Vidia Purple
+                    ShopItem(itemId=14184, price=5, goldPrice=1), # Hummingbird Purple
+                    ShopItem(itemId=14210, price=5, goldPrice=1), # Lotus Purple
+                    ShopItem(itemId=14211, price=5, goldPrice=1), # Gentian Purple
+                    ShopItem(itemId=14212, price=5, goldPrice=1), # Indigo Purple
+                    ShopItem(itemId=14225, price=5, goldPrice=1), # Eggplant Purple
+                    ShopItem(itemId=14229, price=5, goldPrice=1), # Electric Indigo
+                    ShopItem(itemId=14276, price=5, goldPrice=1), # Dusk Purple
+                    ShopItem(itemId=14129, price=5, goldPrice=1), # Fig Purple
+                    ShopItem(itemId=14134, price=5, goldPrice=1), # Heather Purple
+                    ShopItem(itemId=14278, price=5, goldPrice=1), # Aster Purple
+                    ShopItem(itemId=14277, price=5, goldPrice=1), # Misty Purple
+                    ShopItem(itemId=14117, price=5, goldPrice=1), # Amethyst Purple
+                    ShopItem(itemId=14033, price=5, goldPrice=1), # Iris Purple
+                    ShopItem(itemId=14197, price=5, goldPrice=1), # Electric Purple
+                    ShopItem(itemId=14032, price=5, goldPrice=1), # Mulberry Purple
+                    ShopItem(itemId=14275, price=5, goldPrice=1), # Shadowy Purple
+                    ShopItem(itemId=14152, price=5, goldPrice=1), # Pale Purple
+                    ShopItem(itemId=14192, price=5, goldPrice=1), # Royal Purple
+                    ShopItem(itemId=14279, price=5, goldPrice=1), # Kingfisher Purple
+                    ShopItem(itemId=14135, price=5, goldPrice=1), # Berry Purple
+                    ShopItem(itemId=14281, price=5, goldPrice=1), # Deep Violet Purple
+                    ShopItem(itemId=14284, price=5, goldPrice=1), # Deep Magenta Purple
                 ],
             ),
             ShopCollection(
@@ -372,53 +372,53 @@ SHOPS = [
                 collectionId=2009, # Brown & Neutral Dyes
                 currencyId=FairiesConstants.DAISY_PETALS,
                 items=[ # 47
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Driftwood Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Cherry Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Sienna Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Umber Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Dusty Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Fawn Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Bole Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Chocolate Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Seashore Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Quail Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Bear Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Ironwood Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Buried Treasure Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Fruitwood Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Copper Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Soil Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Desert Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Beetle Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Bark Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Sepia Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Caramel Tan
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Beech Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Earthy Tan
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Polished Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Mud Brown
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Snow White
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Minty White
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Crisp White
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Magnolia White
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Ivory White
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Starry White
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Mushroom White
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Carnation White
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Moonlight Gray
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Squirrel Gray
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Smokey Gray
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Charcoal Gray
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Coffee Black
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Raven Black
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Soft Gray
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Pewter Gray
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Thundercloud Gray
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Panther Black
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Never Silver
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Slate Gray
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Vidia Black
-                    ShopItem(itemId=0, price=5, goldPrice=1), # Pepper Black
+                    ShopItem(itemId=14087, price=5, goldPrice=1), # Driftwood Brown
+                    ShopItem(itemId=14083, price=5, goldPrice=1), # Cherry Brown
+                    ShopItem(itemId=14079, price=5, goldPrice=1), # Sienna Brown
+                    ShopItem(itemId=14075, price=5, goldPrice=1), # Umber Brown
+                    ShopItem(itemId=14236, price=5, goldPrice=1), # Dusty Brown
+                    ShopItem(itemId=14078, price=5, goldPrice=1), # Fawn Brown
+                    ShopItem(itemId=14056, price=5, goldPrice=1), # Bole Brown
+                    ShopItem(itemId=14076, price=5, goldPrice=1), # Chocolate Brown
+                    ShopItem(itemId=14089, price=5, goldPrice=1), # Seashore Brown
+                    ShopItem(itemId=14085, price=5, goldPrice=1), # Quail Brown
+                    ShopItem(itemId=14246, price=5, goldPrice=1), # Bear Brown
+                    ShopItem(itemId=14240, price=5, goldPrice=1), # Ironwood Brown
+                    ShopItem(itemId=14161, price=5, goldPrice=1), # Buried Treasure Brown
+                    ShopItem(itemId=14088, price=5, goldPrice=1), # Fruitwood Brown
+                    ShopItem(itemId=14084, price=5, goldPrice=1), # Copper Brown
+                    ShopItem(itemId=14074, price=5, goldPrice=1), # Soil Brown
+                    ShopItem(itemId=14075, price=5, goldPrice=1), # Desert Brown
+                    ShopItem(itemId=14154, price=5, goldPrice=1), # Beetle Brown
+                    ShopItem(itemId=14046, price=5, goldPrice=1), # Bark Brown
+                    ShopItem(itemId=14077, price=5, goldPrice=1), # Sepia Brown
+                    ShopItem(itemId=14250, price=5, goldPrice=1), # Caramel Tan
+                    ShopItem(itemId=14146, price=5, goldPrice=1), # Beech Brown
+                    ShopItem(itemId=14245, price=5, goldPrice=1), # Earthy Tan
+                    ShopItem(itemId=14251, price=5, goldPrice=1), # Polished Brown
+                    ShopItem(itemId=14177, price=5, goldPrice=1), # Mud Brown
+                    ShopItem(itemId=14166, price=5, goldPrice=1), # Snow White
+                    ShopItem(itemId=14262, price=5, goldPrice=1), # Minty White
+                    ShopItem(itemId=14269, price=5, goldPrice=1), # Crisp White
+                    ShopItem(itemId=14282, price=5, goldPrice=1), # Magnolia White
+                    ShopItem(itemId=14224, price=5, goldPrice=1), # Ivory White
+                    ShopItem(itemId=14157, price=5, goldPrice=1), # Starry White
+                    ShopItem(itemId=14116, price=5, goldPrice=1), # Mushroom White
+                    ShopItem(itemId=14128, price=5, goldPrice=1), # Carnation White
+                    ShopItem(itemId=14227, price=5, goldPrice=1), # Moonlight Gray
+                    ShopItem(itemId=14169, price=5, goldPrice=1), # Squirrel Gray
+                    ShopItem(itemId=14214, price=5, goldPrice=1), # Smokey Gray
+                    ShopItem(itemId=14272, price=5, goldPrice=1), # Charcoal Gray
+                    ShopItem(itemId=14239, price=5, goldPrice=1), # Coffee Black
+                    ShopItem(itemId=14206, price=5, goldPrice=1), # Raven Black
+                    ShopItem(itemId=14217, price=5, goldPrice=1), # Soft Gray
+                    ShopItem(itemId=14215, price=5, goldPrice=1), # Pewter Gray
+                    ShopItem(itemId=14141, price=5, goldPrice=1), # Thundercloud Gray
+                    ShopItem(itemId=14273, price=5, goldPrice=1), # Panther Black
+                    ShopItem(itemId=14167, price=5, goldPrice=1), # Never Silver
+                    ShopItem(itemId=14216, price=5, goldPrice=1), # Slate Gray
+                    ShopItem(itemId=14191, price=5, goldPrice=1), # Vidia Black
+                    ShopItem(itemId=14055, price=5, goldPrice=1), # Pepper Black
                 ],
             ),
         ],

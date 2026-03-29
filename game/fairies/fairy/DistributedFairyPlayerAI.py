@@ -59,7 +59,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         if not (meadow := self.air.zoneToMeadow.get(self.zoneId)):
             return
 
-        if self.zoneId == 100 and hotspotId in (0, 10): # CBH TTT Reset
+        if self.zoneId == 100 and hotspotId in (0, 10): # CBH TTT Reset - HACK - FIX THIS
             for id in range(hotspotId + 1, hotspotId + 10):
                 meadow.sendUpdate("setHotspotFrame", [id, 3])
             hotspotFrame = 1
