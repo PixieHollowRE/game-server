@@ -574,7 +574,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     setHasTagalong(int16) required ownrequired broadcast db ownrecv; // 486
     setTagalongExpire(int32) ownrequired broadcast db ownrecv; // 487
     setOutfitDB(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64) ownsend airecv; // 488
-    setStatus(uint8, uint8, uint8, uint8) ownsend; // 489
+    setStatus(uint8, uint8, uint8, uint8) broadcast ownsend; // 489
     setSCEmote(uint32, uint16) broadcast ownsend airecv; // 490
     setChatMessage(string) ownsend broadcast; // 491
     setWhisperSCEmoteTo(uint32, uint16) ownsend ownrecv; // 492
