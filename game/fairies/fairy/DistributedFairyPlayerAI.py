@@ -68,16 +68,14 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             8: "setShoes"
         }
 
-        equippedIds = {
-            headId: 1,
-            necklaceId: 2,
-            shirtId: 3,
-            beltId: 4,
-            skirtId: 5,
-            wristId: 6,
-            ankleId: 7,
-            shoesId: 8
+        EMPTY_LITE_INV = [0, 0, 0, 0]
+
+        desiredOutfit = {
+            1: headId, 2: necklaceId, 3: shirtId, 4: beltId,
+            5: skirtId, 6: wristId, 7: ankleId, 8: shoesId
         }
+        equippedIds = {invId: slot for slot, invId in desiredOutfit.items() if invId != 0}
+        filledSlots = set(equippedIds.values())
 
         table = self.air.mongoInterface.mongodb.fairies
         fairy = table.find_one({"_id": self.doId})
@@ -97,18 +95,21 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
                 if changed:
                     dirty = True
-                    method = SLOT_METHODS[slot]
                     payload = [invId, item["item_id"], item["color1"], item["color2"]]
-                    self.sendUpdate(method, [payload])
+                    self.sendUpdate(SLOT_METHODS[slot], [payload])
 
                     self.air.inventoryManager.sendUpdateToAvatarId(
                         self.doId, "wardrobeRemove", [self.doId, invId]
                     )
 
             elif item["location"] == "Equipped":
+                oldSlot = item["slot"]
                 item["location"] = "Wardrobe"
                 item["slot"] = 0
                 dirty = True
+
+                if oldSlot not in filledSlots:
+                    self.sendUpdate(SLOT_METHODS[oldSlot], [EMPTY_LITE_INV])
 
                 self.air.inventoryManager.sendUpdateToAvatarId(
                     self.doId, "wardrobeItem", [
