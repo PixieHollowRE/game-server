@@ -33,10 +33,11 @@ class FairyInventoryMgrUD(DistributedObjectGlobalUD):
             if item["location"] == "Storage":
                 fieldName = "storageItem"
 
-            self.sendUpdateToAvatarId(avatarId, fieldName, [
-                item["item_id"],
-                invItemExt
-            ])
+            if item["location"] in ("Wardrobe", "Storage"):
+                self.sendUpdateToAvatarId(avatarId, fieldName, [
+                    item["item_id"],
+                    invItemExt
+                ])
 
     def setStorageSlot(self, invId, slot) -> None:
         self.air.mongoInterface.mongodb.fairies.update_one(
