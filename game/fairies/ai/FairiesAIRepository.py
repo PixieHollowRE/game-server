@@ -112,6 +112,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             shop.generate_shop(shop_ai)
 
         self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
+        self.inventoryManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_INVENTORY_MANAGER, "FairyInventoryMgr")
 
         # The Magic Word Manager
         self.magicWordManager = FairiesMagicWordManagerAI(self)
@@ -155,7 +156,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         dbo = DatabaseObject(self, fairyPlayer.doId)
         # Add more fields if needed. (Good spot to look if the field you want
         # is an ownrequired field, but no required or ram.)
-        dbo.readObject(fairyPlayer, [])
+        dbo.readObject(fairyPlayer, ["setGold"])
 
     def readFairyPlayer(self, fairyPlayerId, fields = None, doneEvent = '') -> DistributedFairyPlayerAI:
         dbo = DatabaseObject(self, fairyPlayerId, doneEvent)

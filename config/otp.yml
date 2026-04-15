@@ -36,6 +36,9 @@ uberdogs:
     - class: RealmGuardian
       id: 4755
 
+    - class: FairyInventoryMgr
+      id: 4677
+
 roles:
     - type: clientagent
       # Clients connect in raw TCP.

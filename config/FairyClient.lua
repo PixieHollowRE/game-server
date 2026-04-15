@@ -207,6 +207,11 @@ function receiveDatagram(client, dgi)
     if dgi:getRemainingSize() ~= 0 then
         client:sendDisconnect(CLIENT_DISCONNECT_OVERSIZED_DATAGRAM, string.format("Datagram contains excess data.\n%s", tostring(dgi)), true)
     end
+
+    -- A successfully handled message doubles as a heartbeat.
+    -- This function processes incoming client heartbeat messages.
+    -- (Fairies automatically detects quiet periods and sends a standard heartbeat as well.)
+    client:handleHeartbeat()
 end
 
 function handleLogin(client, dgi)

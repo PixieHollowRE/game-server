@@ -4,12 +4,12 @@ class FairiesBadgeManagerUD(DistributedObjectGlobalUD):
     def __init__(self, air) -> None:
         super().__init__(air)
 
-    def announceGenerate(self):
+    def announceGenerate(self) -> None:
         DistributedObjectGlobalUD.announceGenerate(self)
 
         self.accept("avatarOnline", self.avatarOnline)
 
-    def avatarOnline(self, avatarId, avatarType):
+    def avatarOnline(self, avatarId, avatarType) -> None:
         # avatarType is unused, but it is sent over the messenger anyways.
         dateEarned = ""
 

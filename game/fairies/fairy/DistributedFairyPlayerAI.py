@@ -8,12 +8,13 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         self.DISLname: str = ''
         self.DISLid: int = 0
+        self.gold: int = 0
 
     def announceGenerate(self):
         self.air.incrementPopulation()
 
-        # Fill in the missing information from the database (i.e. coins)
-        # self.air.fillInFairyPlayer(self)
+        # Fill in the missing information from the database (i.e. gold)
+        self.air.fillInFairyPlayer(self)
 
     def delete(self):
         # TODO: Set a post-remove message in case of an AI crash.
@@ -37,23 +38,96 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def getDISLid(self) -> int:
         return self.DISLid
 
-    def setAccess(self, access):
+    def setAccess(self, access) -> None:
         if access == OTPGlobals.AccessFull:
             self.sendUpdateToAvatarId(self.doId, "setAccess", [access])
 
-    def requestDailyGoldTradeCapData(self):
+    def requestDailyGoldTradeCapData(self) -> None:
         # TODO
         self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [0])
         self.sendUpdateToAvatarId(self.doId, "setAmountGoldTradedForToday", [0])
 
-    def requestGetSavedOutfits(self):
+    def requestGetSavedOutfits(self) -> None:
         # TODO
         self.sendUpdateToAvatarId(self.doId, "setMaxOutfitSlots", [1])
         self.sendUpdateToAvatarId(self.doId, "setSavedOutfits", [[]])
 
-    def requestAddSavedOutfit(self, headId: int, necklaceId: int, shirtId: int, beltId: int, skirtId: int, wristId: int, ankleId: int, shoesId: int):
+    def requestAddSavedOutfit(self, headId: int, necklaceId: int, shirtId: int, beltId: int, skirtId: int, wristId: int, ankleId: int, shoesId: int) -> None:
         # TODO
         self.sendUpdateToAvatarId(self.doId, "setSavedOutfits", [[]])
+
+    def setOutfitDB(self, headId: int, necklaceId: int, shirtId: int, beltId: int, skirtId: int, wristId: int, ankleId: int, shoesId: int) -> None:
+        SLOT_METHODS = {
+            1: "setHeadItem",
+            2: "setNecklace",
+            3: "setChestItem",
+            4: "setBelt",
+            5: "setSkirt",
+            6: "setWrist",
+            7: "setAnkle",
+            8: "setShoes"
+        }
+
+        equippedIds = {
+            headId: 1,
+            necklaceId: 2,
+            shirtId: 3,
+            beltId: 4,
+            skirtId: 5,
+            wristId: 6,
+            ankleId: 7,
+            shoesId: 8
+        }
+
+        table = self.air.mongoInterface.mongodb.fairies
+        fairy = table.find_one({"_id": self.doId})
+
+        if not fairy:
+            return
+
+        dirty = False
+        for item in fairy["avatar"]["items"]:
+            invId = item["inv_id"]
+
+            if invId in equippedIds:
+                slot = equippedIds[invId]
+                changed = item["location"] != "Equipped" or item["slot"] != slot
+                item["location"] = "Equipped"
+                item["slot"] = slot
+
+                if changed:
+                    dirty = True
+                    method = SLOT_METHODS[slot]
+                    payload = [invId, item["item_id"], item["color1"], item["color2"]]
+                    self.sendUpdate(method, [payload])
+
+                    self.air.inventoryManager.sendUpdateToAvatarId(
+                        self.doId, "wardrobeRemove", [self.doId, invId]
+                    )
+
+            elif item["location"] == "Equipped":
+                item["location"] = "Wardrobe"
+                item["slot"] = 0
+                dirty = True
+
+                self.air.inventoryManager.sendUpdateToAvatarId(
+                    self.doId, "wardrobeItem", [
+                        item["item_id"],
+                        [invId, item["item_id"], item["slot"],
+                         item["createdById"], item["createdByName"],
+                         item["giftedById"], item["giftedByName"],
+                         item["quality"], item["color1"], item["color2"],
+                         item["howAcquired"]]
+                    ]
+                )
+
+        if dirty:
+            table.update_one(
+                {"_id": self.doId},
+                {"$set": {"avatar.items": fairy["avatar"]["items"]}}
+            )
+
+            self.sendUpdate("setRedraw", [1])
 
     def setHotspotTriggered(self, hotspotId, hotspotFrame) -> None:
         if not (meadow := self.air.zoneToMeadow.get(self.zoneId)):
@@ -65,3 +139,29 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             hotspotFrame = 1
 
         meadow.sendUpdate("setHotspotFrame", [hotspotId, hotspotFrame])
+
+    def setGold(self, gold: int) -> None:
+        self.gold = gold
+
+    def getGold(self) -> int:
+        return self.gold
+
+    def d_setGold(self, gold: int) -> None:
+        self.sendUpdate("setGold", [gold])
+
+    def b_setGold(self, gold: int) -> None:
+        self.setGold(gold)
+        self.d_setGold(gold)
+
+    def addGold(self, deltaGold: int) -> None:
+        self.b_setGold(deltaGold + self.getGold())
+
+    def takeGold(self, deltaGold: int) -> bool:
+        totalGold = self.gold
+
+        if deltaGold > totalGold:
+            return False
+
+        self.b_setGold(self.gold - deltaGold)
+
+        return True

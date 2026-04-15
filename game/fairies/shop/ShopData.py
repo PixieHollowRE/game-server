@@ -48,7 +48,7 @@ SHOPS = [
             TEST_SHOP_DATA
         ]
     ),
-    
+
     NPCShop(
         zone=ZoneConstants.CASSIES_COSTUME_SHOP,
         shopId=4,
@@ -72,7 +72,12 @@ SHOPS = [
             gender=2
         ),
         collections=[
-            TEST_SHOP_DATA
+            ShopCollection(
+                collectionId=83, # Mainland Styles
+                items=[
+                    ShopItem(itemId=484, price=30, goldPrice=5, color1=45, color2=45, itemType="Shirt") # Strawberry Red Varsity Jacket
+                ],
+            ),
         ]
     ),
 
@@ -166,7 +171,7 @@ SHOPS = [
                 ],
             ),
             ShopCollection(
-                collectionId=2020, # Red & Purple Dyes 
+                collectionId=2020, # Red & Purple Dyes
                 currencyId=FairiesConstants.DAISY_PETALS,
                 items=[ # 57
                     ShopItem(itemId=14110, price=5, goldPrice=1), # Rosy Pink
@@ -618,7 +623,7 @@ SHOPS = [
         shopId=5000,
         shopkeeper=Shopkeeper(
             name=FamousFairyData.BECK,
-            position=(387, 440), 
+            position=(387, 440),
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_BECK
         ),
         collections=[
@@ -946,3 +951,22 @@ SHOPS = [
     ),
 
 ]
+
+SHOPS_BY_ZONE = {shop.zone: shop for shop in SHOPS}
+
+for shop in SHOPS:
+    shop.collectionsById = {collection.collectionId: collection for collection in shop.collections}
+
+def getShopByZone(zone: int) -> dict:
+    return SHOPS_BY_ZONE.get(zone, {})
+
+def getShopItemByIndex(shop: NPCShop, collectionId: int, itemIndex: int) -> ShopItem | None:
+    collection = shop.collectionsById.get(collectionId)
+
+    if not collection:
+        return None
+
+    if 0 <= itemIndex < len(collection.items):
+        return collection.items[itemIndex]
+
+    return None

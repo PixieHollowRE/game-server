@@ -32,4 +32,4 @@ class NPCShop():
         shop.setFamousFairyId(self.shopkeeper.famousFairyId)
         shop.setRoomID(1)
         shop.setShopItems(tuple(c.asTuple() for c in self.collections))
-        shop.generateWithRequired(self.zone) 
+        shop.generateWithRequired(self.zone)

@@ -16,6 +16,9 @@ class ShopItem:
     howAcquired: int = 0
     memberGoldPrice: int = None
 
+    # This is used by the server-side only.
+    itemType: str = ""
+
     def __post_init__(self):
         if self.memberGoldPrice is None:
             self.memberGoldPrice = self.goldPrice

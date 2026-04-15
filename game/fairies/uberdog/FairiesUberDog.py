@@ -11,6 +11,8 @@ from game.fairies.distributed.FairiesGlobals import *
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.uberdog.UberDog import UberDog
 
+from game.fairies.distributed.MongoInterface import MongoInterface
+
 from game.fairies.uberdog.HolidayManagerUD import HolidayManagerUD
 
 
@@ -25,6 +27,8 @@ class FairiesUberDog(UberDog):
         UberDog.__init__(
             self, mdip, mdport, esip, esport, dcFilenames,
             serverId, minChannel, maxChannel)
+
+        self.mongoInterface = MongoInterface(self)
 
     def getGameDoId(self):
         return OTP_DO_ID_FAIRIES
@@ -48,6 +52,7 @@ class FairiesUberDog(UberDog):
 
         self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
         self.realmGuardian = self.generateGlobalObject(OTP_DO_ID_REALM_GUARDIAN, "RealmGuardian")
+        self.inventoryManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_INVENTORY_MANAGER, "FairyInventoryMgr")
 
     def handlePlayGame(self, msgType, di):
         # Handle Fairies specific message types before

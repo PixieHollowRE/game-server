@@ -6,6 +6,11 @@ from .DistributedFairyNPCAI import DistributedFairyNPCAI
 
 from game.fairies.fairy.structs.ShopCollection import ShopCollection
 
+from game.fairies.shop.ShopData import getShopByZone, getShopItemByIndex
+
+PURCHASE_FAIL = 0
+PURCHASE_SUCCESS = 1
+
 class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
     def __init__(self, air) -> None:
         DistributedFairyNPCAI.__init__(self, air)
@@ -54,6 +59,67 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
             self.dye2Gold
         )
 
-    def setTryOn(self, items):
-       itemsTriedOn = ShopTriedOnItems.unpackFromTuple((self.air.getAvatarIdFromSender(), items))
-       self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), "setTriedOnItems", [[itemsTriedOn]]) 
+    def setTryOn(self, items) -> None:
+        avId = self.air.getAvatarIdFromSender()
+        itemsTriedOn = ShopTriedOnItems.unpackFromTuple((avId, items))
+        self.sendUpdateToAvatarId(avId, "setTriedOnItems", [[itemsTriedOn]])
+
+    def setRequestPurchase(self, items, usingGold) -> None:
+        avId = self.air.getAvatarIdFromSender()
+        avatar = self.air.doId2do.get(avId)
+
+        if not avatar:
+            self.notify.warning(f"No avatar present on AI for setRequestPurchase: {avId}")
+            return
+
+        success: bool = False
+
+        for itemData in items:
+            itemIndex, amount, collectionId = itemData
+            item = getShopItemByIndex(getShopByZone(self.zoneId), collectionId, itemIndex)
+
+            # TODO: Support non gold item purchases
+            success: bool = avatar.takeGold(item.goldPrice) if usingGold else False
+
+            if success:
+                invId = self.air.mongoInterface.getNextDoId()
+                itemId = item.itemId
+                slot = -1
+                createdById = 0 # TODO
+                createdByName = "" # TODO
+                giftedById = 0 # TODO
+                giftedByName = "" # TODO
+                quality = 0 # TODO
+                color1 = item.color1
+                color2 = item.color2
+                howAcquired = 0 # TODO
+
+                self.air.mongoInterface.mongodb.fairies.update_one(
+                    {"_id": avId},
+                    {
+                        "$push": {
+                            "avatar.items": {
+                                "inv_id": invId,
+                                "type": item.itemType,
+                                "item_id": itemId,
+                                "slot": slot,
+                                "createdById": createdById,
+                                "createdByName": createdByName,
+                                "giftedById": giftedById,
+                                "giftedByName": giftedByName,
+                                "quality": quality,
+                                "color1": color1,
+                                "color2": color2,
+                                "howAcquired": howAcquired,
+                                "location": "Wardrobe"
+                            }
+                        }
+                    }
+                )
+
+                self.air.inventoryManager.sendUpdateToAvatarId(avId, "wardrobeItem", [
+                    itemId,
+                    [invId, itemId, slot, createdById, createdByName, giftedById, giftedByName, quality, color1, color2, howAcquired
+                ]])
+
+        self.sendUpdateToAvatarId(avId, "setPurchase", [PURCHASE_SUCCESS if success else PURCHASE_FAIL])

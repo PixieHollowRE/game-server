@@ -2,6 +2,7 @@ COMMUNITY_ALERTS_ALL = 3
 
 OTP_DO_ID_FAIRIES_BADGE_MANAGER = 4690
 OTP_DO_ID_REALM_GUARDIAN = 4755
+OTP_DO_ID_FAIRIES_INVENTORY_MANAGER = 4677
 
 # Everything from this zone up to the top of the available range is
 # reserved for the dynamic zone pool.  Note that our effective maximum

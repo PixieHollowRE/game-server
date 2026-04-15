@@ -14,6 +14,8 @@ from game.fairies.meadow import DistributedMeadowAI
 from game.fairies.ai import FairiesMagicWordManagerAI
 from game.fairies.housing import DistributedHomeAI
 from game.fairies.uberdog import RealmGuardianUD
+from game.fairies.uberdog import FairyInventoryMgrUD
+from game.fairies.ai import FairyInventoryMgrAI
 
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.
@@ -484,8 +486,8 @@ dclass FairyInventoryMgr { // 76
     unlockItem(uint32, Unlockable); // 408
     fullInventory(uint32, int32); // 409
     limitResponse(string, int32); // 410
-    setStorageSlot(uint64, int16); // 411
-    setWardrobeSlot(uint64, int16); // 412
+    setStorageSlot(uint64, int16) clsend; // 411
+    setWardrobeSlot(uint64, int16) clsend; // 412
     setStackSlot(uint32, int32, int16); // 413
     checkLimit(string); // 414
     giftStorageItem(uint32, uint32, uint64); // 415
@@ -699,7 +701,7 @@ dclass FairiesBadgeManager { // 85
     giveBadge(int32, int16); // 596
     unlockPage(int32, int16); // 597
     unlockBadge(int32, int16); // 598
-    accumulateForMe(int16) ownsend; // 599
+    accumulateForMe(int16) clsend; // 599
     accumulate(int32, int16, int16); // 600
     setBadges(EarnedBadge[], int16[], BadgeProgress[]); // 601
     pageUnlocked(int16, BadgeProgress[]); // 602
@@ -772,7 +774,7 @@ dclass HolidayManager { // 90
 dclass DistributedFairyShopkeeperNPC : DistributedFairyNPC { // 91
     setShopId(int16) required broadcast ram; // 652
     setShopItems(ShopCollection[]) required broadcast ram; // 653
-    setRequestPurchase(PurchaseItem[], int8); // 654
+    setRequestPurchase(PurchaseItem[], int8) clsend airecv; // 654
     setPurchase(uint16); // 655
     setTryOn(LiteShopItem[]) clsend airecv; // 656
     setTriedOnItems(ShopTriedOnItems[]) broadcast; // 657
