@@ -16,6 +16,8 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         # Fill in the missing information from the database (i.e. gold)
         self.air.fillInFairyPlayer(self)
 
+        self.air.inventoryManager.avatarOnline(self.doId)
+
     def delete(self):
         # TODO: Set a post-remove message in case of an AI crash.
         self.air.sendFriendManagerAccountOffline(self.DISLid)
@@ -149,6 +151,9 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
     def d_setGold(self, gold: int) -> None:
         self.sendUpdate("setGold", [gold])
+
+    def d_setPouch(self, pouch: list) -> None:
+        self.sendUpdateToAvatarId(self.doId, "setPouch", [pouch])
 
     def b_setGold(self, gold: int) -> None:
         self.setGold(gold)

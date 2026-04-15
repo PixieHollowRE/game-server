@@ -17,6 +17,8 @@ from game.fairies.housing import DistributedHomeAI
 from game.fairies.uberdog import RealmGuardianUD
 from game.fairies.uberdog import FairyInventoryMgrUD
 from game.fairies.ai import FairyInventoryMgrAI
+from game.fairies.uberdog import PetMgrUD
+from game.fairies.ai import PetMgrAI
 
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.
@@ -597,7 +599,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     setDISLname(string) broadcast ownrecv ram; // 506
     setDISLid(uint32 = 0) broadcast ownrecv ram db; // 507
     setPouchType(uint8); // 508
-    setPouch(Stackable[]); // 509
+    setPouch(Stackable[]) db; // 509
     setStackSlot(int32, int16); // 510
     setRecipeStats(int32[]); // 511
     donateItem(int32, uint32); // 512

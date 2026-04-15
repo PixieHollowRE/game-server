@@ -50,9 +50,18 @@ class DistributedSpawnStackAI(DistributedObjectAI):
         return self.servingSize
 
     def setEligible(self, bogus: int) -> None:
-        self.sendUpdateToAvatarId(self.air.getAvatarIdFromSender(), "setEligible", [1])
+        avId = self.air.getAvatarIdFromSender()
+        self.sendUpdateToAvatarId(avId, "setEligible", [1])
 
     def setCollectRequest(self, bogus: int) -> None:
         avId = self.air.getAvatarIdFromSender()
+        avatar = self.air.doId2do.get(avId)
 
-        # TODO
+        if not avatar:
+            self.notify.warning(f"No avatar present on AI for setCollectRequest: {avId}")
+            return
+
+        itemID, itemCount, itemSlot = self.getItemID(), self.getItemCount(), -1
+
+        if self.air.inventoryManager.addIngredientsToPouch(avId, itemID, itemCount, itemSlot):
+            avatar.d_setPouch(self.air.inventoryManager.getPouch(avId))

@@ -20,6 +20,7 @@ from game.fairies.fairy.npc.DistributedFairyShopkeeperNPCAI import DistributedFa
 from game.fairies.fairy import FamousFairyData
 from game.fairies.ai import ZoneConstants
 from game.fairies.ai.FairiesMagicWordManagerAI import FairiesMagicWordManagerAI
+from game.fairies.ai.PetMgrAI import PetMgrAI
 from game.fairies.shop.ShopData import SHOPS
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.server.ServerBase import ServerBase
@@ -123,6 +124,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
 
         self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
         self.inventoryManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_INVENTORY_MANAGER, "FairyInventoryMgr")
+        self.petManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_PET_MANAGER, "PetMgr")
 
         # The Magic Word Manager
         self.magicWordManager = FairiesMagicWordManagerAI(self)
