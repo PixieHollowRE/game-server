@@ -198,7 +198,7 @@ function handleGetStoredValues(participant, dgi)
 
         local function getItemByType(items, itemType)
             for _, item in ipairs(items) do
-                if item.type == itemType then
+                if item.type == itemType and item.location == "Equipped" then
                     return item
                 end
             end
@@ -207,7 +207,7 @@ function handleGetStoredValues(participant, dgi)
 
         local function makeItemPayload(slotType)
             local item = getItemByType(data.avatar.items, slotType)
-            if item ~= nil and item.location == "Equipped" then
+            if item ~= nil then
                 return {
                     {
                         item.inv_id,
