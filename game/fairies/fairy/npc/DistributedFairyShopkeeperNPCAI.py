@@ -92,7 +92,7 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
                 quality = 0 # TODO
                 color1 = item.color1
                 color2 = item.color2
-                howAcquired = 0 # TODO
+                howAcquired = 11 # howAcquired > 10 takes up a wardrobe spot
 
                 self.air.mongoInterface.mongodb.fairies.update_one(
                     {"_id": avId},
