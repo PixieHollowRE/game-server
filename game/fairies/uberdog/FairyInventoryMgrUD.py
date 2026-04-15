@@ -14,6 +14,13 @@ class FairyInventoryMgrUD(DistributedObjectGlobalUD):
         fairy = self.air.mongoInterface.retrieveDocs("fairies", avatarId, "_id")[0]
 
         for item in fairy["avatar"]["items"]:
+            if item["location"] == "Wardrobe":
+                fieldName = "wardrobeItem"
+            elif item["location"] == "Storage":
+                fieldName = "storageItem"
+            else:
+                continue
+
             invItemExt = [
                 item["inv_id"],
                 item["item_id"],
@@ -28,16 +35,10 @@ class FairyInventoryMgrUD(DistributedObjectGlobalUD):
                 item["howAcquired"]
             ]
 
-            fieldName = "wardrobeItem"
-
-            if item["location"] == "Storage":
-                fieldName = "storageItem"
-
-            if item["location"] in ("Wardrobe", "Storage"):
-                self.sendUpdateToAvatarId(avatarId, fieldName, [
-                    item["item_id"],
-                    invItemExt
-                ])
+            self.sendUpdateToAvatarId(avatarId, fieldName, [
+                item["item_id"],
+                invItemExt
+            ])
 
     def setStorageSlot(self, invId, slot) -> None:
         self.air.mongoInterface.mongodb.fairies.update_one(
