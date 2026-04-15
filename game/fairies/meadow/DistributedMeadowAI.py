@@ -7,7 +7,7 @@ class DistributedMeadowAI(DistributedObjectAI):
         self.assetURL: str = ""
         self.crowdBarriers: int = 0
 
-    def setAssetURL(self, assetURL: int) -> None:
+    def setAssetURL(self, assetURL: str) -> None:
         self.assetURL = assetURL
 
     def getAssetURL(self) -> str:

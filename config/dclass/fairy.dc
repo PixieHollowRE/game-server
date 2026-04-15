@@ -11,6 +11,7 @@ from game.fairies.gateway import DistributedGatewayAI
 from game.fairies.uberdog import FairiesBadgeManagerUD
 from game.fairies.ai import FairiesBadgeManagerAI
 from game.fairies.meadow import DistributedMeadowAI
+from game.fairies.meadow import DistributedSpawnStackAI
 from game.fairies.ai import FairiesMagicWordManagerAI
 from game.fairies.housing import DistributedHomeAI
 from game.fairies.uberdog import RealmGuardianUD
@@ -345,14 +346,14 @@ dclass DistributedGateway { // 65
 };
 
 dclass DistributedSpawnStack { // 66
-    setItemID(uint32) required; // 300
-    setName(string) required; // 301
-    setPosition(uint32, uint32) required; // 302
-    setColorIDs(uint32[]) required; // 303
-    setItemCount(uint32) required; // 304
-    setServingSize(uint32) required; // 305
-    setEligible(uint8); // 306
-    setCollectRequest(uint8); // 307
+    setItemID(uint32) required broadcast; // 300
+    setName(string) required broadcast; // 301
+    setPosition(uint32, uint32) required broadcast; // 302
+    setColorIDs(uint32[]) required broadcast; // 303
+    setItemCount(uint32) required broadcast; // 304
+    setServingSize(uint32) required broadcast; // 305
+    setEligible(uint8) clsend airecv; // 306
+    setCollectRequest(uint8) clsend airecv; // 307
 };
 
 dclass DistributedMultiplayerSpawnStack : DistributedSpawnStack { // 67
