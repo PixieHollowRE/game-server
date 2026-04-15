@@ -517,7 +517,7 @@ dclass FairyInventoryMgr { // 76
     dyeWardrobeItem(uint32, uint64, int16, int16, int16); // 439
     dyeStorageItem(uint32, uint64, int16, int16, int16); // 440
     storageConversion(uint64); // 441
-    wardrobeConversion(uint64); // 442
+    wardrobeConversion(uint64) clsend; // 442
     conversionResponse(uint64, int8); // 443
     purchaseWithGold(uint32, uint32, InvItemExt[], int16[], uint32, uint32, int16, int32); // 444
     grantHardCurrency(uint32, uint32, int32); // 445
