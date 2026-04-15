@@ -217,7 +217,7 @@ function handleGetStoredValues(participant, dgi)
                     }
                 }
             else
-                return {{}}
+                return {{0, 0, 0, 0}}
             end
         end
 
