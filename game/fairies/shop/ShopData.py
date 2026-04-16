@@ -76,7 +76,8 @@ SHOPS = [
                 collectionId=83, # Mainland Styles
                 items=[
                     ShopItem(itemId=484, price=30, goldPrice=5, color1=45, color2=45, itemType="Shirt"), # Strawberry Red Varsity Jacket
-                    ShopItem(itemId=1651, price=10, goldPrice=2, color1=78, color2=78, itemType="WristItem") # Fawn Brown Football
+                    ShopItem(itemId=1651, price=10, goldPrice=2, color1=78, color2=78, itemType="WristItem"), # Fawn Brown Football
+                    ShopItem(itemId=1172, price=25, goldPrice=5, color1=118, color2=118, itemType="Skirt") # Sapphire Blue Dry Leaf Trousers
                 ],
             ),
         ]
