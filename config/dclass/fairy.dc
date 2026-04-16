@@ -605,7 +605,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     donateItem(int32, uint32); // 512
     tradeItem(int32, uint32, int32, uint32); // 513
     tradeItemForGold(int32, uint32, uint32); // 514
-    tradeGoldForItem(uint32, int32, uint32); // 515
+    tradeGoldForItem(uint32, int32, uint32) ownsend airecv; // 515
     removeFromInventory(uint64, int32); // 516
     setLastMeadow(int32) ownrequired broadcast db ownrecv; // 517
     setCurrentHolidayActivity(int32, int32) ownrequired broadcast db ownrecv; // 518
@@ -669,7 +669,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     requestAddSavedOutfit(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64) ownsend airecv; // 576
     requestUpdateSavedOutfit(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64); // 577
     requestRemoveSavedOutfits(LongType[]); // 578
-    requestSendSavedOutfitSlotPurchaseRequest(); // 579
+    requestSendSavedOutfitSlotPurchaseRequest() ownsend airecv; // 579
     requestGlobalPurchase(GlobalPurchaseItem[]); // 580
     requestGlobablPurchaseData(); // 581
     setGlobalPurchaseData(MiscItem[]); // 582
