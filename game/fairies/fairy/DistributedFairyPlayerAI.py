@@ -46,7 +46,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
     def requestDailyGoldTradeCapData(self) -> None:
         # TODO
-        self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [0])
+        self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [1000])
         self.sendUpdateToAvatarId(self.doId, "setAmountGoldTradedForToday", [0])
 
     def requestGetSavedOutfits(self) -> None:
@@ -171,3 +171,15 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.b_setGold(self.gold - deltaGold)
 
         return True
+
+    def tradeGoldForItem(self, amountToGive: int, invItemToGet: int, amountToGet: int) -> None:
+        if self.takeGold(amountToGive):
+            if not self.air.inventoryManager.addIngredientsToPouch(self.doId, invItemToGet, amountToGet, -1):
+                self.notify.warning("Failed to add ingredient %d to pouch!" % (invItemToGet))
+                return
+
+            # Apparently setPouch has to be sent back to the client twice here because `onCheckForGiveGetUpdates`
+            # only fires if pouchUpdateCalls is greater than 1
+            pouch = self.air.inventoryManager.getPouch(self.doId)
+            self.d_setPouch(pouch)
+            self.d_setPouch(pouch)
