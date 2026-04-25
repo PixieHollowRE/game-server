@@ -110,7 +110,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
                 item["slot"] = 0
                 dirty = True
 
-                if oldSlot not in filledSlots:
+                if oldSlot in SLOT_METHODS and oldSlot not in filledSlots:
                     self.sendUpdate(SLOT_METHODS[oldSlot], [EMPTY_LITE_INV])
 
                 self.air.inventoryManager.sendUpdateToAvatarId(
