@@ -394,4 +394,51 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetZoneID": ZoneConstants.PALM_TREE_COVE,
         },
     ],
+    ZoneConstants.SCHELLYS_HAIR_SALON: [
+        {
+            # Palm Tree Cove
+            "name": "9193",
+            "position": (880, 415),
+            "targetLocationName": "fromZone114000",
+            "targetZoneID": ZoneConstants.PALM_TREE_COVE,
+        },
+    ],
+    ZoneConstants.NEVERFRUIT_GROVE: [
+        {
+            # Sunflower Gully
+            "name": "9142",
+            "position": (52, 250),
+            "targetLocationName": "fromZone402",
+            "targetZoneID": ZoneConstants.SUNFLOWER_GULLY,
+        },
+        {
+            # Havendish Square
+            "name": "9173",
+            "position": (280, 30),
+            "targetLocationName": "fromZone402",
+            "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
+        },
+        {
+            # Pixie Post Office
+            "name": "9278",
+            "position": (337, 140),
+            "targetLocationName": "shopEntrance",
+            "targetZoneID": ZoneConstants.PIXIE_POST_OFFICE,
+        },
+        {
+            # First Flight
+            "name": "9209",
+            "position": (1232, 412),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.FIRST_FLIGHT_GAME,
+            "rewardList": [8001, 8017, 8010],
+        },
+        {
+            # Palm Tree Cove
+            "name": "9132",
+            "position": (815, 805),
+            "targetLocationName": "fromZone402",
+            "targetZoneID": ZoneConstants.PALM_TREE_COVE,
+        },
+    ],
 }
