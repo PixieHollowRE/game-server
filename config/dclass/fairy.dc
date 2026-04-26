@@ -374,7 +374,7 @@ dclass DistributedTalentMinigame : DistributedInstanceBaseAI { // 69
     reportScore(int32) clsend airecv; // 314
     endGame(uint8) clsend airecv; // 315
     setRewards(Reward[]) ram ownrecv; // 316
-    chooseReward(int16) clsend; // 317
+    chooseReward(int16) clsend airecv; // 317
 };
 
 dclass FairiesHomeRealm : DistributedDistrict { // 70
