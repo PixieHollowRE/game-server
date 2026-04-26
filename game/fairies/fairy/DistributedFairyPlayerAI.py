@@ -100,10 +100,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
                     payload = [invId, item["item_id"], item["color1"], item["color2"]]
                     self.sendUpdate(SLOT_METHODS[slot], [payload])
 
-                    self.air.inventoryManager.sendUpdateToAvatarId(
-                        self.doId, "wardrobeRemove", [self.doId, invId]
-                    )
-
             elif item["location"] == "Equipped":
                 oldSlot = item["slot"]
                 item["location"] = "Wardrobe"
@@ -112,17 +108,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
                 if oldSlot in SLOT_METHODS and oldSlot not in filledSlots:
                     self.sendUpdate(SLOT_METHODS[oldSlot], [EMPTY_LITE_INV])
-
-                self.air.inventoryManager.sendUpdateToAvatarId(
-                    self.doId, "wardrobeItem", [
-                        item["item_id"],
-                        [invId, item["item_id"], item["slot"],
-                         item["createdById"], item["createdByName"],
-                         item["giftedById"], item["giftedByName"],
-                         item["quality"], item["color1"], item["color2"],
-                         item["howAcquired"]]
-                    ]
-                )
 
         if dirty:
             table.update_one(
