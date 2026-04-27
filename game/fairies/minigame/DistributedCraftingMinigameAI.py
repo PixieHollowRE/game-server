@@ -6,11 +6,11 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
 
         self.professionId: int = 0
 
-    def setProfessionID():
+    def setProfessionID(self, professionId):
         # CRAFT_TYPE_TAILORING = 0
         # CRAFT_TYPE_BAKING = 1
         # CRAFT_TYPE_TINKERING = 2
-        pass
+        self.professionId = professionId
 
     def setCommunityDyeIDList():
         # Array of dye IDs

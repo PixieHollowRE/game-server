@@ -20,6 +20,7 @@ from game.fairies.ai import FairyInventoryMgrAI
 from game.fairies.uberdog import PetMgrUD
 from game.fairies.ai import PetMgrAI
 
+
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.
 keyword ownrequired;
@@ -630,7 +631,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     consumePouchItem(int32, int32); // 537
     pouchItemGranted(int32, int32); // 538
     setHotspotTriggered(int16, int16) ownsend airecv; // 539
-    setScriptLine(int16); // 540
+    setScriptLine(int16) ownsend broadcast; // 540
     setPetFeed(uint32, int32, int32); // 541
     setPetEmote(uint16); // 542
     setPetDetail(PetDetail); // 543

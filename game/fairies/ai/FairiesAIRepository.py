@@ -13,6 +13,7 @@ from game.fairies.meadow.DistributedMeadowAI import DistributedMeadowAI
 from game.fairies.meadow.DistributedSpawnStackAI import DistributedSpawnStackAI
 from game.fairies.minigame import MinigameConstants
 from game.fairies.minigame.DistributedTalentMinigameAI import DistributedTalentMinigameAI
+from game.fairies.minigame.DistributedCraftingMinigameAI import DistributedCraftingMinigameAI
 from game.fairies.gateway.DistributedGatewayAI import DistributedGatewayAI
 from game.fairies.gateway.GatewayConstants import GATEWAYS
 from game.fairies.fairy.npc.DistributedFairyQuestNPCAI import DistributedFairyQuestNPCAI
@@ -73,6 +74,11 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             minigame = DistributedTalentMinigameAI(self)
             minigame.setGameID(MinigameConstants.getGameIdForZone(zoneId))
             minigame.generateWithRequired(zoneId)
+
+       # for zoneId in ZoneConstants.CRAFTING_ZONE_LIST:
+            #crafting = DistributedCraftingMinigameAI(self)
+         #   crafting.setProfessionID(2)
+           # minigame.generateWithRequired(zoneId)
 
         for zoneId in ZoneConstants.SHOPS_ZONE_LIST + ZoneConstants.MEADOW_ZONES_LIST:
             meadow = DistributedMeadowAI(self)
