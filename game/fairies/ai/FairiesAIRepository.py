@@ -26,6 +26,7 @@ from game.fairies.shop.ShopData import SHOPS
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.server.ServerBase import ServerBase
 from game.otp.server.ServerGlobals import PIXIE_HOLLOW
+from game.fairies.fairy.npc.QuestZoneData import QUEST_ZONES
 
 
 class FairiesAIRepository(AIDistrict, ServerBase):
@@ -75,10 +76,15 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             minigame.setGameID(MinigameConstants.getGameIdForZone(zoneId))
             minigame.generateWithRequired(zoneId)
 
-       # for zoneId in ZoneConstants.CRAFTING_ZONE_LIST:
-            #crafting = DistributedCraftingMinigameAI(self)
-         #   crafting.setProfessionID(2)
-           # minigame.generateWithRequired(zoneId)
+        for zoneId in ZoneConstants.CRAFTING_ZONE_LIST:
+            crafting = DistributedCraftingMinigameAI(self)
+            if zoneId == ZoneConstants.MENDYS_TAILORING or ZoneConstants.BOBBINS_TAILORING:
+                crafting.setProfessionID(0)
+            elif zoneId == ZoneConstants.DULCIES_BAKING:
+                crafting.setProfessionID(1)
+            else:
+                crafting.setProfessionID(2) # Tinkering
+            crafting.generateWithRequired(zoneId)
 
         for zoneId in ZoneConstants.SHOPS_ZONE_LIST + ZoneConstants.MEADOW_ZONES_LIST:
             meadow = DistributedMeadowAI(self)
@@ -108,21 +114,9 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         spawnStack.generateWithRequired(ZoneConstants.ACORN_SUMMIT)
 
         # DistributedFairyQuestNPC testing
-        tutorialTerence = DistributedFairyQuestNPCAI(self)
-        tutorialTerence.setName(str(FamousFairyData.TERENCE_DO_ID))
-        tutorialTerence.setFairyDNA(FamousFairyData.TERENCE_DNA)
-        tutorialTerence.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_TERENCE)
-        tutorialTerence.setQuestGiverId(FamousFairyData.TERENCE_DO_ID)
-        tutorialTerence.setRoomID(1)
-        tutorialTerence.generateWithRequired(ZoneConstants.PIXIE_DUST_MILL)
-
-        tinkerbellQuest = DistributedFairyQuestNPCAI(self)
-        tinkerbellQuest.setName(str(FamousFairyData.TINKERBELL_DO_ID))
-        tinkerbellQuest.setFairyDNA(FamousFairyData.TINKERBELL_DNA)
-        tinkerbellQuest.setFamousFairyId(FamousFairyData.FAMOUS_FAIRY_TINKERBELL)
-        tinkerbellQuest.setQuestGiverId(FamousFairyData.TINKERBELL_DO_ID)
-        tinkerbellQuest.setRoomID(1)
-        tinkerbellQuest.generateWithRequired(ZoneConstants.TINKERS_NOOK)
+        for qzone in QUEST_ZONES:
+            qgiver_ai = DistributedFairyQuestNPCAI(self)
+            qzone.generate_quest_zone(qgiver_ai)
 
         for shop in SHOPS:
             shop_ai = DistributedFairyShopkeeperNPCAI(self)

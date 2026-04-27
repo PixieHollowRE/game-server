@@ -1,7 +1,13 @@
 # Quest Givers have Fixed Object IDs
-TERENCE_DO_ID = 15507
-
+FAWN_DO_ID = 15500
+IRIDESSA_DO_ID = 15501
+ROSETTA_DO_ID = 15502
+SILVERMIST_DO_ID = 15503
 TINKERBELL_DO_ID = 15504
+KIT_DO_ID = 15505
+ELIXA_DO_ID = 15506
+TERENCE_DO_ID = 15507
+MARINA_DO_ID = 15508
 
 # Famous Fairy IDs (from npcToFamousFairy mapping in FamousFairyData)
 FAMOUS_FAIRY_TINKERBELL = 0
@@ -95,22 +101,4 @@ TERENCE_DNA = (
     106, # skin_color
     112, # wing_color
     2 # gender (Male)
-)
-
-TINKERBELL_DNA = (
-    12, # talent
-    95, # head
-    100, # height
-    88, # body
-    5528, # hair_back
-    5022, # hair_front
-    4524, # face
-    4024, # eye
-    6005, # wing
-    73, # hair_color
-    73, # hair_color2
-    63, # eye_color
-    106, # skin_color
-    165, # wing_color
-    1
 )

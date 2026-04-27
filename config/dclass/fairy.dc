@@ -7,6 +7,7 @@ from game.fairies.fairy.npc import DistributedFairyQuestNPCAI
 from game.fairies.fairy.npc import DistributedFairyShopkeeperNPCAI
 from game.fairies.instance import DistributedInstanceBaseAI
 from game.fairies.minigame import DistributedTalentMinigameAI
+from game.fairies.minigame import DistributedCraftingMinigameAI
 from game.fairies.gateway import DistributedGatewayAI
 from game.fairies.uberdog import FairiesBadgeManagerUD
 from game.fairies.ai import FairiesBadgeManagerAI
@@ -754,12 +755,12 @@ dclass RealmGuardian { // 88
 };
 
 dclass DistributedCraftingMinigame : DistributedInstanceBaseAI { // 89
-    setProfessionID(int16) required; // 636
-    setCommunityDyeIDList(uint32[]) required; // 637
-    setRecipeChoice(uint32, uint16); // 638
-    setResults(uint32, uint32, uint32, uint32, int16); // 639
-    setEmbellishResults(uint32, uint32, uint32, uint32, uint64); // 640
-    craftingResponse(uint16); // 641
+    setProfessionID(int16) required broadcast; // 636
+    setCommunityDyeIDList(uint32[]) required broadcast; // 637
+    setRecipeChoice(uint32, uint16) clsend; // 638
+    setResults(uint32, uint32, uint32, uint32, int16) clsend; // 639
+    setEmbellishResults(uint32, uint32, uint32, uint32, uint64) clsend; // 640
+    craftingResponse(uint16) clsend; // 641
 };
 
 dclass HolidayManager { // 90

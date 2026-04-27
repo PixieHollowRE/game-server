@@ -1,4 +1,5 @@
 from game.fairies.ai import ZoneConstants
+from game.fairies.ai import FairiesConstants as fc
 
 # targetLocationName is the Location name of where you want the fairy to appear
 # on the other side (so in the other meadow). These can be found in each meadow's
@@ -11,59 +12,9 @@ from game.fairies.ai import ZoneConstants
 # - Jessi
 
 GATEWAYS: dict[int, list[dict]] = {
-    ZoneConstants.ACORN_SUMMIT: [
-        {
-            # Fairy Fireworks
-            "name": "9024",
-            "position": (460, 52),
-            "targetLocationName": "",
-            "targetZoneID": ZoneConstants.FAIRY_FIREWORKS_GAME,
-            "rewardList": [8001, 8002, 8013],
-        },
-        {
-            # Vidia's Daily Spin
-            "name": "9228",
-            "position": (967, 185),
-            "targetLocationName": "",
-            "targetZoneID": ZoneConstants.VIDIAS_DAILY_SPIN,
-        },
-        {
-            # Summit Style
-            "name": "9023",
-            "position": (964, 402),
-            "targetLocationName": "shopEntrance",
-            "targetZoneID": ZoneConstants.SUMMIT_STYLE,
-        },
-        {
-            # Pumpkin Patch
-            "name": "9201",
-            "position": (70, 870),
-            "targetLocationName": "fromAcornSummit",
-            "targetZoneID": ZoneConstants.PUMPKIN_PATCH,
-        },
-        {
-            # Maple Tree Hill
-            "name": "9072",
-            "position": (900, 920),
-            "targetLocationName": "fromAcornSummit",
-            "targetZoneID": ZoneConstants.MAPLE_TREE_HILL,
-        },
-        {
-            # Cottonpuff Field
-            "name": "9080",
-            "position": (1460, 800),
-            "targetLocationName": "fromAcornSummit",
-            "targetZoneID": ZoneConstants.COTTONPUFF_FIELD,
-        },
-        {
-            # Snowcap Glade
-            "name": "9108",
-            "position": (1650, 300),
-            "targetLocationName": "fromAcornSummit",
-            "targetZoneID": ZoneConstants.SNOWCAP_GLADE,
-        },
-    ],
-    # Havendish Gateways
+    # ════════════════════════════════════════════════════════════════════════════════════ #
+    #                                  Havendish Gateways                                  #
+    # ════════════════════════════════════════════════════════════════════════════════════ #
     ZoneConstants.HAVENDISH_SQUARE: [
         {
             # Fairy Coliseum
@@ -236,7 +187,10 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetZoneID": ZoneConstants.FAIRY_COLISEUM,
         },
     ],
-    # Winter Gateways
+    
+    # ════════════════════════════════════════════════════════════════════════════════════ #
+    #                                    Winter Gateways                                   #
+    # ════════════════════════════════════════════════════════════════════════════════════ #
     ZoneConstants.EVERGREEN_OVERLOOK: [
         {
             # Chilly Falls
@@ -258,7 +212,7 @@ GATEWAYS: dict[int, list[dict]] = {
             "position": (645, 1500),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.SNOWFLAKE_SWEEP_GAME,
-            "rewardList": [8003, 8015, 8016],
+            "rewardList": [fc.IVY, fc.PINE_NEEDLES, fc.SNOWFLAKES],
         },
         {
             # Snowcap Glade
@@ -303,9 +257,10 @@ GATEWAYS: dict[int, list[dict]] = {
             "position": (1001, 1071),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.GEM_JUGGLE_GAME,
-            "rewardList": [8003, 8015, 8018],
+            "rewardList": [fc.IVY, fc.PINE_NEEDLES, fc.TWIGS],
         },
     ],
+    # Gales
     ZoneConstants.SNOWCAP_GLADE: [
         {
             # Evergreen Overlook
@@ -327,7 +282,7 @@ GATEWAYS: dict[int, list[dict]] = {
             "position": (214, 124),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.PINECONE_POP_GAME,
-            "rewardList": [8011, 8015, 8016],
+            "rewardList": [fc.ACORNS, fc.PINE_NEEDLES, fc.SNOWFLAKES],
         },
         {
             # Snowy Lullaby
@@ -335,7 +290,7 @@ GATEWAYS: dict[int, list[dict]] = {
             "position": (1830, 550),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.SNOWY_LULLABY_GAME,
-            "rewardList": [8011, 8015, 8016],
+            "rewardList": [fc.ACORNS, fc.MAPLE_LEAVES, fc.DANDELION_FLUFF],
         },
         {
             # Gale's Outfitters
@@ -345,7 +300,11 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetZoneID": ZoneConstants.GALES_OUTFITTERS,
         }
     ],
-    # Summer Gateways
+    # Ember's
+
+    # ════════════════════════════════════════════════════════════════════════════════════ #
+    #                                    Summer Gateways                                   #
+    # ════════════════════════════════════════════════════════════════════════════════════ #
     ZoneConstants.PALM_TREE_COVE: [
         {
             # Neverfruit Grove
@@ -374,7 +333,7 @@ GATEWAYS: dict[int, list[dict]] = {
             "position": (1707, 602),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.BUTTERFLY_PAINTER_GAME,
-            "rewardList": [8006, 8012, 8010],
+            "rewardList": [fc.LILY_PETALS, fc.BLUEBERRIES, fc.SUNFLOWER_SEEDS],
         },
         {
             # Dewdrop Vale
@@ -431,7 +390,7 @@ GATEWAYS: dict[int, list[dict]] = {
             "position": (1232, 412),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.FIRST_FLIGHT_GAME,
-            "rewardList": [8001, 8017, 8010],
+            "rewardList": [fc.OAK_LEAVES, fc.HONEYCOMBS, fc.SUNFLOWER_SEEDS],
         },
         {
             # Palm Tree Cove
@@ -441,4 +400,102 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetZoneID": ZoneConstants.PALM_TREE_COVE,
         },
     ],
+    # Pixie Post Office
+    ZoneConstants.SUNFLOWER_GULLY: [
+        {
+            # Neverfruit Grove
+            "name": "9157",
+            "position": (905, 440),
+            "targetLocationName": "fromZone401",
+            "targetZoneID": ZoneConstants.NEVERFRUIT_GROVE,
+        },
+        {
+            # Pheobe's
+            "name": "9147",
+            "position": (508, 406),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.PHOEBES_PARTY_FAVORS,
+        },
+        {
+            # Sunbeam Bend
+            "name": "9272",
+            "position": (900, 650),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.LIGHT_PIPE_GAME,
+            "rewardList": [fc.ROSE_PETALS, fc.BUTTERCUP_PETALS, fc.RASPBERRIES],
+        },
+        {
+            # Iridessa's Glade
+            "name": "9146",
+            "position": (435, 1080),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.IRIDESSAS_GLADE,
+        },
+        {
+            # Cottonpuff Field
+            "name": "9079",
+            "position": (220, 1437),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.COTTONPUFF_FIELD,
+        }
+    ],
+    # Phoebe's
+
+    # ════════════════════════════════════════════════════════════════════════════════════ #
+    #                                    Autumn Gateways                                   #
+    # ════════════════════════════════════════════════════════════════════════════════════ #
+    ZoneConstants.ACORN_SUMMIT: [
+        {
+            # Fairy Fireworks
+            "name": "9024",
+            "position": (460, 52),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.FAIRY_FIREWORKS_GAME,
+            "rewardList": [fc.OAK_LEAVES, fc.MAPLE_LEAVES, fc.DANDELION_FLUFF],
+        },
+        {
+            # Vidia's Daily Spin
+            "name": "9228",
+            "position": (967, 185),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.VIDIAS_DAILY_SPIN,
+        },
+        {
+            # Summit Style
+            "name": "9023",
+            "position": (964, 402),
+            "targetLocationName": "shopEntrance",
+            "targetZoneID": ZoneConstants.SUMMIT_STYLE,
+        },
+        {
+            # Pumpkin Patch
+            "name": "9201",
+            "position": (70, 870),
+            "targetLocationName": "fromAcornSummit",
+            "targetZoneID": ZoneConstants.PUMPKIN_PATCH,
+        },
+        {
+            # Maple Tree Hill
+            "name": "9072",
+            "position": (900, 920),
+            "targetLocationName": "fromAcornSummit",
+            "targetZoneID": ZoneConstants.MAPLE_TREE_HILL,
+        },
+        {
+            # Cottonpuff Field
+            "name": "9080",
+            "position": (1460, 800),
+            "targetLocationName": "fromAcornSummit",
+            "targetZoneID": ZoneConstants.COTTONPUFF_FIELD,
+        },
+        {
+            # Snowcap Glade
+            "name": "9108",
+            "position": (1650, 300),
+            "targetLocationName": "fromAcornSummit",
+            "targetZoneID": ZoneConstants.SNOWCAP_GLADE,
+        },
+    ],
+    
 }
+
