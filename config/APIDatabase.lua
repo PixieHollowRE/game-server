@@ -114,7 +114,7 @@ Api2Field = {
     optionsBitmask = "setOptionsMask",
     bio = "setBio",
     gold = "setGold",
-    level = 'setLevel'
+    level = "setLevel"
 }
 
 Field2Api = {}
