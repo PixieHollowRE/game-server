@@ -496,6 +496,108 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetZoneID": ZoneConstants.SNOWCAP_GLADE,
         },
     ],
+    ZoneConstants.COTTONPUFF_FIELD: [
+        {
+            # Acorn Summit
+            "name": "9071",
+            "position": (195, 150),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.ACORN_SUMMIT,
+        },
+        {
+            # Sunflower Gully
+            "name": "9140",
+            "position": (390, 815),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.SUNFLOWER_GULLY,
+        },
+        {
+            # Tinker Toss
+            "name": "9145",
+            "position": (632, 745),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.TINKER_TOSS_GAME,
+        },
+        {
+            # Maple Tree Hill
+            "name": "9091",
+            "position": (85, 915),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.MAPLE_TREE_HILL,
+        },
+        {
+            # Tinkers Nook
+            "name": "9026",
+            "position": (1765, 765),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.TINKERS_NOOK,
+        },
+        {
+            # Havendish Square
+            "name": "9175",
+            "position": (1650, 410),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.HAVENDISH_SQUARE,
+        },
+        {
+            # Coal's Clothiers
+            "name": "9210",
+            "position": (496, 208),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.COALS_CLOTHIERS,
+        },
+    ],
+    ZoneConstants.MAPLE_TREE_HILL: [
+        {
+            # Cottonpuff Field
+            "name": "9076",
+            "position": (1055, 1325),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.COTTONPUFF_FIELD,
+        },
+        {
+            # Mendy's Tailoring
+            "name": "9012",
+            "position": (738, 1318),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.MENDYS_TAILORING,
+        },
+        {
+            # Fawn's Hideout
+            "name": "9027",
+            "position": (342, 1740),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.FAWNS_HIDEOUT,
+        },
+        {
+            # Copper's Tinkering
+            "name": "9154",
+            "position": (482, 940),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.COPPERS_TINKERING,
+        },
+        {
+            # Pumpkin Patch
+            "name": "9098",
+            "position": (0, 805),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.PUMPKIN_PATCH,
+        },
+        {
+            # Springtime Orchard
+            "name": "9028",
+            "position": (1075, 445),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.SPRINGTIME_ORCHARD,
+        },
+        {
+            # Acorn Summit
+            "name": "9071",
+            "position": (255, 225),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.ACORN_SUMMIT,
+        },
+    ],
     
 }
 
