@@ -625,7 +625,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     setHairDB(int32, int32, int16, int16, int16); // 530
     setSpaDB(int32, int32, int16, int16, int16); // 531
     setPixiePower(int16 = 100) required ownrequired broadcast db ownrecv; // 532
-    setLevel(uint8 = 1) required ownrequired broadcast db ownrecv; // 533
+    setLevel(uint8) required ownrequired broadcast db ownrecv; // 533
     setExperiencePoints(int32) ownrequired broadcast db ownrecv; // 534
     levelUpRequest() ownsend; // 535
     setWingsDB(int32, int16); // 536
