@@ -14,6 +14,13 @@ class FairiesMagicWordManagerAI(DistributedObjectAI):
         if not av:
             self.notify.warning(f"setMagicWord from unknown avatar {avId}")
             return
+        
+        mw_parts = magicWord.split(" ")
+        command = mw_parts[0]
+        args = mw_parts[1:]
+
+        if command == "set-level":
+            av.sendUpdate("setLevel", [int(args[0])])
 
         # TODO: Implement magic words located in `LiveMod`, etc.
         # For now, we will just send back a test response.

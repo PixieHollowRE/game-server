@@ -65,7 +65,8 @@ QUEST_ZONES = [
         questgiver=Questgiver(
             name=str(FamousFairyData.TERENCE_DO_ID),
             questGiverId=FamousFairyData.TERENCE_DO_ID,
-            famousFairyId=FamousFairyData.FAMOUS_FAIRY_TERENCE
+            famousFairyId=FamousFairyData.FAMOUS_FAIRY_TERENCE,
+            gender=2
         )
     ),
     QuestZone(
