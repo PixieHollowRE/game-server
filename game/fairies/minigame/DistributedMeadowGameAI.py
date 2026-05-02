@@ -23,7 +23,7 @@ class DistributedMeadowGameAI(DistributedInstanceBaseAI):
         self.maxPlayers = maxPlayers
         self.velvetRope = velvetRope
         self.hotspotId = hotspotId
-    
+
     def getGameInfo(self):
         return [self.gameId, self.minPlayers, self.maxPlayers, self.velvetRope, self.hotspotId]
 
@@ -33,14 +33,14 @@ class DistributedMeadowGameAI(DistributedInstanceBaseAI):
 
     def getPosition(self):
         return [self.x, self.y]
-    
+
     def setGameState(self, state, timeOutSecs):
         self.state = state
         self.timeOutSecs = timeOutSecs
-    
+
     def getGameState(self):
         return [self.state, self.timeOutSecs]
-    
+
     def setItemId(self, itemId):
         self.itemId = itemId
 
@@ -49,16 +49,21 @@ class DistributedMeadowGameAI(DistributedInstanceBaseAI):
 
     def setPlayers(self, players):
         self.players = players
-    
+
     def getPlayers(self):
         return self.players
 
+    def d_setPlayers(self):
+        self.sendUpdate("setPlayers", [self.getPlayers()])
+
     def setIsSpawnedGame(self, spawned):
         self.isSpawnedGame = spawned
-    
+
     def getIsSpawnedGame(self):
         return self.isSpawnedGame
-    
+
     def joinRequest(self):
         avatarId = self.air.getAvatarIdFromSender()
+        self.players.append(avatarId)
+        self.d_setPlayers()
         self.sendUpdateToAvatarId(avatarId, "joinResponse", [0])

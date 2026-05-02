@@ -14,7 +14,7 @@ class FairiesMagicWordManagerAI(DistributedObjectAI):
         if not av:
             self.notify.warning(f"setMagicWord from unknown avatar {avId}")
             return
-        
+
         mw_parts = magicWord.split(" ")
         command = mw_parts[0]
         args = mw_parts[1:]

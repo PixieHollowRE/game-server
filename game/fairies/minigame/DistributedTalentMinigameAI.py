@@ -35,7 +35,7 @@ class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
         if not avatar:
             self.notify.warning(f"No avatar present on AI for chooseReward: {avId}")
             return
-        
+
         chosenReward = self.rewards[rewardId]
 
         itemID, itemCount = chosenReward.asTuple()

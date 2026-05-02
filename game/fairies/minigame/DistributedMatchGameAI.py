@@ -20,6 +20,3 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
         self.matchCounts = matchCounts
         self.lastPlayer = lastPlayer
         self.whoseTurn = whoseTurn
-
-    
-

@@ -23,7 +23,6 @@ from game.fairies.ai import FairyInventoryMgrAI
 from game.fairies.uberdog import PetMgrUD
 from game.fairies.ai import PetMgrAI
 
-
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.
 keyword ownrequired;
