@@ -113,7 +113,8 @@ Api2Field = {
     tutorialBitmask = "setHelpFlags",
     optionsBitmask = "setOptionsMask",
     bio = "setBio",
-    gold = "setGold"
+    gold = "setGold",
+    level = "setLevel"
 }
 
 Field2Api = {}
