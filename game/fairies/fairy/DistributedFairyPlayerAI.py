@@ -9,6 +9,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.DISLname: str = ''
         self.DISLid: int = 0
         self.gold: int = 0
+        self.access: int = 0
 
     def announceGenerate(self):
         self.air.incrementPopulation()
@@ -41,8 +42,13 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         return self.DISLid
 
     def setAccess(self, access) -> None:
-        if access == OTPGlobals.AccessFull:
+        self.access = access
+
+        if self.isPaid():
             self.sendUpdateToAvatarId(self.doId, "setAccess", [access])
+
+    def isPaid(self) -> bool:
+        return self.access == OTPGlobals.AccessFull
 
     def requestDailyGoldTradeCapData(self) -> None:
         # TODO

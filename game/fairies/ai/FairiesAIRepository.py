@@ -74,6 +74,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
 
         twofortea = DistributedMatchGameAI(self)
         twofortea.setGameInfo(13072, 2, 2, 0, 9)
+        twofortea.matchCounts: list[int] = [0 for _ in range(twofortea.maxPlayers)]
         twofortea.generateWithRequired(ZoneConstants.THE_TEAROOM)
 
         for zoneId in ZoneConstants.GAMES_ZONE_LIST:
