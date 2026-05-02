@@ -8,6 +8,8 @@ from game.fairies.fairy.npc import DistributedFairyShopkeeperNPCAI
 from game.fairies.instance import DistributedInstanceBaseAI
 from game.fairies.minigame import DistributedTalentMinigameAI
 from game.fairies.minigame import DistributedCraftingMinigameAI
+from game.fairies.minigame import DistributedMeadowGameAI
+from game.fairies.minigame import DistributedMatchGameAI
 from game.fairies.gateway import DistributedGatewayAI
 from game.fairies.uberdog import FairiesBadgeManagerUD
 from game.fairies.ai import FairiesBadgeManagerAI
@@ -909,19 +911,19 @@ dclass DistributedMultiplayerMinigame : DistributedTalentMinigame { // 104
     setCleanOut(); // 742
 };
 
-dclass DistributedMeadowGame { // 105
-    setGameInfo(uint32, uint8, uint8, uint8, uint8) required; // 743
-    setPosition(uint32, uint32) required; // 744
-    setGameState(int8, int8) required; // 745
-    setItemId(uint32) required; // 746
-    joinRequest(); // 747
-    joinResponse(uint8); // 748
+dclass DistributedMeadowGame : DistributedInstanceBaseAI { // 105
+    setGameInfo(uint32, uint8, uint8, uint8, uint8) required broadcast ram; // 743
+    setPosition(uint32, uint32) required broadcast ram; // 744
+    setGameState(int8, int8) required broadcast ram; // 745
+    setItemId(uint32) required broadcast ram; // 746
+    joinRequest() clsend airecv; // 747
+    joinResponse(uint8) broadcast; // 748
     leaveRequest(); // 749
     clearCountdown(); // 750
-    setPlayers(uint32[]) required; // 751
+    setPlayers(uint32[]) required broadcast ram; // 751
     setRewards(Rank[]); // 752
     requestSetPosition(uint32, uint32); // 753
-    isSpawnedGame(int8) required; // 754
+    isSpawnedGame(int8) required broadcast ram; // 754
 };
 
 struct Card {
@@ -969,7 +971,7 @@ dclass DistributedMermaidTreasure : DistributedMeadowGame { // 111
 };
 
 dclass DistributedMatchGame : DistributedMeadowGame { // 112
-    setGameData(int8, int8, int8, int8[], uint8[], uint32, uint32); // 781
+    setGameData(int8, int8, int8, int8[], uint8[], uint32, uint32) broadcast; // 781
     setPlayerData(); // 782
     turnRequest(int8, uint8); // 783
     turnResponse(uint8); // 784

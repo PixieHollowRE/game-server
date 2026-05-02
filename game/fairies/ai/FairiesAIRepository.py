@@ -18,6 +18,8 @@ from game.fairies.gateway.DistributedGatewayAI import DistributedGatewayAI
 from game.fairies.gateway.GatewayConstants import GATEWAYS
 from game.fairies.fairy.npc.DistributedFairyQuestNPCAI import DistributedFairyQuestNPCAI
 from game.fairies.fairy.npc.DistributedFairyShopkeeperNPCAI import DistributedFairyShopkeeperNPCAI
+from game.fairies.minigame.DistributedMeadowGameAI import DistributedMeadowGameAI
+from game.fairies.minigame.DistributedMatchGameAI import DistributedMatchGameAI
 from game.fairies.fairy import FamousFairyData
 from game.fairies.ai import ZoneConstants
 from game.fairies.ai.FairiesMagicWordManagerAI import FairiesMagicWordManagerAI
@@ -70,6 +72,13 @@ class FairiesAIRepository(AIDistrict, ServerBase):
                 doId=self.districtId)
 
         self.setAIReceiver(self.district.getDoId(), self.ourChannel)
+
+        
+        twofortea_dmg = DistributedMeadowGameAI(self)
+        twofortea_dmg.setGameInfo(13072, 2, 2, 0, 9)
+        twofortea = DistributedMatchGameAI(self)
+        twofortea_dmg.generateWithRequired(ZoneConstants.THE_TEAROOM)
+        twofortea.generateWithRequired(ZoneConstants.THE_TEAROOM)
 
         for zoneId in ZoneConstants.GAMES_ZONE_LIST:
             minigame = DistributedTalentMinigameAI(self)
