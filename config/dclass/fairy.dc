@@ -917,7 +917,7 @@ dclass DistributedMeadowGame : DistributedInstanceBaseAI { // 105
     setItemId(uint32) required broadcast ram; // 746
     joinRequest() clsend airecv; // 747
     joinResponse(uint8) broadcast; // 748
-    leaveRequest(); // 749
+    leaveRequest() clsend airecv; // 749
     clearCountdown(); // 750
     setPlayers(uint32[]) required broadcast ram; // 751
     setRewards(Rank[]); // 752
@@ -972,8 +972,8 @@ dclass DistributedMermaidTreasure : DistributedMeadowGame { // 111
 dclass DistributedMatchGame : DistributedMeadowGame { // 112
     setGameData(int8, int8, int8, int8[], uint8[], uint32, uint32) broadcast; // 781
     setPlayerData(); // 782
-    turnRequest(int8, uint8); // 783
-    turnResponse(uint8); // 784
+    turnRequest(int8, uint8) clsend airecv; // 783
+    turnResponse(uint8) broadcast; // 784
 };
 
 dclass DistributedRockPaperScissors : DistributedMeadowGame { // 113

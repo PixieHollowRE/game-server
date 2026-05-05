@@ -98,5 +98,7 @@ class DistributedMeadowGameAI(DistributedInstanceBaseAI):
         self.sendUpdateToAvatarId(avatarId, "joinResponse", [responseCode])
 
         if addedPlayer and len(self.players) >= self.maxPlayers and self.state != MEADOW_GAME_STATE_PLAY:
+            self.setGameState(MEADOW_GAME_STATE_INIT, 0)
+            self.d_setGameState()
             self.setGameState(MEADOW_GAME_STATE_PLAY, 0)
             self.d_setGameState()
