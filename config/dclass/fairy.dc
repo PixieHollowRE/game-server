@@ -2,6 +2,7 @@ from game.fairies.uberdog import HolidayManagerUD
 from game.fairies.distributed import FairiesRealmAI
 from game.fairies.fairy import DistributedFairyPlayerAI
 from game.fairies.fairy import DistributedFairyGMAI
+from game.fairies.fairy import DistributedFamousFairyGMAI
 from game.fairies.fairy.npc import DistributedFairyNPCAI
 from game.fairies.fairy.npc import DistributedFairyQuestNPCAI
 from game.fairies.fairy.npc import DistributedFairyShopkeeperNPCAI
