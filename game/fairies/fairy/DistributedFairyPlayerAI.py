@@ -1,6 +1,7 @@
 from game.otp.otpbase import OTPGlobals
 
 from .DistributedFairyBaseAI import DistributedFairyBaseAI
+from game.fairies.ai.BakingAssets import BAKED_ITEMS
 
 class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def __init__(self, air) -> None:
@@ -174,3 +175,14 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             pouch = self.air.inventoryManager.getPouch(self.doId)
             self.d_setPouch(pouch)
             self.d_setPouch(pouch)
+    
+    def consumePouchItem(self, itemId, amount):
+        if itemId == 22543:
+            self.sendUpdateToAvatarId(self.doId, "setAura", [13])
+
+        #baked = BAKED_ITEMS.get(itemId)
+       # if baked:
+            #if baked["bakedType"] == "sillysweet":
+             #   pass
+       # else:
+            #pass

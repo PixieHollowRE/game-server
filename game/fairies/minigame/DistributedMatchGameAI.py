@@ -82,6 +82,9 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
 
         if len(self.players) == 2:
             self.init_game()
+    
+    def leaveRequest(self) -> None:
+        pass # TODO
 
     def turnRequest(self, unkn, card_index):
         player_id = self.air.getAvatarIdFromSender()

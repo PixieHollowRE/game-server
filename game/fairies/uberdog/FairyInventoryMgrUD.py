@@ -18,6 +18,8 @@ class FairyInventoryMgrUD(DistributedObjectGlobalUD):
                 fieldName = "wardrobeItem"
             elif item["location"] == "Storage":
                 fieldName = "storageItem"
+            elif item["location"] == "Equipped":
+                fieldName = "wardrobeItem"
             else:
                 continue
 

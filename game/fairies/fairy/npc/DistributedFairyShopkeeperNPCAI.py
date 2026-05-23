@@ -81,7 +81,40 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
             # TODO: Support non gold item purchases
             success: bool = avatar.takeGold(item.goldPrice) if usingGold else False
 
-            if success:
+            if self.zoneId == 110010: #harmony's
+                print("Harmony's")
+                self.purchasePouchItemsHelper(avId, item.itemId, amount)
+
+            elif self.zoneId == 117000: # SPA
+                if collectionId == 4019: # skin colors
+                    color = item.itemId - 14000
+                    print(color)
+                    self.air.mongoInterface.updateField("fairies", "avatar.skin_color", avId, color)
+                    self.updateDNAHelper(avId, avatar, color, slotnum=12)
+                elif collectionId == 4020: # eye colors
+                    color = item.itemId - 14000
+                    print(color)
+                    self.air.mongoInterface.updateField("fairies", "avatar.eye_color", avId, color)
+                    self.updateDNAHelper(avId, avatar, color, slotnum=11)
+                elif collectionId == 4017: # wings
+                    self.air.mongoInterface.updateField("fairies", "avatar.wing", avId, item.itemId)
+                    self.updateDNAHelper(avId, avatar, item.itemId, slotnum=8)
+                else: # Expressions
+                    eyeid = item.itemId - 500 #IF THERE'S A BUG IT'S PROBABLY HERE
+                    self.air.mongoInterface.updateField("fairies", "avatar.face", avId, item.itemId)
+                    self.air.mongoInterface.updateField("fairies", "avatar.eye", avId, eyeid) 
+                    self.updateDNAHelper(avId, avatar, item.itemId, slotnum=6)
+                    self.updateDNAHelper(avId, avatar, eyeid, slotnum=7)
+
+            elif self.zoneId == 114000: # HAIRSALON
+                if 5000 <= item.itemId  < 5500: # Hair Fronts
+                    self.air.mongoInterface.updateField("fairies", "avatar.hair_front", avId, item.itemId)
+                    self.updateDNAHelper(avId, avatar, item.itemId, slotnum=5)
+                elif 5500 <= item.itemId  < 6000: # Hair Backs
+                    self.air.mongoInterface.updateField("fairies", "avatar.hair_back", avId, item.itemId)
+                    self.updateDNAHelper(avId, avatar, item.itemId, slotnum=4)
+            
+            else:
                 invId = self.air.mongoInterface.getNextDoId()
                 itemId = item.itemId
                 slot = -1
@@ -120,6 +153,46 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
                 self.air.inventoryManager.sendUpdateToAvatarId(avId, "wardrobeItem", [
                     itemId,
                     [invId, itemId, slot, createdById, createdByName, giftedById, giftedByName, quality, color1, color2, howAcquired
-                ]])
+                ]])   
 
         self.sendUpdateToAvatarId(avId, "setPurchase", [PURCHASE_SUCCESS if success else PURCHASE_FAIL])
+    
+    def purchasePouchItemsHelper(self, avId, itemId, amount):
+        avatar = self.air.doId2do.get(avId)
+
+        itemCount = amount
+        itemSlot = -1
+
+        if self.air.inventoryManager.addIngredientsToPouch(avId, itemId, itemCount, itemSlot):
+            avatar.d_setPouch(self.air.inventoryManager.getPouch(avId))
+
+    def updateDNAHelper(self, avId, avatar, itemId, slotnum: int):
+        # struct FairyDNA {
+            #int16 talent; 0
+            #int8 head; 1
+            #int8 height; 2
+            #int8 body; 3
+            #int16 hair_back; 4
+            #int16 hair_front; 5
+            #int16 face; 6
+            #int16 eye; 7 
+            #int16 wing; 8
+            #int16 hair_color; 9
+            #int16 hair_color2; 10
+            #int16 eye_color; 11
+            #int16 skin_color; 12
+            #int16 wing_color; 13
+            #int8 gender; 14
+        # }
+        dna = avatar.getFairyDNA()
+
+        dnal = list(dna)
+        dnal[slotnum] = itemId
+        dna = tuple(dnal)
+
+        avatar.setFairyDNA(dna)
+        print(avatar.fairyDNA)
+        avatar.sendUpdateToAvatarId(avId, "setFairyDNA", [avatar.fairyDNA])
+        avatar.sendUpdateToAvatarId(avId, "setRedraw", [1])
+        
+        
