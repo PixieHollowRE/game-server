@@ -14,12 +14,10 @@ class FairyInventoryMgrUD(DistributedObjectGlobalUD):
         fairy = self.air.mongoInterface.retrieveDocs("fairies", avatarId, "_id")[0]
 
         for item in fairy["avatar"]["items"]:
-            if item["location"] == "Wardrobe":
+            if item["location"] in ("Wardrobe", "Equipped"):
                 fieldName = "wardrobeItem"
             elif item["location"] == "Storage":
                 fieldName = "storageItem"
-            elif item["location"] == "Equipped":
-                fieldName = "wardrobeItem"
             else:
                 continue
 
