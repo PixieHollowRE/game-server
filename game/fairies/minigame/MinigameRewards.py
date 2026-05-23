@@ -13,8 +13,8 @@ class GameDef:
     name: str
     badge_threshold: int
     ingredient_ids: tuple[int, int, int]  # (rare, uncommon, common)
- 
- 
+
+
 GAMES = {
     g.id: g for g in [
         GameDef(2,  "Bubble Bounce",     15000,  (fc.LILY_PETALS, fc.ROSE_PETALS, fc.SPIDER_SILK)),
@@ -40,14 +40,14 @@ class TierDef:
     max_qty: int
     power: float
     floor: int
- 
- 
+
+
 TIERS = {
     "rare":     TierDef(max_qty=17, power=1.6, floor=0),
     "uncommon": TierDef(max_qty=34, power=1.2, floor=0),
     "common":   TierDef(max_qty=68, power=0.7, floor=1),
 }
- 
+
 # K is solved so that norm=1.0 (badge score) yields 75% of max_qty.
 # K = -ln(1 - 0.75)
 K = -math.log(1 - 0.75)  # ≈ 1.3863
@@ -59,7 +59,7 @@ K = -math.log(1 - 0.75)  # ≈ 1.3863
 def calc_tier_reward(norm: float, tier: TierDef) -> int:
     """
     Return the ingredient quantity for one tier given a normalised score.
- 
+
     norm        -- playerScore / badgeThreshold (can exceed 1.0)
     tier        -- TierDef with max_qty, power, and floor
     """
@@ -67,12 +67,12 @@ def calc_tier_reward(norm: float, tier: TierDef) -> int:
         return tier.floor
     raw = tier.max_qty * (1 - math.exp(-K * (norm ** tier.power)))
     return max(tier.floor, round(raw))
- 
- 
+
+
 def calc_rewards(game_id: int, player_score: int) -> list[Reward]:
     """
     Return a list of Reward objects. (itemId, itemCount)
- 
+
     game_id      -- must exist in GAMES
     player_score -- the player's final score for this run
     """

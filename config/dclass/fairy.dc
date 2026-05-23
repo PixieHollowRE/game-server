@@ -708,7 +708,7 @@ dclass FairiesBadgeManager { // 85
     giveBadge(int32, int16); // 596
     unlockPage(int32, int16); // 597
     unlockBadge(int32, int16); // 598
-    accumulateForMe(int16) clsend; // 599
+    accumulateForMe(int16) clsend airecv; // 599
     accumulate(int32, int16, int16); // 600
     setBadges(EarnedBadge[], int16[], BadgeProgress[]); // 601
     pageUnlocked(int16, BadgeProgress[]); // 602

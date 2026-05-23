@@ -185,4 +185,4 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
 
         avatar.b_setFairyDNA(dna)
         print(avatar.fairyDNA.asTuple())
-        avatar.sendUpdate("setRedraw", [1])
+        avatar.redrawFairy()

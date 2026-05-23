@@ -122,7 +122,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
                 {"$set": {"avatar.items": fairy["avatar"]["items"]}}
             )
 
-            self.sendUpdate("setRedraw", [1])
+            self.redrawFairy()
 
     def setHotspotTriggered(self, hotspotId, hotspotFrame) -> None:
         if not (meadow := self.air.zoneToMeadow.get(self.zoneId)):
@@ -186,3 +186,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
              #   pass
        # else:
             #pass
+
+    def redrawFairy(self) -> None:
+        self.sendUpdate("setRedraw", [1])
