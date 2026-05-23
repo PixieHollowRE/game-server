@@ -7,10 +7,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def __init__(self, air) -> None:
         DistributedFairyBaseAI.__init__(self, air)
 
-        self.DISLname: str = ''
+        self.DISLname: str = ""
         self.DISLid: int = 0
         self.gold: int = 0
         self.access: int = 0
+        self.level: int = 0
 
     def announceGenerate(self):
         self.air.incrementPopulation()
@@ -48,8 +49,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         if self.isPaid():
             self.sendUpdateToAvatarId(self.doId, "setAccess", [access])
 
+    def getAccess(self) -> int:
+        return self.access
+
     def isPaid(self) -> bool:
-        return self.access == OTPGlobals.AccessFull
+        return self.getAccess() == OTPGlobals.AccessFull
 
     def requestDailyGoldTradeCapData(self) -> None:
         # TODO
@@ -189,3 +193,99 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
     def redrawFairy(self) -> None:
         self.sendUpdate("setRedraw", [1])
+
+    def setLevel(self, level: int) -> None:
+        self.level = level
+
+    def getLevel(self) -> int:
+        return self.level
+
+    def requestFairyInfo(self, fairyId: int, unk: int) -> None:
+        from game.fairies.ai.DatabaseObject import DatabaseObject
+
+        from game.fairies.fairy.DistributedFairyPlayerAI import DistributedFairyPlayerAI
+
+        def gotFairyLocation(doId: int, parentId: int, zoneId: int) -> None:
+            if fairyId != doId:
+                self.notify.warning(f"Got unexpected location for doId {doId}, was expecting {fairyId}!")
+                return
+
+            DISLid = fairy.getDISLid()
+            fairyName = fairy.getName()
+            DISLname = fairy.getDISLname()
+            fairyDNA = fairy.fairyDNA.asTuple()
+            fairyAccess = fairy.getAccess()
+            fairyLevel = fairy.getLevel()
+
+            # TODO: Implement this
+            place: int = 0
+
+            self.sendUpdateToAvatarId(self.doId, "responseFairyInfo", [[
+                fairyId,
+                DISLid,
+                parentId,
+                zoneId,
+                fairyName,
+                DISLname,
+                fairyDNA[0], # talent
+                fairyAccess,
+                fairyLevel,
+                place
+            ]])
+
+        fairy = self.air.getDo(fairyId)
+
+        if fairy:
+            # This fairy is present on this shard, no need to query location from OTP server.
+            gotFairyLocation(fairyId, fairy.parentId, fairy.zoneId)
+            return
+
+        def fieldsCallback(db: DatabaseObject, retCode: int) -> None:
+            nonlocal fairy
+
+            if retCode != 0:
+                return
+
+            fairy = DistributedFairyPlayerAI(self.air)
+
+            db.fillin(fairy, db.dclass)
+
+            # Dispatch a request to the OTP server to find out where this fairy is.
+            self.air.getObjectLocation(fairyId, gotFairyLocation)
+
+        # Query the fairy for data since they are not present on this shard:
+        gotFairyEvent = self.air.uniqueName(f"gotFairy-{fairyId}")
+        self.acceptOnce(gotFairyEvent, fieldsCallback)
+
+        db = DatabaseObject(self.air, fairyId)
+        db.doneEvent = gotFairyEvent
+        db.dclass = self.air.dclassesByName[self.__class__.__name__]
+        db.getFields(["setDISLid", "setName", "setDISLname", "setFairyDNA", "setAccess", "setLevel"])
+
+    def teleportRequestTo(self, fairyId: int) -> None:
+        def gotFairyLocation(doId: int, parentId: int, zoneId: int) -> None:
+            if fairyId != doId:
+                self.notify.warning(f"Got unexpected location for doId {doId}, was expecting {fairyId}!")
+                return
+
+            # TODO: Implement these
+            available: bool = True
+            roomId: int = 0
+
+            self.sendUpdateToAvatarId(self.doId, "teleportResponse", [
+                fairyId,
+                available,
+                parentId,
+                zoneId,
+                roomId
+            ])
+
+        fairy = self.air.getDo(fairyId)
+
+        if fairy:
+            # This fairy is present on this shard, no need to query location from OTP server.
+            gotFairyLocation(fairyId, fairy.parentId, fairy.zoneId)
+            return
+
+        # Dispatch a request to the OTP server to find out where this fairy is.
+        self.air.getObjectLocation(fairyId, gotFairyLocation)

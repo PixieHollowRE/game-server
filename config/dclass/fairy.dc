@@ -590,10 +590,10 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     setWhisperSCEmoteFrom(uint32, uint16) ownrecv ownsend; // 493
     setActualZoneId(uint32 zoneId) ownsend; // 494
     setTeleportComplete() ownsend; // 495
-    teleportRequestTo(uint32); // 496
+    teleportRequestTo(uint32 fairyId) ownsend airecv; // 496
     teleportRequest(uint32); // 497
     teleportResponseTo(uint32, int8); // 498
-    teleportResponse(uint32, int8, uint32, uint32, uint32); // 499
+    teleportResponse(uint32 fairyId, int8 available, uint32 districtId, uint32 zoneId, uint32 roomId); // 499
     setOptionsMask(int32) ownsend db; // 500
     setMoreOptions(string) ownsend db; // 501
     setItemEvent(uint32, uint32, uint32, uint32) ownsend; // 502
@@ -622,7 +622,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     matchMakerRejected(int32); // 525
     allPlayersReady(uint32, uint8, uint8, uint8); // 526
     setMgPlayCount(int8); // 527
-    requestFairyInfo(uint32, int8); // 528
+    requestFairyInfo(uint32 fairyId, int8) ownsend airecv; // 528
     responseFairyInfo(PlayerStruct); // 529
     setHairDB(int32, int32, int16, int16, int16); // 530
     setSpaDB(int32, int32, int16, int16, int16); // 531
@@ -631,7 +631,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     setExperiencePoints(int32) ownrequired broadcast db ownrecv; // 534
     levelUpRequest() ownsend; // 535
     setWingsDB(int32, int16); // 536
-    consumePouchItem(int32, int32) clsend airecv; // 537
+    consumePouchItem(int32 itemId, int32 amount) ownsend airecv; // 537
     pouchItemGranted(int32, int32); // 538
     setHotspotTriggered(int16, int16) ownsend airecv; // 539
     setScriptLine(int16) ownsend broadcast; // 540
