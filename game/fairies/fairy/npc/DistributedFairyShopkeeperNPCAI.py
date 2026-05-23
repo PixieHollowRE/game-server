@@ -89,29 +89,22 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
                 if collectionId == 4019: # skin colors
                     color = item.itemId - 14000
                     print(color)
-                    self.air.mongoInterface.updateField("fairies", "avatar.skin_color", avId, color)
                     self.updateDNAHelper(avId, avatar, color, slotnum=12)
                 elif collectionId == 4020: # eye colors
                     color = item.itemId - 14000
                     print(color)
-                    self.air.mongoInterface.updateField("fairies", "avatar.eye_color", avId, color)
                     self.updateDNAHelper(avId, avatar, color, slotnum=11)
                 elif collectionId == 4017: # wings
-                    self.air.mongoInterface.updateField("fairies", "avatar.wing", avId, item.itemId)
                     self.updateDNAHelper(avId, avatar, item.itemId, slotnum=8)
                 else: # Expressions
                     eyeid = item.itemId - 500 #IF THERE'S A BUG IT'S PROBABLY HERE
-                    self.air.mongoInterface.updateField("fairies", "avatar.face", avId, item.itemId)
-                    self.air.mongoInterface.updateField("fairies", "avatar.eye", avId, eyeid)
                     self.updateDNAHelper(avId, avatar, item.itemId, slotnum=6)
                     self.updateDNAHelper(avId, avatar, eyeid, slotnum=7)
 
             elif self.zoneId == 114000: # HAIRSALON
                 if 5000 <= item.itemId  < 5500: # Hair Fronts
-                    self.air.mongoInterface.updateField("fairies", "avatar.hair_front", avId, item.itemId)
                     self.updateDNAHelper(avId, avatar, item.itemId, slotnum=5)
                 elif 5500 <= item.itemId  < 6000: # Hair Backs
-                    self.air.mongoInterface.updateField("fairies", "avatar.hair_back", avId, item.itemId)
                     self.updateDNAHelper(avId, avatar, item.itemId, slotnum=4)
 
             else:
