@@ -31,8 +31,8 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
         self.lastFlipOffset: int = -1 # p3
         self.cardStates: list[int] = [-1 for _ in range(CARD_COUNT)] # p4
         self.matchCounts: list[int] = [0, 0] # p5 # Player Scores
-        self.lastPlayer: int = 0 # p6 
-        self.whoseTurn: int = 0 # p7 
+        self.lastPlayer: int = 0 # p6
+        self.whoseTurn: int = 0 # p7
 
     def init_game(self) -> None:
         valid_cards = list(range(1, 13)) + list(range(21, 26)) + [41]
@@ -75,14 +75,14 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
 
         if self.whoseTurn == 0:
             self.whoseTurn = avatarId
-            
+
         self.d_setGameData()
 
         super().joinRequest(avatarId)
 
         if len(self.players) == 2:
             self.init_game()
-    
+
     def leaveRequest(self) -> None:
         pass # TODO
 
@@ -101,10 +101,10 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
             self.d_setGameData()
 
         else:
-            
+
             if card_index == self.lastFlipOffset:
                 return
-            
+
             # Second Flip - check for match
             first_card_index = self.lastFlipOffset
             first_card_id = self.card_ids[first_card_index]
@@ -123,12 +123,12 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
                     self.cardStates[first_card_index] = 0
                     self.cardStates[card_index] = 0
                     return
-                
+
                 if first_card_id == 11 or first_card_id == 12:
                     # Pumpkin pie or smores
                     self.handlePouchItems(first_card_id)
 
-                other_cards = [st for i, st in enumerate(self.cardStates) 
+                other_cards = [st for i, st in enumerate(self.cardStates)
                             if i != first_card_index and i != card_index]
                 would_be_last = all(st == 0 for st in other_cards)
                 self.lastPlayer = player_id
@@ -162,12 +162,12 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
     def get_other_player(self, current_doid):
         print(next(p for p in self.players if p != current_doid))
         return next(p for p in self.players if p != current_doid) # Grab it from DMG
-    
+
     def handleSpinner(self):
-        
+
         player_index = self.players.index(self.whoseTurn)
         self.lastPlayer = self.whoseTurn
-        
+
         # Pick a random spinner result
         spinner_outcomes = [
             MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_BONUS,
@@ -213,7 +213,7 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
         elif result == MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_GOLDEN:
             # Find all unmatched pairs still on the board
             unmatched_indices = [i for i, s in enumerate(self.cardStates) if s != 0]
-            
+
             # Group by card_id to find pairs
             pairs = {}
             for idx in unmatched_indices:
@@ -221,7 +221,7 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
                 if card not in pairs:
                     pairs[card] = []
                 pairs[card].append(idx)
-            
+
             # Pick a random pair and replace with golden pair
             valid_pairs = [indices for indices in pairs.values() if len(indices) == 2]
             if valid_pairs:
