@@ -222,7 +222,7 @@ function handleOnline(participant, accountId)
         0, -- openChatEnabledYesNo
         0, -- openChatFriendshipYesNo
         0, -- wlChatEnabledYesNo
-        "", -- location
+        "Fairies", -- location
         "", -- sublocation
         0  -- timestamp
     }
@@ -260,7 +260,7 @@ function handleOnline(participant, accountId)
                 0, -- openChatEnabledYesNo
                 0, -- openChatFriendshipYesNo
                 0, -- wlChatEnabledYesNo
-                "", -- location
+                "Fairies", -- location
                 "", -- sublocation
                 0  -- timestamp
             }
@@ -285,7 +285,7 @@ function handleOffline(participant, accountId)
         0, -- openChatEnabledYesNo
         0, -- openChatFriendshipYesNo
         0, -- wlChatEnabledYesNo
-        "", -- location
+        "Fairies", -- location
         "", -- sublocation
         0  -- timestamp
     }
@@ -366,7 +366,7 @@ function makeFriends(participant, invite)
             0, -- openChatEnabledYesNo
             0, -- openChatFriendshipYesNo
             0, -- wlChatEnabledYesNo
-            "", -- location
+            "Fairies", -- location
             "", -- sublocation
             0  -- timestamp
         }
@@ -393,7 +393,7 @@ function makeFriends(participant, invite)
             0, -- openChatEnabledYesNo
             0, -- openChatFriendshipYesNo
             0, -- wlChatEnabledYesNo
-            "", -- location
+            "Fairies", -- location
             "", -- sublocation
             0  -- timestamp
         }
