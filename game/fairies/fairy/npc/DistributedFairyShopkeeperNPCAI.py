@@ -6,7 +6,7 @@ from .DistributedFairyNPCAI import DistributedFairyNPCAI
 
 from game.fairies.fairy.structs.ShopCollection import ShopCollection
 
-from game.fairies.shop.ShopData import getShopByZone, getShopItemByIndex
+from game.fairies.shop.ShopData import getShopByZone, getShopItemByOutfitId, getShopItemByIndex
 
 PURCHASE_FAIL = 0
 PURCHASE_SUCCESS = 1
@@ -76,7 +76,13 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
 
         for itemData in items:
             itemIndex, amount, collectionId = itemData
-            item = getShopItemByIndex(getShopByZone(self.zoneId), collectionId, itemIndex)
+            shop = getShopByZone(self.zoneId)
+
+            if itemIndex == -1:
+                # Outfits have the amount set as the outfitId for some reason...
+                item = getShopItemByOutfitId(shop, collectionId, amount)
+            else:
+                item = getShopItemByIndex(shop, collectionId, itemIndex)
 
             # TODO: Support non gold item purchases
             success: bool = avatar.takeGold(item.goldPrice) if usingGold else False

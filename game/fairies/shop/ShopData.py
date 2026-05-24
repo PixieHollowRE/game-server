@@ -513,7 +513,7 @@ SHOPS = [
                 collectionId=2, # The Queen's Collections
                 outfits=[
                     ShopOutfit(
-                        outfitId=1,
+                        outfitId=1000,
                         items=[
                             OutfitItem(itemId=2357, goldPrice=20, itemType="HeadItem"),
                             OutfitItem(itemId=486, goldPrice=30, itemType="Shirt"),
@@ -1364,8 +1364,8 @@ SHOPS_BY_ZONE = {shop.zone: shop for shop in SHOPS}
 for shop in SHOPS:
     shop.collectionsById = {collection.collectionId: collection for collection in shop.collections}
 
-def getShopByZone(zone: int) -> dict:
-    return SHOPS_BY_ZONE.get(zone, {})
+def getShopByZone(zone: int) -> NPCShop | None:
+    return SHOPS_BY_ZONE.get(zone)
 
 def getShopItemByIndex(shop: NPCShop, collectionId: int, itemIndex: int) -> ShopItem | None:
     collection = shop.collectionsById.get(collectionId)
@@ -1377,3 +1377,11 @@ def getShopItemByIndex(shop: NPCShop, collectionId: int, itemIndex: int) -> Shop
         return collection.items[itemIndex]
 
     return None
+
+def getShopItemByOutfitId(shop: NPCShop, collectionId: int, outfitId: int) -> ShopItem | None:
+    collection = shop.collectionsById.get(collectionId)
+
+    if not collection:
+        return None
+
+    return next((item for item in collection.outfits if item.outfitId == outfitId), None)
