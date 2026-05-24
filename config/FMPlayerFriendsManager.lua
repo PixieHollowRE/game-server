@@ -16,8 +16,8 @@ DBSS_OBJECT_GET_ACTIVATED      = 2207
 DBSS_OBJECT_GET_ACTIVATED_RESP = 2208
 
 -- For declaring friends.
-CLIENTAGENT_DECLARE_OBJECT   = 3010
-CLIENTAGENT_UNDECLARE_OBJECT = 3011
+CLIENT_AGENT_DECLARE_OBJECT   = 3010
+CLIENT_AGENT_UNDECLARE_OBJECT = 3011
 
 -- Avatar class to declare.
 AVATAR_CLASS = dcFile:getClassByName("DistributedFairyPlayer"):getNumber()
@@ -157,7 +157,7 @@ end
 function declareFriend(participant, avatarId, friendId)
     -- Make sure that these are AVATAR ids, not ACCOUNT ids.
     local dg = datagram:new()
-    participant:addServerHeaderWithAvatarId(dg, avatarId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENTAGENT_DECLARE_OBJECT)
+    participant:addServerHeaderWithAvatarId(dg, avatarId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
     participant:addUint32(friendId)
     participant:addUint16(AVATAR_CLASS)
     participant:routeDatagram(dg)
@@ -166,7 +166,7 @@ end
 function undeclareFriend(participant, avatarId, friendId)
     -- Make sure that these are AVATAR ids, not ACCOUNT ids.
     local dg = datagram:new()
-    participant:addServerHeaderWithAvatarId(dg, avatarId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENTAGENT_UNDECLARE_OBJECT)
+    participant:addServerHeaderWithAvatarId(dg, avatarId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_UNDECLARE_OBJECT)
     participant:addUint32(friendId)
     participant:routeDatagram(dg)
 end
@@ -232,7 +232,7 @@ function handleOnline(participant, accountId)
             "FMPlayerFriendsManager", "updatePlayerFriend", {accountId, friendInfo, 0})
 
         local dg = datagram:new()
-        participant:addServerHeaderWithAccountId(dg, friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENTAGENT_DECLARE_OBJECT)
+        participant:addServerHeaderWithAccountId(dg, friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
         dg:addUint32(account._id)
         dg:addUint16(AVATAR_CLASS)
         participant:routeDatagram(dg)
@@ -243,7 +243,7 @@ function handleOnline(participant, accountId)
         local friendAccount = json.decode(retrieveFairy(string.format("identifier=%d", friendId)))
 
         local dg = datagram:new()
-        participant:addServerHeaderWithAccountId(dg, accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENTAGENT_DECLARE_OBJECT)
+        participant:addServerHeaderWithAccountId(dg, accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
         dg:addUint32(friendAccount._id)
         dg:addUint16(AVATAR_CLASS)
         participant:routeDatagram(dg)
@@ -425,4 +425,7 @@ function handleFMPlayerFriendsManager_setTalkAccount(participant, fieldId, data)
 
     participant:sendUpdateToAccountId(otherAccountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
             "FMPlayerFriendsManager", "setTalkAccount", {otherAccountId, senderId, data[3], cleanMessage, modifications, 0})
+end
+
+function handleFMPlayerFriendsManager_requestRemove(participant, fieldId, data)
 end

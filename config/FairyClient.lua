@@ -51,7 +51,7 @@ STATESERVER_OBJECT_UPDATE_FIELD = 2004
 STATESERVER_OBJECT_DELETE_RAM = 2007
 STATESERVER_OBJECT_SET_ZONE = 2008
 
-CLIENTAGENT_EJECT = 3004
+CLIENT_AGENT_EJECT = 3004
 
 CHANNEL_PUPPET_ACTION = 4004
 
@@ -372,7 +372,7 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
 
     -- Eject other client if already logged in.
     local ejectDg = datagram:new()
-    client:addServerHeaderWithAccountId(ejectDg, accountId, CLIENTAGENT_EJECT)
+    client:addServerHeaderWithAccountId(ejectDg, accountId, CLIENT_AGENT_EJECT)
     ejectDg:addUint16(LOGIN_DUP)
     ejectDg:addString("You have been disconnected because someone else just logged in using your account on another computer.")
     client:routeDatagram(ejectDg)
