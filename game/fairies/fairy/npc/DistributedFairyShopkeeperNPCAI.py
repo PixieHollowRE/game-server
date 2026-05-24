@@ -6,6 +6,9 @@ from .DistributedFairyNPCAI import DistributedFairyNPCAI
 
 from game.fairies.fairy.structs.ShopCollection import ShopCollection
 
+from game.fairies.fairy.structs.ShopItem import ShopItem
+from game.fairies.fairy.structs.OutfitItem import OutfitItem
+
 from game.fairies.shop.ShopData import getShopByZone, getShopOutfitByOutfitId, getShopItemByIndex
 
 PURCHASE_FAIL = 0
@@ -72,89 +75,133 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
             self.notify.warning(f"No avatar present on AI for setRequestPurchase: {avId}")
             return
 
-        success: bool = False
+        shop = getShopByZone(self.zoneId)
+
+        purchaseRequests: list = []
+
+        priceTotal: int = 0
 
         for itemData in items:
             itemIndex, amount, collectionId = itemData
-            shop = getShopByZone(self.zoneId)
 
             if itemIndex == -1:
                 # Outfits have the amount set as the outfitId for some reason...
-                # TODO: Iterate through outfit items and handle purchase
-                outfit = getShopOutfitByOutfitId(shop, collectionId, amount)
+                requestItems = list(getShopOutfitByOutfitId(shop, collectionId, amount).items)
+
+                requestPrice = sum(
+                    outfitItem.goldPrice if usingGold else outfitItem.price
+                    for outfitItem in requestItems
+                )
             else:
                 item = getShopItemByIndex(shop, collectionId, itemIndex)
 
-            # TODO: Support non gold item purchases
-            success: bool = avatar.takeGold(item.goldPrice) if usingGold else False
+                requestItems = [item]
 
-            if self.zoneId == 110010: #harmony's
-                print("Harmony's")
-                self.purchasePouchItemsHelper(avId, item.itemId, amount)
+                requestPrice = item.goldPrice if usingGold else item.price
 
-            elif self.zoneId == 117000: # SPA
-                if collectionId == 4019: # skin colors
-                    color = item.itemId - 14000
-                    print(color)
-                    self.updateDNAHelper(avId, avatar, color, slotnum=12)
-                elif collectionId == 4020: # eye colors
-                    color = item.itemId - 14000
-                    print(color)
-                    self.updateDNAHelper(avId, avatar, color, slotnum=11)
-                elif collectionId == 4017: # wings
-                    self.updateDNAHelper(avId, avatar, item.itemId, slotnum=8)
-                else: # Expressions
-                    eyeid = item.itemId - 500 #IF THERE'S A BUG IT'S PROBABLY HERE
-                    self.updateDNAHelper(avId, avatar, item.itemId, slotnum=6)
-                    self.updateDNAHelper(avId, avatar, eyeid, slotnum=7)
+            purchaseRequests.append((requestItems, amount, collectionId))
 
-            elif self.zoneId == 114000: # HAIRSALON
-                if 5000 <= item.itemId  < 5500: # Hair Fronts
-                    self.updateDNAHelper(avId, avatar, item.itemId, slotnum=5)
-                elif 5500 <= item.itemId  < 6000: # Hair Backs
-                    self.updateDNAHelper(avId, avatar, item.itemId, slotnum=4)
+            priceTotal += requestPrice
 
-            else:
-                invId = self.air.mongoInterface.getNextDoId()
-                itemId = item.itemId
-                slot = -1
-                createdById = 0 # TODO
-                createdByName = "" # TODO
-                giftedById = 0 # TODO
-                giftedByName = "" # TODO
-                quality = 0 # TODO
-                color1 = item.color1
-                color2 = item.color2
-                howAcquired = 11 # howAcquired > 10 takes up a wardrobe spot
+        # TODO: Support non gold item purchases
+        success = avatar.takeGold(priceTotal) if usingGold else False
 
-                self.air.mongoInterface.mongodb.fairies.update_one(
-                    {"_id": avId},
-                    {
-                        "$push": {
-                            "avatar.items": {
-                                "inv_id": invId,
-                                "type": item.itemType,
-                                "item_id": itemId,
-                                "slot": slot,
-                                "createdById": createdById,
-                                "createdByName": createdByName,
-                                "giftedById": giftedById,
-                                "giftedByName": giftedByName,
-                                "quality": quality,
-                                "color1": color1,
-                                "color2": color2,
-                                "howAcquired": howAcquired,
-                                "location": "Wardrobe"
-                            }
-                        }
+        if not success:
+            # Send failure purchase response back to the client.
+            self.d_setPurchaseResponse(avId, success)
+            return
+
+        for requestItems, amount, collectionId in purchaseRequests:
+            for item in requestItems:
+                if not self.handleSpecialPurchase(avId, avatar, item, amount, collectionId):
+                    self.handleItemPurchase(avId, item)
+
+        self.d_setPurchaseResponse(avId, True)
+
+    def handleSpecialPurchase(self, avId: int, avatar, item: ShopItem | OutfitItem, amount: int, collectionId: int) -> bool:
+        if self.zoneId == 110010: # harmony's
+            self.purchasePouchItemsHelper(avId, item.itemId, amount)
+
+            return True
+
+        elif self.zoneId == 117000: # SPA
+            if collectionId == 4019: # skin colors
+                color = item.itemId - 14000
+
+                self.updateDNAHelper(avId, avatar, color, slotnum=12)
+
+            elif collectionId == 4020: # eye colors
+                color = item.itemId - 14000
+
+                self.updateDNAHelper(avId, avatar, color, slotnum=11)
+
+            elif collectionId == 4017: # wings
+                self.updateDNAHelper(avId, avatar, item.itemId, slotnum=8)
+
+            else: # expressions
+                eyeid = item.itemId - 500
+
+                self.updateDNAHelper(avId, avatar, item.itemId, slotnum=6)
+
+                self.updateDNAHelper(avId, avatar, eyeid, slotnum=7)
+
+            return True
+
+        elif self.zoneId == 114000: # hairsalon
+            if 5000 <= item.itemId < 5500:
+                self.updateDNAHelper(avId, avatar, item.itemId, slotnum=5)
+
+                return True
+
+            elif 5500 <= item.itemId < 6000:
+                self.updateDNAHelper(avId, avatar, item.itemId, slotnum=4)
+
+                return True
+
+        return False
+
+    def handleItemPurchase(self, avId: int, item: ShopItem | OutfitItem) -> None:
+        invId = self.air.mongoInterface.getNextDoId()
+        itemId = item.itemId
+        slot = -1
+        createdById = 0 # TODO
+        createdByName = "" # TODO
+        giftedById = 0 # TODO
+        giftedByName = "" # TODO
+        quality = 0 # TODO
+        color1 = item.color1
+        color2 = item.color2
+        howAcquired = 11 # howAcquired > 10 takes up a wardrobe spot
+
+        self.air.mongoInterface.mongodb.fairies.update_one(
+            {"_id": avId},
+            {
+                "$push": {
+                    "avatar.items": {
+                        "inv_id": invId,
+                        "type": item.itemType,
+                        "item_id": itemId,
+                        "slot": slot,
+                        "createdById": createdById,
+                        "createdByName": createdByName,
+                        "giftedById": giftedById,
+                        "giftedByName": giftedByName,
+                        "quality": quality,
+                        "color1": color1,
+                        "color2": color2,
+                        "howAcquired": howAcquired,
+                        "location": "Wardrobe"
                     }
-                )
+                }
+            }
+        )
 
-                self.air.inventoryManager.sendUpdateToAvatarId(avId, "wardrobeItem", [
-                    itemId,
-                    [invId, itemId, slot, createdById, createdByName, giftedById, giftedByName, quality, color1, color2, howAcquired
-                ]])
+        self.air.inventoryManager.sendUpdateToAvatarId(avId, "wardrobeItem", [
+            itemId,
+            [invId, itemId, slot, createdById, createdByName, giftedById, giftedByName, quality, color1, color2, howAcquired
+        ]])
 
+    def d_setPurchaseResponse(self, avId: int, success: bool) -> None:
         self.sendUpdateToAvatarId(avId, "setPurchase", [PURCHASE_SUCCESS if success else PURCHASE_FAIL])
 
     def purchasePouchItemsHelper(self, avId, itemId, amount):
@@ -191,5 +238,5 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
         dna = tuple(dnal)
 
         avatar.b_setFairyDNA(dna)
-        print(avatar.fairyDNA.asTuple())
+
         avatar.redrawFairy()
