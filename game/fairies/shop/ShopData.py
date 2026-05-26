@@ -341,7 +341,32 @@ SHOPS = [
             famousFairyId=FamousFairyData.FAMOUS_FAIRY_CASSIE
         ),
         collections=[
-            TEST_SHOP_DATA
+            ShopCollection(
+                collectionId=39, # Troop Uniforms
+                currencyId=FairiesConstants.MEADOW_GRASS,
+                items=[
+                    # Rabbit - Fairies
+                    ShopItem(itemId=1000088, price=37, goldPrice=11, color1=178, color2=237, itemType="Shirt"), # Fawn Orange, Melon Orange
+                    ShopItem(itemId=1496, price=33, goldPrice=10, color1=178, color2=237, itemType="Skirt"), # Fawn Orange, Melon Orange
+                    ShopItem(itemId=3595, price=33, goldPrice=10, color1=178, color2=237, itemType="Shoes"), # Fawn Orange, Melon Orange
+                    # Butterfly - Fairies
+                    ShopItem(itemId=1000084, price=37, goldPrice=11, color1=174, color2=121, itemType="Shirt"), # Rosetta Red, Daisy Pink
+                    ShopItem(itemId=1491, price=33, goldPrice=10, color1=174, color2=121, itemType="Skirt"), # Rosetta Red, Daisy Pink
+                    ShopItem(itemId=3595, price=33, goldPrice=10, color1=174, color2=121, itemType="Shoes"), # Rosetta Red, Daisy Pink
+                    # Otter - Fairies
+                    ShopItem(itemId=1000087, price=37, goldPrice=11, color1=176, color2=219, itemType="Shirt"), # Silvermist Blue, Crystal Blue
+                    ShopItem(itemId=1494, price=33, goldPrice=10, color1=176, color2=219, itemType="Skirt"), # Silvermist Blue, Crystal Blue
+                    ShopItem(itemId=3595, price=33, goldPrice=10, color1=176, color2=219, itemType="Shoes"), # Silvermist Blue, Crystal Blue
+                    # Turtle - Fairies
+                    ShopItem(itemId=1000089, price=37, goldPrice=11, color1=145, color2=250, itemType="Shirt"), # Tinker Bell Green, Caramel Tan
+                    ShopItem(itemId=1495, price=33, goldPrice=10, color1=145, color2=250, itemType="Skirt"), # Tinker Bell Green, Caramel Tan
+                    ShopItem(itemId=3595, price=33, goldPrice=10, color1=145, color2=250, itemType="Shoes"), # Tinker Bell Green, Caramel Tan
+                    # Gloworm - Fairies
+                    ShopItem(itemId=1000085, price=37, goldPrice=11, color1=179, color2=137, itemType="Shirt"), # Iridessa Yellow, Lemon Yellow
+                    ShopItem(itemId=1492, price=33, goldPrice=10, color1=179, color2=137, itemType="Skirt"), # Iridessa Yellow, Lemon Yellow
+                    ShopItem(itemId=3595, price=33, goldPrice=10, color1=179, color2=137, itemType="Shoes"), # Iridessa Yellow, Lemon Yellow
+                ],
+            ),
         ]
     ),
 
@@ -807,12 +832,237 @@ SHOPS = [
                 collectionId=114, # The Queen's Collections (Blue)
                 outfits=[
                     ShopOutfit(
-                        # For some reason 1030 throws a stale cache issue??
-                        outfitId=1031, # Fine Flowing Gown
+                        outfitId=1030, # Fine Flowing Gown
                         items=[
                             OutfitItem(itemId=387, goldPrice=75, itemType="Shirt"),
                             OutfitItem(itemId=1313, goldPrice=0, itemType="Skirt"),
                             OutfitItem(itemId=3730, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1031, # Grand and Graceful Gown
+                        items=[
+                            OutfitItem(itemId=391, goldPrice=70, itemType="Shirt"),
+                            OutfitItem(itemId=1307, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3729, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1032, # Stunning Seafoam Gown
+                        items=[
+                            OutfitItem(itemId=2333, goldPrice=90, itemType="HeadItem"),
+                            OutfitItem(itemId=413, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1332, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3755, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1033, # Gossamer Gown
+                        items=[
+                            OutfitItem(itemId=2334, goldPrice=85, itemType="HeadItem"),
+                            OutfitItem(itemId=414, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1333, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3756, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1034, # Spectacular Swirl
+                        items=[
+                            OutfitItem(itemId=2379, goldPrice=95, itemType="HeadItem"),
+                            OutfitItem(itemId=1000015, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1429, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3806, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1035, # Smashing Splash Gown
+                        items=[
+                            OutfitItem(itemId=2393, goldPrice=70, itemType="HeadItem"),
+                            OutfitItem(itemId=1000027, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1438, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3818, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1036, # Winter Couture Gown
+                        items=[
+                            OutfitItem(itemId=2405, goldPrice=115, itemType="HeadItem"),
+                            OutfitItem(itemId=1000039, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1447, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3828, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1037, # Pretty Panache Gown
+                        items=[
+                            OutfitItem(itemId=2384, goldPrice=115, itemType="HeadItem"),
+                            OutfitItem(itemId=1000022, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1432, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3809, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1038, # Majestic Charm Gown
+                        items=[
+                            OutfitItem(itemId=2377, goldPrice=90, itemType="HeadItem"),
+                            OutfitItem(itemId=1000013, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1427, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3804, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1039, # Finely Feathered Gown
+                        items=[
+                            OutfitItem(itemId=2452, goldPrice=120, itemType="HeadItem"),
+                            OutfitItem(itemId=1000094, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1001002, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3879, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1040, # Mystical Mist Gown
+                        items=[
+                            OutfitItem(itemId=2455, goldPrice=135, itemType="HeadItem"),
+                            OutfitItem(itemId=1000097, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1001005, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3882, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1041, # Riverine Elegance Gown
+                        items=[
+                            OutfitItem(itemId=2472, goldPrice=135, itemType="HeadItem"),
+                            OutfitItem(itemId=1000120, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1001027, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3902, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1042, # Radiant Regalia
+                        items=[
+                            OutfitItem(itemId=2476, goldPrice=105, itemType="HeadItem"),
+                            OutfitItem(itemId=1000131, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1001040, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3905, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1043, # Summer Couture Gown
+                        items=[
+                            OutfitItem(itemId=390, goldPrice=90, itemType="Shirt"),
+                            OutfitItem(itemId=1310, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3727, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                ]
+            ),
+            ShopCollection(
+                collectionId=115, # The Queen's Collections (Purple)
+                outfits=[
+                    ShopOutfit(
+                        outfitId=1044, # Morning Glory Gown
+                        items=[
+                            OutfitItem(itemId=2331, goldPrice=105, itemType="HeadItem"),
+                            OutfitItem(itemId=411, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1326, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3058, goldPrice=0, itemType="AnkleItem"),
+                            OutfitItem(itemId=3753, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1045, # Moonlight Magic Gown
+                        items=[
+                            OutfitItem(itemId=2359, goldPrice=80, itemType="HeadItem"),
+                            OutfitItem(itemId=490, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1406, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3788, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1046, # Fast-Flying Couture
+                        items=[
+                            OutfitItem(itemId=2394, goldPrice=100, itemType="HeadItem"),
+                            OutfitItem(itemId=1000028, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1439, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3819, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1047, # Petal Twirl Gown
+                        items=[
+                            OutfitItem(itemId=2435, goldPrice=100, itemType="HeadItem"),
+                            OutfitItem(itemId=1000070, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1477, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3862, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1048, # Magnificent Evening Gown
+                        items=[
+                            OutfitItem(itemId=2457, goldPrice=150, itemType="HeadItem"),
+                            OutfitItem(itemId=1000099, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1001007, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=1684, goldPrice=0, itemType="WristItem"),
+                            OutfitItem(itemId=3884, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1049, # Irresistible Indigo Gown
+                        items=[
+                            OutfitItem(itemId=2461, goldPrice=105, itemType="HeadItem"),
+                            OutfitItem(itemId=1000104, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1001012, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3888, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                ]
+            ),
+            ShopCollection(
+                collectionId=116, # The Queen's Collections (Other)
+                outfits=[
+                    ShopOutfit(
+                        outfitId=1050, # Incredible Iris Dress
+                        items=[
+                            OutfitItem(itemId=2303, goldPrice=80, itemType="HeadItem"),
+                            OutfitItem(itemId=393, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1312, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3732, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1051, # Marvelous Magenta Gown
+                        items=[
+                            OutfitItem(itemId=488, goldPrice=70, itemType="Shirt"),
+                            OutfitItem(itemId=1404, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3786, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1052, # Graceful Glamor Gown
+                        items=[
+                            OutfitItem(itemId=2358, goldPrice=85, itemType="HeadItem"),
+                            OutfitItem(itemId=489, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1405, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3787, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1053, # Amethyst Flutter Gown
+                        items=[
+                            OutfitItem(itemId=2431, goldPrice=120, itemType="HeadItem"),
+                            OutfitItem(itemId=1000065, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=1472, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3857, goldPrice=0, itemType="Shoes")
+                        ]
+                    ),
+                    ShopOutfit(
+                        outfitId=1054, # Plush Plumes Gown
+                        items=[
+                            OutfitItem(itemId=2434, goldPrice=130, itemType="HeadItem"),
+                            OutfitItem(itemId=1000069, goldPrice=0, itemType="Shirt"),
+                            OutfitItem(itemId=652, goldPrice=0, itemType="Belt"),
+                            OutfitItem(itemId=1476, goldPrice=0, itemType="Skirt"),
+                            OutfitItem(itemId=3861, goldPrice=0, itemType="Shoes")
                         ]
                     ),
                 ]
