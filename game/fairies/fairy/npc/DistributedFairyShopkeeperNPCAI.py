@@ -157,13 +157,13 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
                 self.updateDNAHelper(avId, avatar, item.itemId, slotnum=4)
 
                 return True
-            
+
             if collectionId == 4014: # Hair color
                 colorId = item.itemId - 14000
                 self.updateDNAHelper(avId, avatar, colorId, slotnum=9)
 
                 return True
-            
+
             elif collectionId == 4015: # Highlights
                 colorId = item.itemId - 14000
                 self.updateDNAHelper(avId, avatar, colorId, slotnum=10)

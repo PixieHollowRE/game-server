@@ -13,7 +13,7 @@ class HolidayManagerUD(DistributedObjectUD):
             "Meadow_Decorations_SummmerSplash",
             "Meadow_SummerSplash",
             "Meadow_CampPixie2012"
-            ]
+        ]
 
     def getTimeSpanMessage(self) -> str:
         return "Welcome to the test server. Missing features and bugs are to be expected. Enjoy!"

@@ -145,7 +145,7 @@ dclass PlayerFriendsManager : DistributedObject, TalkPath_account, TalkPath_acco
     invitationResponse(uint32 doid, uint16 respCode, uint32 context); // 78
     requestDecline(uint32 senderId, uint32 playerId) airecv clsend; // 79
     requestDeclineWithReason(uint32, uint32, uint32) airecv clsend; // 80
-    requestRemove(uint32, uint32) airecv clsend; // 81
+    requestRemove(uint32 senderId, uint32 playerId) airecv clsend; // 81
     rejectRemove(uint32, uint32); // 82
     secretResponse(string); // 83
     rejectSecret(string); // 84

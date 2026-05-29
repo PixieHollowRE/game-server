@@ -158,8 +158,8 @@ function declareFriend(participant, avatarId, friendId)
     -- Make sure that these are AVATAR ids, not ACCOUNT ids.
     local dg = datagram:new()
     participant:addServerHeaderWithAvatarId(dg, avatarId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
-    participant:addUint32(friendId)
-    participant:addUint16(AVATAR_CLASS)
+    dg:addUint32(friendId)
+    dg:addUint16(AVATAR_CLASS)
     participant:routeDatagram(dg)
 end
 
@@ -167,7 +167,7 @@ function undeclareFriend(participant, avatarId, friendId)
     -- Make sure that these are AVATAR ids, not ACCOUNT ids.
     local dg = datagram:new()
     participant:addServerHeaderWithAvatarId(dg, avatarId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_UNDECLARE_OBJECT)
-    participant:addUint32(friendId)
+    dg:addUint32(friendId)
     participant:routeDatagram(dg)
 end
 
@@ -428,4 +428,52 @@ function handleFMPlayerFriendsManager_setTalkAccount(participant, fieldId, data)
 end
 
 function handleFMPlayerFriendsManager_requestRemove(participant, fieldId, data)
+    local senderId = participant:getAccountIdFromSender()
+    local otherAccountId = data[2]
+
+    participant:debug(string.format("requestRemove - %d - %d", senderId, otherAccountId))
+
+    local json = require("json")
+
+    local ourData = json.decode(retrieveFairy(string.format("identifier=%d", senderId)))
+    local friendData = json.decode(retrieveFairy(string.format("identifier=%d", otherAccountId)))
+
+    for i, friendId in ipairs(ourData.friends) do
+        if friendId == otherAccountId then
+            -- Remove from our friends list.
+            table.remove(ourData.friends, i)
+
+            -- Update us in the database.
+            setFairyData(ourData.ownerAccount, {friends = ourData.friends})
+
+            -- Undeclare the object
+            undeclareFriend(participant, ourData._id, friendData._id)
+
+            -- Send a response back to the client indicating we've removed this friend.
+            participant:sendUpdateToAccountId(senderId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+                "FMPlayerFriendsManager", "removePlayerFriend", {otherAccountId})
+
+            break
+        end
+    end
+
+    -- Update the other friend's list as well.
+    for i, friendId in ipairs(friendData.friends) do
+        if friendId == senderId then
+            -- Remove from our friends list.
+            table.remove(friendData.friends, i)
+
+            -- Update us in the database.
+            setFairyData(friendData.ownerAccount, {friends = friendData.friends})
+
+            -- Undeclare the object
+            undeclareFriend(participant, friendData._id, ourData._id)
+
+            -- Send a response back to the client indicating we've removed this friend.
+            participant:sendUpdateToAccountId(otherAccountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+                "FMPlayerFriendsManager", "removePlayerFriend", {senderId})
+
+            break
+        end
+    end
 end
