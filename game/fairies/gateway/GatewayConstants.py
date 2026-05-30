@@ -793,5 +793,32 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetLocationName": "shopEntrance",
             "targetZoneID": ZoneConstants.NEVILLES_NEW_HOMES,
         },
+  ],
+    ZoneConstants.TREETOP_HOUSEWARES: [
+        {
+            # Treetop Bend
+            "name": "9060",
+            "position": (780, 380),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.TREETOP_BEND,
+        },
+    ],
+    ZoneConstants.BELLAS_BAUBLES: [
+        {
+            # Treetop Bend
+            "name": "9060",
+            "position": (780, 395),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.TREETOP_BEND,
+        },
+    ],
+    ZoneConstants.NEVILLES_NEW_HOMES: [
+        {
+            # Treetop Bend
+            "name": "9066",
+            "position": (195, 231),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.TREETOP_BEND,
+        },
     ],
 }
