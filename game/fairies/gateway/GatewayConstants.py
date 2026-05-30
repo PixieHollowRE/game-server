@@ -631,7 +631,30 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetZoneID": ZoneConstants.ACORN_SUMMIT,
         },
     ],
-    # Pumpkin Patch
+    ZoneConstants.PUMPKIN_PATCH: [
+        {
+            # Acorn Summit (north)
+            "name": "9070",
+            "position": (630, 60),
+            "targetLocationName": "fromPumpkinPatch",
+            "targetZoneID": ZoneConstants.ACORN_SUMMIT,
+        },
+        {
+            # Maple Tree Hill (northeast)
+            "name": "9085",
+            "position": (1560, 420),
+            "targetLocationName": "fromPumpkinPatch",
+            "targetZoneID": ZoneConstants.MAPLE_TREE_HILL,
+        },
+        {
+            # Harvest Hustle
+            "name": "9015",
+            "position": (980, 670),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.HARVEST_HUSTLE_GAME,
+            "rewardList": [fc.ACORNS, fc.BLUEBERRIES, fc.RASPBERRIES],
+        },
+    ],
 
     # ════════════════════════════════════════════════════════════════════════════════════ #
     #                                    Spring Gateways                                   #
@@ -740,6 +763,107 @@ GATEWAYS: dict[int, list[dict]] = {
             "position": (150, 675),
             "targetLocationName": "fromZone111000",
             "targetZoneID": ZoneConstants.NEVERBERRY_THICKET,
+        },
+    ],
+    ZoneConstants.CHERRYBLOSSOM_HEIGHTS: [
+        {
+            # Springtime Orchard (southwest)
+            "name": "9034",
+            "position": (990, 940),
+            "targetLocationName": "fromCherryblossomHeights",
+            "targetZoneID": ZoneConstants.SPRINGTIME_ORCHARD,
+        },
+        {
+            # Neverberry Thicket (southeast)
+            "name": "9056",
+            "position": (1700, 950),
+            "targetLocationName": "fromCherryblossomHeights",
+            "targetZoneID": ZoneConstants.NEVERBERRY_THICKET,
+        },
+        {
+            # Rosetta's Garden (Rosetta face gateway)
+            "name": "9149",
+            "position": (90, 555),
+            "targetLocationName": "default",
+            "targetZoneID": ZoneConstants.ROSETTAS_GARDEN,
+        },
+        {
+            # Petal Pick-Up
+            "name": "9014",
+            "position": (385, 100),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.PETAL_PICKUP_GAME,
+            "rewardList": [fc.ROSE_PETALS, fc.BUTTERCUP_PETALS, fc.DAISY_PETALS],
+        },
+        {
+            # Treetop Bend (northeast)
+            "name": "9061",
+            "position": (1565, 420),
+            "targetLocationName": "fromCherryblossomHeights",
+            "targetZoneID": ZoneConstants.TREETOP_BEND,
+        },
+        {
+            # Daisy's Dyes
+            "name": "9017",
+            "position": (1345, 645),
+            "targetLocationName": "shopEntrance",
+            "targetZoneID": ZoneConstants.DAISYS_DYES,
+        },
+    ],
+    ZoneConstants.DAISYS_DYES: [
+        {
+            # Cherryblossom Heights (west)
+            "name": "9043",
+            "position": (143, 395),
+            "targetLocationName": "fromZone112000",
+            "targetZoneID": ZoneConstants.CHERRYBLOSSOM_HEIGHTS,
+        },
+    ],
+    ZoneConstants.DEWDROP_VALE: [
+        {
+            # Springtime Orchard (northwest)
+            "name": "9031",
+            "position": (98, 410),
+            "targetLocationName": "fromSpringtimeValley",
+            "targetZoneID": ZoneConstants.SPRINGTIME_ORCHARD,
+        },
+        {
+            # Bubble Bounce
+            "name": "9010",
+            "position": (100, 1190),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.BUBBLE_BOUNCE_GAME,
+            "rewardList": [fc.LILY_PETALS, fc.ROSE_PETALS, fc.SPIDER_SILK],
+        },
+        {
+            # Palm Tree Cove (southwest)
+            "name": "9134",
+            "position": (225, 1400),
+            "targetLocationName": "fromZone102",
+            "targetZoneID": ZoneConstants.PALM_TREE_COVE,
+        },
+        {
+            # Silvermist's Grotto
+            "name": "9025",
+            "position": (995, 1260),
+            "targetLocationName": "default",
+            "targetZoneID": ZoneConstants.SILVERMISTS_GROTTO,
+        },
+        {
+            # Garden Supply
+            "name": "9021",
+            "position": (270, 450),
+            "targetLocationName": "shopEntrance",
+            "targetZoneID": ZoneConstants.GARDEN_SUPPLY,
+        },
+    ],
+    ZoneConstants.GARDEN_SUPPLY: [
+        {
+            # Dewdrop Vale (Brook's shop return sign)
+            "name": "9285",
+            "position": (180, 325),
+            "targetLocationName": "fromZone110001",
+            "targetZoneID": ZoneConstants.DEWDROP_VALE,
         },
     ],
     ZoneConstants.TREETOP_BEND: [
