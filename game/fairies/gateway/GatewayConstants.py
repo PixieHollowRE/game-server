@@ -948,4 +948,84 @@ GATEWAYS: dict[int, list[dict]] = {
         },
     ],
 
+    ZoneConstants.TREETOP_BEND: [
+        {
+            # Seed Sorting Game
+            "name": "9187",
+            "position": (1340, 960),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.SEED_SORTING_GAME,
+            "rewardList": [fc.ROSE_PETALS, fc.BUTTERCUP_PETALS, fc.RASPBERRIES],
+        },
+        {
+            # Treetop Housewares
+            "name": "9020",
+            "position": (1019, 648),
+            "targetLocationName": "shopEntrance",
+            "targetZoneID": ZoneConstants.TREETOP_HOUSEWARES,
+        },
+        {
+            # Bella's Baubles
+            "name": "9019",
+            "position": (216, 1042),
+            "targetLocationName": "shopEntrance",
+            "targetZoneID": ZoneConstants.BELLAS_BAUBLES,
+        },
+        {
+            # Neverberry Thicket
+            "name": "9057",
+            "position": (720, 1305),
+            "targetLocationName": "fromTreetopBend",
+            "targetZoneID": ZoneConstants.NEVERBERRY_THICKET,
+        },
+        {
+            # Cherryblossom Heights
+            "name": "9042",
+            "position": (90, 789),
+            "targetLocationName": "fromTreetopBend",
+            "targetZoneID": ZoneConstants.CHERRYBLOSSOM_HEIGHTS,
+        },
+        {
+            # Chilly Falls
+            "name": "9123",
+            "position": (87, 250),
+            "targetLocationName": "fromTreetopBend",
+            "targetZoneID": ZoneConstants.CHILLY_FALLS,
+        },
+        {
+            # Neville's New Homes
+            "name": "9224",
+            "position": (422, 238),
+            "targetLocationName": "shopEntrance",
+            "targetZoneID": ZoneConstants.NEVILLES_NEW_HOMES,
+        },
+    ],
+    ZoneConstants.TREETOP_HOUSEWARES: [
+        {
+            # Treetop Bend
+            "name": "9060",
+            "position": (780, 380),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.TREETOP_BEND,
+        },
+    ],
+    ZoneConstants.BELLAS_BAUBLES: [
+        {
+            # Treetop Bend
+            "name": "9060",
+            "position": (780, 395),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.TREETOP_BEND,
+        },
+    ],
+    ZoneConstants.NEVILLES_NEW_HOMES: [
+        {
+            # Treetop Bend
+            "name": "9066",
+            "position": (195, 231),
+            "targetLocationName": "",
+            "targetZoneID": ZoneConstants.TREETOP_BEND,
+        },
+    ],
+
 }
