@@ -10,7 +10,7 @@ from game.fairies.distributed.FairiesRealmAI import FairiesRealmAI
 from game.fairies.distributed.FairiesGlobals import *
 from game.fairies.distributed.MongoInterface import MongoInterface
 from game.fairies.meadow.DistributedMeadowAI import DistributedMeadowAI
-from game.fairies.meadow.DistributedSpawnStackAI import DistributedSpawnStackAI
+from game.fairies.meadow.IngredientSpawnMgrAI import IngredientSpawnMgrAI
 from game.fairies.minigame import MinigameConstants
 from game.fairies.minigame.DistributedTalentMinigameAI import DistributedTalentMinigameAI
 from game.fairies.minigame.DistributedCraftingMinigameAI import DistributedCraftingMinigameAI
@@ -109,14 +109,8 @@ class FairiesAIRepository(AIDistrict, ServerBase):
 
                 gate.generateWithRequired(zoneId)
 
-        # DistributedSpawnStackAI testing
-        spawnStack = DistributedSpawnStackAI(self)
-        spawnStack.setItemID(8011) # Acorns
-        spawnStack.setName("Acorn")
-        spawnStack.setPosition(600, 700)
-        spawnStack.setItemCount(1)
-        spawnStack.setServingSize(1)
-        spawnStack.generateWithRequired(ZoneConstants.ACORN_SUMMIT)
+        self.ingredientSpawnMgr = IngredientSpawnMgrAI(self)
+        self.ingredientSpawnMgr.start()
 
         # DistributedFairyQuestNPC testing
         for qzone in QUEST_ZONES:

@@ -11,6 +11,8 @@ class DistributedSpawnStackAI(DistributedObjectAI):
         self.colorIDs: list[int] = []
         self.itemCount: int = 0
         self.servingSize: int = 0
+        self.spawnMgr = None
+        self.collected = False
 
     def setItemID(self, itemID: int) -> None:
         self.itemID = itemID
@@ -54,6 +56,9 @@ class DistributedSpawnStackAI(DistributedObjectAI):
         self.sendUpdateToAvatarId(avId, "setEligible", [1])
 
     def setCollectRequest(self, bogus: int) -> None:
+        if self.collected:
+            return
+
         avId = self.air.getAvatarIdFromSender()
         avatar = self.air.doId2do.get(avId)
 
@@ -63,5 +68,8 @@ class DistributedSpawnStackAI(DistributedObjectAI):
 
         itemID, itemCount, itemSlot = self.getItemID(), self.getItemCount(), -1
 
-        if self.air.inventoryManager.addIngredientsToPouch(avId, itemID, itemCount, itemSlot):
-            avatar.d_setPouch(self.air.inventoryManager.getPouch(avId))
+        if self.air.inventoryManager.addIngredientsToPouchWithPickupFeedback(avId, itemID, itemCount, itemSlot):
+            self.collected = True
+
+            if self.spawnMgr is not None:
+                self.spawnMgr.onCollected(self)

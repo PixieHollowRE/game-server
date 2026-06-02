@@ -8,8 +8,12 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
         pouchData = self.air.mongoInterface.retrieveDocs("fairies", avId, "_id")[0]["pouch"]
         pouch = []
 
-        for item in pouchData:
-            pouch.append([item["item_id"], item["slot"], item["amount"]])
+        for index, item in enumerate(pouchData):
+            slot = item["slot"]
+            if slot < 0:
+                slot = index
+
+            pouch.append([item["item_id"], slot, item["amount"]])
 
         return pouch
 
@@ -69,6 +73,9 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
         if result.modified_count > 0:
             return True
 
+        if slot < 0:
+            slot = self._nextPouchSlot(avId)
+
         result = self.air.mongoInterface.mongodb.fairies.update_one(
             {"_id": avId},
             {
@@ -83,3 +90,33 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
         )
 
         return result.modified_count > 0
+
+    def _nextPouchSlot(self, avId: int) -> int:
+        usedSlots = {slot for _itemId, slot, _amount in self.getPouch(avId) if slot >= 0}
+        slot = 0
+
+        while slot in usedSlots:
+            slot += 1
+
+        return slot
+
+    def _getPouchSlotForItem(self, avId: int, itemID: int) -> int:
+        for itemId, slot, _amount in self.getPouch(avId):
+            if itemId == itemID:
+                return max(0, slot)
+
+        return 0
+
+    def addIngredientsToPouchWithPickupFeedback(self, avId: int, itemID: int, itemCount: int, slot: int = -1) -> bool:
+        if not self.addIngredientsToPouch(avId, itemID, itemCount, slot):
+            return False
+
+        avatar = self.air.doId2do.get(avId)
+
+        if not avatar:
+            return True
+
+        pouchSlot = self._getPouchSlotForItem(avId, itemID)
+        self.sendUpdateToAvatarId(avId, "putToStackAndNotify", [itemID, pouchSlot, itemCount])
+        avatar.d_syncPouchAfterIngredientGrant()
+        return True

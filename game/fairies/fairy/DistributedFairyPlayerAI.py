@@ -152,6 +152,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def d_setPouch(self, pouch: list) -> None:
         self.sendUpdateToAvatarId(self.doId, "setPouch", [pouch])
 
+    def d_syncPouchAfterIngredientGrant(self) -> None:
+        pouch = self.air.inventoryManager.getPouch(self.doId)
+        self.d_setPouch(pouch)
+        self.d_setPouch(pouch)
+
     def b_setGold(self, gold: int) -> None:
         self.setGold(gold)
         self.d_setGold(gold)
