@@ -117,6 +117,6 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
             return True
 
         pouchSlot = self._getPouchSlotForItem(avId, itemID)
-        self.sendUpdateToAvatarId(avId, "putToStackAndNotify", [itemID, pouchSlot, itemCount])
+        avatar.sendUpdate("setItemEvent", [itemID, 1, 0, 0])
         avatar.d_syncPouchAfterIngredientGrant()
         return True
