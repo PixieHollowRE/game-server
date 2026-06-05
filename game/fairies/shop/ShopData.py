@@ -942,17 +942,6 @@ SHOPS = [
         ShopCollection(
             collectionId=9, # Berry
             currencyId=FairiesConstants.PINE_NEEDLES,
-            items=[
-                ShopItem(itemId=2009, price=20, goldPrice=8, color1=42, color2=51, itemType="HeadItem"), 
-                ShopItem(itemId=480, price=35, goldPrice=13, color1=42, color2=51, itemType="Shirt"),
-                ShopItem(itemId=653, price=10, goldPrice=5, color1=42, color2=42, itemType="Belt"),
-                ShopItem(itemId=1377, price=35, goldPrice=13, color1=42, color2=51, itemType="Skirt"),
-                ShopItem(itemId=3778, price=20, goldPrice=8, color1=42, color2=51, itemType="Shoes"),
-                ShopItem(itemId=1000073, price=35, goldPrice=13, color1=199, color2=26, itemType="Shirt"),
-                ShopItem(itemId=653, price=10, goldPrice=5, color1=26, color2=26, itemType="Belt"),
-                ShopItem(itemId=1077, price=35, goldPrice=13, color1=130, color2=26, itemType="Skirt"),
-                ShopItem(itemId=3845, price=15, goldPrice=8, color1=199, color2=26, itemType="Shoes"),
-            ],
             outfits=[
                 ShopOutfit(
                     outfitId=2005, # Outfit of the Month

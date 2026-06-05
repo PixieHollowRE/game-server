@@ -138,23 +138,27 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
                 )
             else:
                 item = getShopItemByIndex(shop, collectionId, itemIndex)
-
-                requestItems = [item]
-
-                requestPrice = item.goldPrice if usingGold else item.price
+                if item:
+                    requestItems = [item]
+                    requestPrice = (item.goldPrice if usingGold else item.price) * amount
+                else:
+                    # Item from outfit handler
+                    collection = shop.collectionsById.get(collectionId)
+                    all_items = [item for outfit in collection.outfits for item in outfit.items]
+                    item = all_items[itemIndex]
+                    requestItems = [item]
+                    requestPrice = (item.goldPrice if usingGold else item.price) * amount
 
             purchaseRequests.append((requestItems, amount, collectionId))
-
             priceTotal += requestPrice
 
         if usingGold:
             success = avatar.takeGold(priceTotal) 
         else:
-            ing_type = shop.collectionsById.get(collectionId).currencyId
+            first_collection_id = purchaseRequests[0][2] # Not a stale loop variable now oops
+            ing_type = shop.collectionsById.get(first_collection_id).currencyId
             success = self.air.inventoryManager.removeIngredientsFromPouch(avId, ing_type, priceTotal)
             avatar.d_syncPouchAfterChanges()
-            print(ing_type)
-            print(success)
 
         if not success:
             # Send failure purchase response back to the client.
