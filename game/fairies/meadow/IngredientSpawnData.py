@@ -183,7 +183,7 @@ def zone_map_bounds(zone_id: int) -> SpawnBounds:
 
 
 # =============================================================================
-# Exclusion Zones (TODO — not yet populated)
+# Exclusion Zones
 #
 # Rectangular keep-out areas where items must NOT spawn (signs, gateways, etc.).
 # Uses the same SpawnBounds shape as map bounds. Shared by all ingredients in a
@@ -219,7 +219,6 @@ def exclusion_rect_around(
         center_y + half_h + padding,
     )
 
-# TODO: implement when exclusion zones are ready — auto-build rects from gateway positions:
 def _build_gateway_exclusions(zone_id: int) -> tuple[SpawnExclusionZone, ...]:
     """Derive keep-out rectangles from GatewayConstants.GATEWAYS[zone_id] positions."""
     return tuple(
@@ -227,7 +226,6 @@ def _build_gateway_exclusions(zone_id: int) -> tuple[SpawnExclusionZone, ...]:
         for gw in gc.GATEWAYS.get(zone_id, [])
     )
 
-# TODO: populate with exclusion_rect(...) or exclusion_rect_around(gw_x, gw_y) per meadow.
 #       Gateway positions are in GatewayConstants.GATEWAYS[zone_id]["position"].
 ZONE_EXCLUSIONS: dict[int, tuple[SpawnExclusionZone, ...]] = {
     zc.CHERRYBLOSSOM_HEIGHTS: _build_gateway_exclusions(zc.CHERRYBLOSSOM_HEIGHTS),
