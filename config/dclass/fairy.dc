@@ -786,7 +786,7 @@ dclass DistributedFairyShopkeeperNPC : DistributedFairyNPC { // 91
     setTryOn(LiteShopItem[]) clsend airecv; // 656
     setTriedOnItems(ShopTriedOnItems[]) broadcast; // 657
     setRequestPurchasePet(PurchaseItem, int16, int16, int8); // 658
-    setRequestDyeItem(uint64, int16, int16, int8, int8); // 659
+    setRequestDyeItem(uint64, int16, int16, int8, int8) clsend airecv; // 659
     setDyePrice(int32 dyeCostItemId, int16 dye1Price, int16 dye2Price, int16 dye1Gold, int16 dye2Gold) required broadcast ram; // 660
     setRequestGiftSet(PurchaseItem[], uint32, uint32, int16, int32); // 661
     setStockLimits(StockUpdate[]); // 662
