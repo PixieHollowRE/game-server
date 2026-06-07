@@ -1041,7 +1041,7 @@ SHOPS = [
                 items=[
                     ShopItem(itemId=2286, price=10, goldPrice=3, color1=189, color2=7, itemType="HeadItem"), # Lobster Mask
                     ShopItem(itemId=347, price=17, goldPrice=5, color1=189, color2=7, itemType="Shirt"), # Lobster Top
-                    ShopItem(itemId=1293, price=17, goldPrice=5, color1=189, color2=7, itemType="Skirt"), #
+                    ShopItem(itemId=1293, price=17, goldPrice=5, color1=189, color2=7, itemType="Skirt"),
                 ],
             ),
         ],
@@ -2831,6 +2831,7 @@ SHOPS = [
                 collectionId=4004, # Stylish Hair Fronts (Fairies)
                 currencyId=FairiesConstants.DAISY_PETALS,
                 items=[
+                    ShopItem(itemId=5106, price=10, goldPrice=2),
                     ShopItem(itemId=5118, price=10, goldPrice=2), # Plaited Side Part Front
                     ShopItem(itemId=5119, price=10, goldPrice=2), # Sideswept Barrette Front
                     ShopItem(itemId=5121, price=10, goldPrice=2), # Curly Pompadour Front
@@ -2884,6 +2885,15 @@ SHOPS = [
                     ShopItem(itemId=5105, price=10, goldPrice=2), # Twisty Locks
                     ShopItem(itemId=5088, price=10, goldPrice=2), # Bowtie Bob
                     ShopItem(itemId=5097, price=10, goldPrice=2), # Long and Curly Twisties
+
+                    ShopItem(itemId=5096, price=10, goldPrice=2), # Short and Curly Twisties
+                    ShopItem(itemId=5104, price=10, goldPrice=2), # Long Braided Front
+                    ShopItem(itemId=5129, price=10, goldPrice=2), # Fishtail Braid Front
+                    ShopItem(itemId=5130, price=10, goldPrice=2), # Poufy Pigtails
+                    ShopItem(itemId=5131, price=10, goldPrice=2), # Swooped Bangs Front
+                    ShopItem(itemId=5132, price=10, goldPrice=2), # Curly Ringlets Front
+                    ShopItem(itemId=5133, price=10, goldPrice=2), # Flowery Waves Hair Front
+                    
                 ],
             ),
             ShopCollection(
@@ -2911,7 +2921,8 @@ SHOPS = [
                     ShopItem(itemId=5570, price=10, goldPrice=2), # Braided-Bun
                     ShopItem(itemId=5574, price=10, goldPrice=2), # Swept Up Hair Back
                     ShopItem(itemId=5573, price=10, goldPrice=2), # Puffy Pigtails
-                    ShopItem(itemId=5576, price=10, goldPrice=2), # Twin Buns
+                    ShopItem(itemId=5576, price=10, goldPrice=2), # Twin Buns (Highlights)
+                    ShopItem(itemId=5596, price=10, goldPrice=2), # Twin Buns (No Highlights)
                     ShopItem(itemId=5591, price=10, goldPrice=2), # Lovely Layers Back
                     ShopItem(itemId=5593, price=10, goldPrice=2), # Whale of a Fishtail
                     ShopItem(itemId=5582, price=10, goldPrice=2), # High Flowing Ponytail
@@ -2936,6 +2947,12 @@ SHOPS = [
                     ShopItem(itemId=5579, price=10, goldPrice=2), # Wavy Silky Tresses
                     ShopItem(itemId=5578, price=10, goldPrice=2), # Rolled and Wavy Back
                     ShopItem(itemId=5587, price=10, goldPrice=2), # Long and Curly Twisties Back
+
+                    ShopItem(itemId=5586, price=10, goldPrice=2), # Short and Curly Twisties Back
+                    
+                    ShopItem(itemId=5611, price=10, goldPrice=2), # Simple Ponytail
+                    ShopItem(itemId=5612, price=10, goldPrice=2), # Curly Ringlets Back
+                    ShopItem(itemId=5613, price=10, goldPrice=2), # Flowery Braid
                 ],
             ),
             ShopCollection(
