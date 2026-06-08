@@ -3650,6 +3650,23 @@ SHOPS = [
                     
                 ],
             ),
+ ShopCollection(
+                collectionId=4018, # Expressions
+                currencyId=FairiesConstants.DAISY_PETALS,
+                items=[
+                    # Sparrowmen
+                    ShopItem(itemId=4535, price=10, goldPrice=2), 
+                    ShopItem(itemId=4536, price=10, goldPrice=2), 
+                    ShopItem(itemId=4537, price=10, goldPrice=2),
+                    ShopItem(itemId=4538, price=10, goldPrice=2),
+                    ShopItem(itemId=4539, price=10, goldPrice=2),
+                    ShopItem(itemId=4540, price=10, goldPrice=2),
+                    ShopItem(itemId=4541, price=10, goldPrice=2),
+                    ShopItem(itemId=4542, price=10, goldPrice=2),                   
+                    ShopItem(itemId=4543, price=10, goldPrice=2),
+                    ShopItem(itemId=4544, price=10, goldPrice=2),
+                ],
+            ),
             ShopCollection(
                 collectionId=4019, # Skin Colors
                 currencyId=FairiesConstants.DAISY_PETALS,
