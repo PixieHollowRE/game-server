@@ -32,6 +32,6 @@ for index, elem in enumerate(cutDistrictNames):
 
     os.system('start cmd /c districtStarter.bat' if isWindows else f'screen -dmS "{districtName}" ./districtStarter.sh')
 
-    startingNum = startingNum + 1000000
+    startingNum = startingNum + 1000000 + 1
     minObjIdBase = minObjIdBase + 1000000
     maxObjIdBase = maxObjIdBase + 1000000

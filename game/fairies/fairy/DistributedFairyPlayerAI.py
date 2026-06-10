@@ -267,17 +267,19 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def _cancelColorSweet(self, slotIndex):
         taskMgr.remove(f"DNARestore-{slotIndex}")
         taskMgr.remove(f"ColorCycle-{slotIndex}")
-        self._cycleLength = 0
 
-    def _restoreDNA(self, avatar, slotIndex):
-        taskMgr.remove(f"ColorCycle-{slotIndex}")
-        if slotIndex not in self._originalDNA:
-            return  # already restored, nothing to do
-        dna = list(avatar.getFairyDNA())
-        dna[slotIndex] = self._originalDNA[slotIndex]
-        avatar.b_setFairyDNA(tuple(dna))
-        avatar.redrawFairy()
-        del self._originalDNA[slotIndex]
+    def _restoreDNATask(self, task):
+        avatar = self.air.doId2do.get(self.doId)
+        if avatar and task.slotIndex in self._originalDNA:
+            self._restoreDNA(avatar, task.slotIndex)
+        return task.done
+
+    def _runColorCycleTask(self, task):
+        avatar = self.air.doId2do.get(self.doId)
+        if avatar:
+            self._applyColorStep(avatar, task.colors[task.cycleIndex], task.slotIndex)
+            task.cycleIndex = (task.cycleIndex + 1) % len(task.colors)
+        return task.again
 
     def _applyDNAColor(self, avatar, color, slotIndex):
         if isinstance(color, list):
@@ -286,7 +288,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         restore_task_name = f"DNARestore-{slotIndex}"
 
-        # Only save this slot's original value, not the whole DNA
         if not taskMgr.hasTaskNamed(restore_task_name):
             self._originalDNA[slotIndex] = avatar.getFairyDNA()[slotIndex]
 
@@ -297,11 +298,8 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         avatar.b_setFairyDNA(tuple(dna))
         avatar.redrawFairy()
 
-        taskMgr.doMethodLater(
-            60,
-            lambda task, si=slotIndex: self._restoreDNA(avatar, si),
-            restore_task_name
-        )
+        restore_task = taskMgr.doMethodLater(60, self._restoreDNATask, restore_task_name)
+        restore_task.slotIndex = slotIndex
 
     def _applyColorStep(self, avatar, color, slotIndex):
         """Single color application step, used by cycling tasks."""
@@ -311,17 +309,12 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         avatar.redrawFairy()
 
     def _runColorCycle(self, avatar, colors, slotIndex, cycleIndex=0):
-        """Apply one color in the cycle, then schedule the next."""
-        print(slotIndex)
         self._applyColorStep(avatar, colors[cycleIndex], slotIndex)
 
-        next_index = (cycleIndex + 1) % len(colors)
-
-        taskMgr.doMethodLater(
-            5,
-            lambda task, ni=next_index: self._runColorCycle(avatar, colors, slotIndex, ni),
-            f"ColorCycle-{slotIndex}"
-        )
+        cycle_task = taskMgr.doMethodLater(5, self._runColorCycleTask, f"ColorCycle-{slotIndex}")
+        cycle_task.colors = colors
+        cycle_task.slotIndex = slotIndex
+        cycle_task.cycleIndex = (cycleIndex + 1) % len(colors)
 
     def _scheduleCyclingColors(self, avatar, colors, slotIndex):
         restore_task_name = f"DNARestore-{slotIndex}"
@@ -333,11 +326,8 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         self._runColorCycle(avatar, colors, slotIndex, cycleIndex=0)
 
-        taskMgr.doMethodLater(
-            60,
-            lambda task, si=slotIndex: self._restoreDNA(avatar, si),
-            restore_task_name
-        )
+        restore_task = taskMgr.doMethodLater(60, self._restoreDNATask, restore_task_name)
+        restore_task.slotIndex = slotIndex
 
     def consumePouchItem(self, itemId, amount) -> None:
         avatar = self.air.doId2do.get(self.doId)
@@ -359,6 +349,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             handler(itemId, avatar)
 
         self.sendUpdateToAvatarId(self.doId, "setItemEvent", [itemId, amount, 0, 0])
+        self.air.inventoryManager.removeIngredientsFromPouch(self.doId, itemId, amount)
+
+        pouch = self.air.inventoryManager.getPouch(self.doId)
+        self.d_setPouch(pouch)
+        self.d_setPouch(pouch)
 
     def redrawFairy(self) -> None:
         self.sendUpdate("setRedraw", [1])
