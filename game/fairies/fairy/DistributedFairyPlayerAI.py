@@ -25,6 +25,12 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.air.inventoryManager.avatarOnline(self.doId)
         self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [100])
 
+        NEW_LEVEL = 28
+
+        if self.getLevel() != NEW_LEVEL:
+            # TEMP: Set level at the request of Jessibee for the Test server.
+            self.sendUpdate("setLevel", [NEW_LEVEL])
+
     def delete(self):
         # TODO: Set a post-remove message in case of an AI crash.
         self.air.sendFriendManagerAccountOffline(self.DISLid)
@@ -205,7 +211,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         if not self.air.inventoryManager.removeIngredientsFromPouch(self.doId, invItemToGive, amountToGive):
             print("tradeItemForGold - Couldn't Remove Ingredients??")
             return
-        
+
         if not self.air.inventoryManager.addIngredientsToPouch(self.doId, invItemToGet, amountToGet, -1):
             self.notify.warning("Failed to add ingredient %d to pouch!" % (invItemToGet))
             return
@@ -238,7 +244,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def _handleAuraSweet(self, itemId, _):
         aura_id = AURA_MAPPING[itemId]
         self.sendUpdateToAvatarId(self.doId, "setAura", [aura_id])
-        
+
         # Cancel any existing aura timer and start fresh
         taskMgr.remove("AuraRemover")
         taskMgr.doMethodLater(60, self.auraRemover, "AuraRemover")
@@ -257,7 +263,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         taskMgr.remove("InvisRemover")
         taskMgr.doMethodLater(60, self.invisRemover, "InvisRemover")
-    
+
     def _cancelColorSweet(self, slotIndex):
         taskMgr.remove(f"DNARestore-{slotIndex}")
         taskMgr.remove(f"ColorCycle-{slotIndex}")
@@ -296,14 +302,14 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             lambda task, si=slotIndex: self._restoreDNA(avatar, si),
             restore_task_name
         )
-    
+
     def _applyColorStep(self, avatar, color, slotIndex):
         """Single color application step, used by cycling tasks."""
         dna = list(avatar.getFairyDNA())
         dna[slotIndex] = color
         avatar.b_setFairyDNA(tuple(dna))
         avatar.redrawFairy()
-    
+
     def _runColorCycle(self, avatar, colors, slotIndex, cycleIndex=0):
         """Apply one color in the cycle, then schedule the next."""
         print(slotIndex)
