@@ -72,9 +72,9 @@ class FairiesAIRepository(AIDistrict, ServerBase):
 
         self.setAIReceiver(self.district.getDoId(), self.ourChannel)
 
-        twofortea = DistributedMatchGameAI(self)
-        twofortea.setGameInfo(13072, 2, 2, 0, 9)
-        twofortea.generateWithRequired(ZoneConstants.THE_TEAROOM)
+        # twofortea = DistributedMatchGameAI(self)
+        # twofortea.setGameInfo(13072, 2, 2, 0, 9)
+        # twofortea.generateWithRequired(ZoneConstants.THE_TEAROOM)
 
         for zoneId in ZoneConstants.GAMES_ZONE_LIST:
             minigame = DistributedTalentMinigameAI(self)
