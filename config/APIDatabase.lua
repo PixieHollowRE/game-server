@@ -21,10 +21,12 @@ local json = require("json")
 local inspect = require("inspect")
 
 if PRODUCTION_ENABLED then
-    API_BASE = "https://fairies.sunrise.games/fairies/api/internal/"
+    API_BASE = "https://pixie-hollow.sunrise.games/fairies/api/internal/"
 else
     API_BASE = "http://127.0.0.1/fairies/api/internal/"
 end
+
+API_BASE = "https://pixie-hollow.sunrise.games/fairies/api/internal/"
 
 function retrieveObject(participant, doId)
     local connAttempts = 0

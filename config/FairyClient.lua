@@ -94,10 +94,12 @@ local API_BASE
 local http = require("http")
 
 if PRODUCTION_ENABLED then
-    API_BASE = "https://fairies.sunrise.games/fairies/api/internal/"
+    API_BASE = "https://pixie-hollow.sunrise.games/fairies/api/internal/"
 else
     API_BASE = "http://127.0.0.1/fairies/api/internal/"
 end
+
+API_BASE = "https://pixie-hollow.sunrise.games/fairies/api/internal/"
 
 avatarSpeedChatPlusStates = {}
 
