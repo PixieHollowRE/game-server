@@ -2,7 +2,7 @@ from game.otp.otpbase import OTPGlobals
 
 from .DistributedFairyBaseAI import DistributedFairyBaseAI
 from game.fairies.ai.BakingAssets import BAKED_ITEMS
-from game.fairies.fairy.AuraMapping import AURA_MAPPING
+from game.fairies.fairy.AuraMapping import AURA_MAPPING, SKIN_COLOR_MAPPING, WING_COLOR_MAPPING
 
 class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def __init__(self, air) -> None:
@@ -13,6 +13,8 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.gold: int = 0
         self.access: int = 0
         self.level: int = 0
+
+        self._originalDNA = {}
 
     def announceGenerate(self):
         self.air.incrementPopulation()
@@ -189,21 +191,139 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def auraRemover(self, task):
         self.sendUpdateToAvatarId(self.doId, "setAura", [0])
 
+    def invisRemover(self, task):
+        self.sendUpdateToAvatarId(self.doId, "setRenderEffects", [0])
+        self.sendUpdateToAvatarId(self.doId, "setRedraw", [1])
+
+    def _getSweetType(self, itemId):
+        """Determine which kind of silly sweet this item is."""
+        if itemId == 22525:
+            return "invisible"
+        if itemId in AURA_MAPPING:
+            return "aura"
+        if itemId in SKIN_COLOR_MAPPING:
+            return "skin"
+        if itemId in WING_COLOR_MAPPING:
+            return "wing"
+        return None
+
+    def _handleAuraSweet(self, itemId, _):
+        aura_id = AURA_MAPPING[itemId]
+        self.sendUpdateToAvatarId(self.doId, "setAura", [aura_id])
+        
+        # Cancel any existing aura timer and start fresh
+        taskMgr.remove("AuraRemover")
+        taskMgr.doMethodLater(60, self.auraRemover, "AuraRemover")
+
+    def _handleSkinSweet(self, itemId, avatar):
+        color = SKIN_COLOR_MAPPING[itemId]
+        self._applyDNAColor(avatar, color, slotIndex=12)
+
+    def _handleWingSweet(self, itemId, avatar):
+        color = WING_COLOR_MAPPING[itemId]
+        self._applyDNAColor(avatar, color, slotIndex=13)
+
+    def _handleInvisibleSweet(self, _, avatar):
+        self.sendUpdateToAvatarId(self.doId, "setRenderEffects", [1])
+        avatar.redrawFairy()
+
+        taskMgr.remove("InvisRemover")
+        taskMgr.doMethodLater(60, self.invisRemover, "InvisRemover")
+    
+    def _cancelColorSweet(self, slotIndex):
+        taskMgr.remove(f"DNARestore-{slotIndex}")
+        taskMgr.remove(f"ColorCycle-{slotIndex}")
+        self._cycleLength = 0
+
+    def _restoreDNA(self, avatar, slotIndex):
+        taskMgr.remove(f"ColorCycle-{slotIndex}")
+        # Only restore the one slot, leave everything else untouched
+        dna = list(avatar.getFairyDNA())
+        dna[slotIndex] = self._originalDNA[slotIndex]
+        avatar.b_setFairyDNA(tuple(dna))
+        avatar.redrawFairy()
+        del self._originalDNA[slotIndex]
+
+    def _applyDNAColor(self, avatar, color, slotIndex):
+        if isinstance(color, list):
+            self._scheduleCyclingColors(avatar, color, slotIndex)
+            return
+
+        restore_task_name = f"DNARestore-{slotIndex}"
+
+        # Only save this slot's original value, not the whole DNA
+        if not taskMgr.hasTaskNamed(restore_task_name):
+            self._originalDNA[slotIndex] = avatar.getFairyDNA()[slotIndex]
+
+        self._cancelColorSweet(slotIndex)
+
+        dna = list(avatar.getFairyDNA())
+        dna[slotIndex] = color
+        avatar.b_setFairyDNA(tuple(dna))
+        avatar.redrawFairy()
+
+        taskMgr.doMethodLater(
+            60,
+            lambda task, si=slotIndex: self._restoreDNA(avatar, si),
+            restore_task_name
+        )
+    
+    def _applyColorStep(self, avatar, color, slotIndex):
+        """Single color application step, used by cycling tasks."""
+        dna = list(avatar.getFairyDNA())
+        dna[slotIndex] = color
+        avatar.b_setFairyDNA(tuple(dna))
+        avatar.redrawFairy()
+    
+    def _runColorCycle(self, avatar, colors, slotIndex, cycleIndex=0):
+        """Apply one color in the cycle, then schedule the next."""
+        print(slotIndex)
+        self._applyColorStep(avatar, colors[cycleIndex], slotIndex)
+
+        next_index = (cycleIndex + 1) % len(colors)
+
+        taskMgr.doMethodLater(
+            5,
+            lambda task, ni=next_index: self._runColorCycle(avatar, colors, slotIndex, ni),
+            f"ColorCycle-{slotIndex}"
+        )
+
+    def _scheduleCyclingColors(self, avatar, colors, slotIndex):
+        restore_task_name = f"DNARestore-{slotIndex}"
+
+        if not taskMgr.hasTaskNamed(restore_task_name):
+            self._originalDNA[slotIndex] = avatar.getFairyDNA()[slotIndex]
+
+        self._cancelColorSweet(slotIndex)
+
+        self._runColorCycle(avatar, colors, slotIndex, cycleIndex=0)
+
+        taskMgr.doMethodLater(
+            60,
+            lambda task, si=slotIndex: self._restoreDNA(avatar, si),
+            restore_task_name
+        )
+
     def consumePouchItem(self, itemId, amount) -> None:
+        avatar = self.air.doId2do.get(self.doId)
+
         baked = BAKED_ITEMS.get(itemId)
-        if baked:
-            if baked["bakedType"] == "sillysweet":
-                aura_id = AURA_MAPPING.get(itemId)
+        if not baked:
+            return
 
-                if not aura_id:
-                    print("ITEM A SILLY SWEET BUT NOT IN AURA MAPPING!")
-                    return
+        if baked["bakedType"] == "sillysweet":
+            sweet_type = self._getSweetType(itemId)
 
-                self.sendUpdateToAvatarId(self.doId, "setAura", [aura_id])
-                # Aura Task
-                taskMgr.doMethodLater(60, self.auraRemover, 'Aura Remover')
-        else:
-            pass
+            if sweet_type is None:
+                print(f"ITEM MISSING FROM ALL SWEET MAPPINGS: {itemId}")
+                return
+
+            # Calls _handleAuraSweet, _handleSkinSweet, or _handleWingSweet
+            # depending on sweet_type. Add new types by adding a matching method.
+            handler = getattr(self, f"_handle{sweet_type.capitalize()}Sweet")
+            handler(itemId, avatar)
+
+        self.sendUpdateToAvatarId(self.doId, "setItemEvent", [itemId, amount, 0, 0])
 
     def redrawFairy(self) -> None:
         self.sendUpdate("setRedraw", [1])

@@ -568,7 +568,7 @@ dclass DistributedFairyBase : TalkPath_owner, TalkPath_whisper { // 78
     setRedraw(uint8) ram broadcast; // 477
     setChat(string) ram ownsend broadcast; // 478
     setPetDNA(PetDNA) db broadcast; // 479
-    setRenderEffects(int32) ram broadcast; // 480
+    setRenderEffects(int32) ram broadcast ownrecv; // 480
     setAura(int16) ram broadcast; // 481
     setRoomID(int32) required ownrequired broadcast db ownrecv ownsend; // 482
 };
@@ -759,8 +759,8 @@ dclass RealmGuardian { // 88
 dclass DistributedCraftingMinigame : DistributedInstanceBaseAI { // 89
     setProfessionID(int16) required broadcast; // 636
     setCommunityDyeIDList(uint32[]) required broadcast; // 637
-    setRecipeChoice(uint32, uint16) clsend; // 638
-    setResults(uint32, uint32, uint32, uint32, int16) clsend; // 639
+    setRecipeChoice(uint32, uint16) clsend airecv; // 638
+    setResults(uint32, uint32, uint32, uint32, int16) clsend airecv; // 639
     setEmbellishResults(uint32, uint32, uint32, uint32, uint64) clsend; // 640
     craftingResponse(uint16) clsend; // 641
 };
