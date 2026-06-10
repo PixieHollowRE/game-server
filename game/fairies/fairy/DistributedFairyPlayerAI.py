@@ -23,6 +23,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.air.fillInFairyPlayer(self)
 
         self.air.inventoryManager.avatarOnline(self.doId)
+        self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [100])
 
     def delete(self):
         # TODO: Set a post-remove message in case of an AI crash.
@@ -60,7 +61,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
     def requestDailyGoldTradeCapData(self) -> None:
         # TODO
-        self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [1000])
+        self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [100])
         self.sendUpdateToAvatarId(self.doId, "setAmountGoldTradedForToday", [0])
 
     def requestGetSavedOutfits(self) -> None:
@@ -187,6 +188,33 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             pouch = self.air.inventoryManager.getPouch(self.doId)
             self.d_setPouch(pouch)
             self.d_setPouch(pouch)
+
+    def tradeItemForGold(self, invItemToGive: int, amountToGive: int, amountToGet: int) -> None:
+        if not self.air.inventoryManager.removeIngredientsFromPouch(self.doId, invItemToGive, amountToGive):
+            print("tradeItem - Couldn't Remove Ingredients??")
+            return
+
+        self.addGold(amountToGet)
+        # Apparently setPouch has to be sent back to the client twice here because `onCheckForGiveGetUpdates`
+        # only fires if pouchUpdateCalls is greater than 1
+        pouch = self.air.inventoryManager.getPouch(self.doId)
+        self.d_setPouch(pouch)
+        self.d_setPouch(pouch)
+
+    def tradeItem(self, invItemToGive: int, amountToGive: int, invItemToGet: int, amountToGet: int) -> None:
+        if not self.air.inventoryManager.removeIngredientsFromPouch(self.doId, invItemToGive, amountToGive):
+            print("tradeItemForGold - Couldn't Remove Ingredients??")
+            return
+        
+        if not self.air.inventoryManager.addIngredientsToPouch(self.doId, invItemToGet, amountToGet, -1):
+            self.notify.warning("Failed to add ingredient %d to pouch!" % (invItemToGet))
+            return
+
+        # Apparently setPouch has to be sent back to the client twice here because `onCheckForGiveGetUpdates`
+        # only fires if pouchUpdateCalls is greater than 1
+        pouch = self.air.inventoryManager.getPouch(self.doId)
+        self.d_setPouch(pouch)
+        self.d_setPouch(pouch)
 
     def auraRemover(self, task):
         self.sendUpdateToAvatarId(self.doId, "setAura", [0])
