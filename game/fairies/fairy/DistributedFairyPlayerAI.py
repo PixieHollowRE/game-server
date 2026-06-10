@@ -205,7 +205,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         if not self.air.inventoryManager.removeIngredientsFromPouch(self.doId, invItemToGive, amountToGive):
             print("tradeItemForGold - Couldn't Remove Ingredients??")
             return
-        
+
         if not self.air.inventoryManager.addIngredientsToPouch(self.doId, invItemToGet, amountToGet, -1):
             self.notify.warning("Failed to add ingredient %d to pouch!" % (invItemToGet))
             return
@@ -238,7 +238,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def _handleAuraSweet(self, itemId, _):
         aura_id = AURA_MAPPING[itemId]
         self.sendUpdateToAvatarId(self.doId, "setAura", [aura_id])
-        
+
         # Cancel any existing aura timer and start fresh
         taskMgr.remove("AuraRemover")
         taskMgr.doMethodLater(60, self.auraRemover, "AuraRemover")
@@ -257,7 +257,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         taskMgr.remove("InvisRemover")
         taskMgr.doMethodLater(60, self.invisRemover, "InvisRemover")
-    
+
     def _cancelColorSweet(self, slotIndex):
         taskMgr.remove(f"DNARestore-{slotIndex}")
         taskMgr.remove(f"ColorCycle-{slotIndex}")
@@ -294,14 +294,14 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         restore_task = taskMgr.doMethodLater(60, self._restoreDNATask, restore_task_name)
         restore_task.slotIndex = slotIndex
-        
+
     def _applyColorStep(self, avatar, color, slotIndex):
         """Single color application step, used by cycling tasks."""
         dna = list(avatar.getFairyDNA())
         dna[slotIndex] = color
         avatar.b_setFairyDNA(tuple(dna))
         avatar.redrawFairy()
-    
+
     def _runColorCycle(self, avatar, colors, slotIndex, cycleIndex=0):
         self._applyColorStep(avatar, colors[cycleIndex], slotIndex)
 
