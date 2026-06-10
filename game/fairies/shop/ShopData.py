@@ -3647,13 +3647,6 @@ SHOPS = [
                     ShopItem(itemId=4521, price=10, goldPrice=2),
                     ShopItem(itemId=4522, price=10, goldPrice=2),
                     ShopItem(itemId=4523, price=10, goldPrice=2),
-                    
-                ],
-            ),
- ShopCollection(
-                collectionId=4018, # Expressions
-                currencyId=FairiesConstants.DAISY_PETALS,
-                items=[
                     # Sparrowmen
                     ShopItem(itemId=4535, price=10, goldPrice=2), 
                     ShopItem(itemId=4536, price=10, goldPrice=2), 
@@ -3665,6 +3658,7 @@ SHOPS = [
                     ShopItem(itemId=4542, price=10, goldPrice=2),                   
                     ShopItem(itemId=4543, price=10, goldPrice=2),
                     ShopItem(itemId=4544, price=10, goldPrice=2),
+                    
                 ],
             ),
             ShopCollection(
