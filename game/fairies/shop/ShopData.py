@@ -2679,7 +2679,7 @@ SHOPS = [
                     ShopItem(itemId=14176, price=5, goldPrice=1), # Silvermist Blue
                     ShopItem(itemId=14180, price=5, goldPrice=1), # Seashell Blue
                     ShopItem(itemId=14207, price=5, goldPrice=1), # Diamond Blue
-                    ShopItem(itemId=14029, price=5, goldPrice=1), # Deep Sea Blue
+                    ShopItem(itemId=14209, price=5, goldPrice=1), # Deep Sea Blue
                     ShopItem(itemId=14213, price=5, goldPrice=1), # Cobalt Blue
                     ShopItem(itemId=14223, price=5, goldPrice=1), # Teal Blue
                     ShopItem(itemId=14266, price=5, goldPrice=1), # Ocean Blue
@@ -3647,13 +3647,6 @@ SHOPS = [
                     ShopItem(itemId=4521, price=10, goldPrice=2),
                     ShopItem(itemId=4522, price=10, goldPrice=2),
                     ShopItem(itemId=4523, price=10, goldPrice=2),
-                    
-                ],
-            ),
- ShopCollection(
-                collectionId=4018, # Expressions
-                currencyId=FairiesConstants.DAISY_PETALS,
-                items=[
                     # Sparrowmen
                     ShopItem(itemId=4535, price=10, goldPrice=2), 
                     ShopItem(itemId=4536, price=10, goldPrice=2), 
@@ -3665,6 +3658,7 @@ SHOPS = [
                     ShopItem(itemId=4542, price=10, goldPrice=2),                   
                     ShopItem(itemId=4543, price=10, goldPrice=2),
                     ShopItem(itemId=4544, price=10, goldPrice=2),
+                    
                 ],
             ),
             ShopCollection(
