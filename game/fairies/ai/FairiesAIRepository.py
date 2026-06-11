@@ -166,6 +166,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         # Add more fields if needed. (Good spot to look if the field you want
         # is an ownrequired field, but no required or ram.)
         dbo.readObject(fairyPlayer, ["setGold"])
+
         docs = self.mongoInterface.retrieveDocs(
             "fairies", fairyPlayer.doId, queryField="_id"
         )

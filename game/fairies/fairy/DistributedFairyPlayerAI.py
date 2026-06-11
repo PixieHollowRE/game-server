@@ -41,7 +41,9 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def announceGenerate(self):
         self.air.incrementPopulation()
 
+        # Fill in the missing information from the database (i.e. gold)
         self.air.fillInFairyPlayer(self)
+
         if not DAILY_CHANCE_ONCE_PER_DAY_ENABLED:
             self._sync_daily_chance_not_played_for_client()
 
