@@ -556,7 +556,7 @@ dclass DistributedFairyBase : TalkPath_owner, TalkPath_whisper { // 78
     setPositionCurve(uint32, uint32, uint32, uint32, uint32, uint32, uint32, int32) ram ownsend broadcast; // 465
     setRotation(uint32) ram required ownsend broadcast ownrequired; // 466
     setFairyDNA(FairyDNA) required ownrequired broadcast db ownrecv; // 467
-    setFairyPose(FairyPose) required ownrequired broadcast db ownrecv; // 468
+    setFairyPose(FairyPose) required ownrequired broadcast db ownrecv ownsend; // 468
     setHeadItem(LiteInvItemExt) required ownrequired broadcast db ownrecv; // 469
     setNecklace(LiteInvItemExt) required ownrequired broadcast db ownrecv; // 470
     setChestItem(LiteInvItemExt) required ownrequired broadcast db ownrecv; // 471
