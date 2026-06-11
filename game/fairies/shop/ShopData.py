@@ -559,7 +559,7 @@ SHOPS = [
                     ShopItem(itemId=1208, price=45, goldPrice=16, color1=111, color2=130, itemType="Skirt"), # Sparkling Yellow Tea-Brewer Skirt
                     ShopItem(itemId=3696, price=25, goldPrice=10, color1=130, color2=130, itemType="Shoes"), # Orchid Pink Petal Slippers
 
-                    ShopItem(itemId=2157, price=25, goldPrice=10, color1=166, color2=189, itemType="HeadItem"), # Snow White Baking Hat with Ladybug Red Trim
+                    ShopItem(itemId=2045, price=25, goldPrice=10, color1=166, color2=189, itemType="HeadItem"), # Snow White Baking Hat with Ladybug Red Trim
                     ShopItem(itemId=93, price=45, goldPrice=16, color1=189, color2=125, itemType="Shirt"), # Ladybug Red Desert Adventure Top
                     ShopItem(itemId=571, price=15, goldPrice=6, color1=45, color2=45, itemType="Belt"), # Strawberry Red Simple Apron
                     ShopItem(itemId=1520, price=15, goldPrice=6, color1=45, color2=166, itemType="WristItem"), # Strawberry Red Oven Mitt with Snow White Trim
