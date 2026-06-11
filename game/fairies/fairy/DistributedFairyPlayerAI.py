@@ -466,7 +466,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.air.sendUpdateToChannelFrom(self, channelId, "setWhisperSCEmoteFrom", fromId, [fromId, emoteId])
 
     def removeFromInventory(self, invId, itemId):
-
         self.air.mongoInterface.mongodb.fairies.update_one(
             {"_id": self.doId},
                 {
@@ -481,15 +480,14 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.air.inventoryManager.sendUpdateToAvatarId(self.doId, "wardrobeRemove", [0, invId])
 
     def requestGlobalPurchase(self, item):
-       glblpId, qty = item[0]
+        glblpId, qty = item[0]
 
-       if not self.takeGold(qty):
-           self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [0])
-           return
-       
-       self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [1])
+        if not self.takeGold(qty):
+            self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [0])
+            return
+
+        self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [1])
 
     def requestSendUpdateFairyName(self, name):
         self.b_setName(name)
         self.sendUpdateToAvatarId(self.doId, "setRedraw", [1])
-
