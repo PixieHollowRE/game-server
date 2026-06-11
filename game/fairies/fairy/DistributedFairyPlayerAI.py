@@ -5,6 +5,8 @@ from game.otp.otpbase import OTPGlobals
 from .DistributedFairyBaseAI import DistributedFairyBaseAI
 from game.fairies.ai.BakingAssets import BAKED_ITEMS
 from game.fairies.fairy.AuraMapping import AURA_MAPPING, SKIN_COLOR_MAPPING, WING_COLOR_MAPPING
+from game.fairies.fairy.structs.MiscItem import MiscItem
+
 from game.fairies.daily.DailyChanceData import (
     DEV_TEST_PRIZE,
     owned_spin_badge_exclude_mask,
@@ -44,7 +46,9 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             self._sync_daily_chance_not_played_for_client()
 
         self.air.inventoryManager.avatarOnline(self.doId)
-        self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [100])
+        self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [1000])
+        glblpurchase = MiscItem.unpackFromTuple((90003, 8006, 500, 200, 1))
+        self.sendUpdateToAvatarId(self.doId, "setGlobalPurchaseData", [[glblpurchase]])
 
     def delete(self):
         # TODO: Set a post-remove message in case of an AI crash.
@@ -567,7 +571,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.air.sendUpdateToChannelFrom(self, channelId, "setWhisperSCEmoteFrom", fromId, [fromId, emoteId])
 
     def removeFromInventory(self, invId, itemId):
-
         self.air.mongoInterface.mongodb.fairies.update_one(
             {"_id": self.doId},
                 {
@@ -580,3 +583,16 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         )
 
         self.air.inventoryManager.sendUpdateToAvatarId(self.doId, "wardrobeRemove", [0, invId])
+
+    def requestGlobalPurchase(self, item):
+        glblpId, qty = item[0]
+
+        if not self.takeGold(qty):
+            self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [0])
+            return
+
+        self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [1])
+
+    def requestSendUpdateFairyName(self, name):
+        self.b_setName(name)
+        self.sendUpdateToAvatarId(self.doId, "setRedraw", [1])
