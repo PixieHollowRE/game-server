@@ -29,7 +29,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         if self.getLevel() != NEW_LEVEL:
             # TEMP: Set level at the request of Jessibee for the Test server.
-            self.sendUpdate("setLevel", [NEW_LEVEL])
+            self.b_setLevel(NEW_LEVEL)
 
     def delete(self):
         # TODO: Set a post-remove message in case of an AI crash.
