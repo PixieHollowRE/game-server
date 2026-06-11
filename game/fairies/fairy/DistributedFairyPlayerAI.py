@@ -458,7 +458,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             # Calls _handleAuraSweet, _handleSkinSweet, or _handleWingSweet
             # depending on sweet_type. Add new types by adding a matching method.
             handler = getattr(self, f"_handle{sweet_type.capitalize()}Sweet")
-            handler(itemId, self)
+            handler(itemId)
 
         self.sendUpdateToAvatarId(self.doId, "setItemEvent", [itemId, amount, 0, 0])
         self.air.inventoryManager.removeIngredientsFromPouch(self.doId, itemId, amount)
