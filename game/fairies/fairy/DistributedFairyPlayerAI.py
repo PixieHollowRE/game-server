@@ -48,7 +48,9 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             self._sync_daily_chance_not_played_for_client()
 
         self.air.inventoryManager.avatarOnline(self.doId)
+
         self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [1000])
+
         glblpurchase = MiscItem.unpackFromTuple((90003, 8006, 500, 200, 1))
         self.sendUpdateToAvatarId(self.doId, "setGlobalPurchaseData", [[glblpurchase]])
 
