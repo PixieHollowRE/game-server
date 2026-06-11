@@ -385,14 +385,13 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         del self._originalDNA[slotIndex]
 
     def _restoreDNATask(self, task):
-        avatar = self.air.doId2do.get(self.doId)
-        if avatar and task.slotIndex in self._originalDNA:
+        if not self.isDeleted() and task.slotIndex in self._originalDNA:
             self._restoreDNA(avatar, task.slotIndex)
         return task.done
 
     def _runColorCycleTask(self, task):
         avatar = self.air.doId2do.get(self.doId)
-        if avatar:
+        if not self.isDeleted():
             self._applyColorStep(avatar, task.colors[task.cycleIndex], task.slotIndex)
             task.cycleIndex = (task.cycleIndex + 1) % len(task.colors)
         return task.again
