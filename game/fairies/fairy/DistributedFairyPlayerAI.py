@@ -353,98 +353,98 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             return "wing"
         return None
 
-    def _handleAuraSweet(self, itemId, _):
+    def _handleAuraSweet(self, itemId):
         aura_id = AURA_MAPPING[itemId]
         self.sendUpdateToAvatarId(self.doId, "setAura", [aura_id])
 
         # Cancel any existing aura timer and start fresh
-        taskMgr.remove("AuraRemover")
-        taskMgr.doMethodLater(60, self.auraRemover, "AuraRemover")
+        taskMgr.remove(f"AuraRemover-{self.doId}")
+        taskMgr.doMethodLater(60, self.auraRemover, f"AuraRemover-{self.doId}")
 
-    def _handleSkinSweet(self, itemId, avatar):
+    def _handleSkinSweet(self, itemId):
         color = SKIN_COLOR_MAPPING[itemId]
-        self._applyDNAColor(avatar, color, slotIndex=12)
+        self._applyDNAColor(color, slotIndex=12)
 
-    def _handleWingSweet(self, itemId, avatar):
+    def _handleWingSweet(self, itemId):
         color = WING_COLOR_MAPPING[itemId]
-        self._applyDNAColor(avatar, color, slotIndex=13)
+        self._applyDNAColor(color, slotIndex=13)
 
-    def _handleInvisibleSweet(self, _, avatar):
+    def _handleInvisibleSweet(self, _):
         self.sendUpdateToAvatarId(self.doId, "setRenderEffects", [1])
-        avatar.redrawFairy()
+        self.redrawFairy()
 
-        taskMgr.remove("InvisRemover")
-        taskMgr.doMethodLater(60, self.invisRemover, "InvisRemover")
+        taskMgr.remove(f"InvisRemover-{self.doId}")
+        taskMgr.doMethodLater(60, self.invisRemover, f"InvisRemover-{self.doId}")
 
     def _cancelColorSweet(self, slotIndex):
-        taskMgr.remove(f"DNARestore-{slotIndex}")
-        taskMgr.remove(f"ColorCycle-{slotIndex}")
+        taskMgr.remove(f"DNARestore-{self.doId}-{slotIndex}")
+        taskMgr.remove(f"ColorCycle-{self.doId}-{slotIndex}")
 
-    def _restoreDNA(self, avatar, slotIndex):
-        taskMgr.remove(f"ColorCycle-{slotIndex}")
+    def _restoreDNA(self, slotIndex):
+        taskMgr.remove(f"ColorCycle-{self.doId}-{slotIndex}")
         if slotIndex not in self._originalDNA:
             return  # already restored, nothing to do
-        dna = list(avatar.getFairyDNA())
+        dna = list(self.getFairyDNA())
         dna[slotIndex] = self._originalDNA[slotIndex]
-        avatar.b_setFairyDNA(tuple(dna))
-        avatar.redrawFairy()
+        self.b_setFairyDNA(tuple(dna))
+        self.redrawFairy()
         del self._originalDNA[slotIndex]
 
     def _restoreDNATask(self, task):
         if not self.isDeleted() and task.slotIndex in self._originalDNA:
-            self._restoreDNA(self, task.slotIndex)
+            self._restoreDNA(task.slotIndex)
         return task.done
 
     def _runColorCycleTask(self, task):
         if not self.isDeleted():
-            self._applyColorStep(self, task.colors[task.cycleIndex], task.slotIndex)
+            self._applyColorStep(task.colors[task.cycleIndex], task.slotIndex)
             task.cycleIndex = (task.cycleIndex + 1) % len(task.colors)
         return task.again
 
-    def _applyDNAColor(self, avatar, color, slotIndex):
+    def _applyDNAColor(self, color, slotIndex):
         if isinstance(color, list):
-            self._scheduleCyclingColors(avatar, color, slotIndex)
+            self._scheduleCyclingColors(color, slotIndex)
             return
 
-        restore_task_name = f"DNARestore-{slotIndex}"
+        restore_task_name = f"DNARestore-{self.doId}-{slotIndex}"
 
         if not taskMgr.hasTaskNamed(restore_task_name):
-            self._originalDNA[slotIndex] = avatar.getFairyDNA()[slotIndex]
+            self._originalDNA[slotIndex] = self.getFairyDNA()[slotIndex]
 
         self._cancelColorSweet(slotIndex)
 
-        dna = list(avatar.getFairyDNA())
+        dna = list(self.getFairyDNA())
         dna[slotIndex] = color
-        avatar.b_setFairyDNA(tuple(dna))
-        avatar.redrawFairy()
+        self.b_setFairyDNA(tuple(dna))
+        self.redrawFairy()
 
         restore_task = taskMgr.doMethodLater(60, self._restoreDNATask, restore_task_name)
         restore_task.slotIndex = slotIndex
 
-    def _applyColorStep(self, avatar, color, slotIndex):
+    def _applyColorStep(self, color, slotIndex):
         """Single color application step, used by cycling tasks."""
-        dna = list(avatar.getFairyDNA())
+        dna = list(self.getFairyDNA())
         dna[slotIndex] = color
-        avatar.b_setFairyDNA(tuple(dna))
-        avatar.redrawFairy()
+        self.b_setFairyDNA(tuple(dna))
+        self.redrawFairy()
 
-    def _runColorCycle(self, avatar, colors, slotIndex, cycleIndex=0):
-        self._applyColorStep(avatar, colors[cycleIndex], slotIndex)
+    def _runColorCycle(self, colors, slotIndex, cycleIndex=0):
+        self._applyColorStep(colors[cycleIndex], slotIndex)
 
-        cycle_task = taskMgr.doMethodLater(5, self._runColorCycleTask, f"ColorCycle-{slotIndex}")
+        cycle_task = taskMgr.doMethodLater(5, self._runColorCycleTask, f"ColorCycle-{self.doId}-{slotIndex}")
         cycle_task.colors = colors
         cycle_task.slotIndex = slotIndex
         cycle_task.cycleIndex = (cycleIndex + 1) % len(colors)
 
-    def _scheduleCyclingColors(self, avatar, colors, slotIndex):
-        restore_task_name = f"DNARestore-{slotIndex}"
+    def _scheduleCyclingColors(self, colors, slotIndex):
+        restore_task_name = f"DNARestore-{self.doId}-{slotIndex}"
 
         if not taskMgr.hasTaskNamed(restore_task_name):
-            self._originalDNA[slotIndex] = avatar.getFairyDNA()[slotIndex]
+            self._originalDNA[slotIndex] = self.getFairyDNA()[slotIndex]
 
         self._cancelColorSweet(slotIndex)
 
-        self._runColorCycle(avatar, colors, slotIndex, cycleIndex=0)
+        self._runColorCycle(colors, slotIndex, cycleIndex=0)
 
         restore_task = taskMgr.doMethodLater(60, self._restoreDNATask, restore_task_name)
         restore_task.slotIndex = slotIndex
