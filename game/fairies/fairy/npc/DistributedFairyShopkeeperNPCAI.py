@@ -176,6 +176,11 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
 
             return True
 
+        if self.zoneId == 110011: # Spikes
+            self.purchasePouchItemsHelper(avId, item.itemId, amount)
+
+            return True
+
         if self.zoneId == 112000: # Daisy's Dyes
             self.purchasePouchItemsHelper(avId, item.itemId, amount)
 

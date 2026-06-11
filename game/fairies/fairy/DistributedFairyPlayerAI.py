@@ -380,6 +380,16 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         taskMgr.remove(f"DNARestore-{slotIndex}")
         taskMgr.remove(f"ColorCycle-{slotIndex}")
 
+    def _restoreDNA(self, avatar, slotIndex):
+        taskMgr.remove(f"ColorCycle-{slotIndex}")
+        if slotIndex not in self._originalDNA:
+            return  # already restored, nothing to do
+        dna = list(avatar.getFairyDNA())
+        dna[slotIndex] = self._originalDNA[slotIndex]
+        avatar.b_setFairyDNA(tuple(dna))
+        avatar.redrawFairy()
+        del self._originalDNA[slotIndex]
+
     def _restoreDNATask(self, task):
         avatar = self.air.doId2do.get(self.doId)
         if avatar and task.slotIndex in self._originalDNA:
