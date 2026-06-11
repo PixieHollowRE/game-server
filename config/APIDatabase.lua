@@ -381,6 +381,16 @@ function handleSetStoredValues(participant, dgi)
             Api2Value["skin_color"] = value[13]
             Api2Value["wing_color"] = value[14]
             Api2Value["gender"] = value[15]
+        elseif field == "setFairyPose" then
+            Api2Value["head_rot"] = value[1]
+            Api2Value["ul_arm_rot"] = value[2]
+            Api2Value["ur_arm_rot"] = value[3]
+            Api2Value["ll_arm_rot"] = value[4]
+            Api2Value["lr_arm_rot"] = value[5]
+            Api2Value["ul_leg_rot"] = value[6]
+            Api2Value["ur_leg_rot"] = value[7]
+            Api2Value["ll_leg_rot"] = value[8]
+            Api2Value["lr_leg_rot"] = value[9]
         else
             if Field2Api[field] ~= nil then
                 Api2Value[Field2Api[field]] = value
