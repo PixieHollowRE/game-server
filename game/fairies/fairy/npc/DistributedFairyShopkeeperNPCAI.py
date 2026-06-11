@@ -53,7 +53,6 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
         self.dye2Price = dye2Price
         self.dye1Gold = dye1Gold
         self.dye2Gold = dye2Gold
-        print("setprice")
 
     def getDyePrice(self) -> tuple[int, int, int, int, int]:
         return (
@@ -68,7 +67,7 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
         avId = self.air.getAvatarIdFromSender()
         itemsTriedOn = ShopTriedOnItems.unpackFromTuple((avId, items))
         self.sendUpdateToAvatarId(avId, "setTriedOnItems", [[itemsTriedOn]])
-    
+
     def setRequestDyeItem(self, invId, color1, color2, type, unk2):
         avId = self.air.getAvatarIdFromSender()
         avatar = self.air.doId2do.get(avId)
@@ -89,7 +88,7 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
 
         if not fields:
             return False  # Nothing to update
-        
+
         ing_type = self.dyeCostItemId
         success = self.air.inventoryManager.removeIngredientsFromPouch(avId, ing_type, price)
         avatar.d_syncPouchAfterChanges()
@@ -109,7 +108,6 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
         else:
             # Send failure purchase response back to the client.
             self.d_setPurchaseResponse(avId, success)
-
 
     def setRequestPurchase(self, items, usingGold) -> None:
         avId = self.air.getAvatarIdFromSender()
@@ -153,7 +151,7 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
             priceTotal += requestPrice
 
         if usingGold:
-            success = avatar.takeGold(priceTotal) 
+            success = avatar.takeGold(priceTotal)
         else:
             first_collection_id = purchaseRequests[0][2] # Not a stale loop variable now oops
             ing_type = shop.collectionsById.get(first_collection_id).currencyId
