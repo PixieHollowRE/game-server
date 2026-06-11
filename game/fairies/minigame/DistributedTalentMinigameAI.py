@@ -7,7 +7,7 @@ class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
         super().__init__(air)
 
         self.gameID: int = 0
-        self.totalScore: int = 0
+        self._scores: dict[int, int] = {}
         self._pendingRewards: dict[int, list] = {}  # avId -> rewards list
 
     def setGameID(self, gameID: int) -> None:
@@ -19,8 +19,8 @@ class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
     def reportScore(self, score: int) -> None:
         if self.gameID == MINIGAME_DAILY_CHANCE:
             return
-        self.totalScore += score
-        print("reportScore", score, self.totalScore)
+        avId = self.air.getAvatarIdFromSender()
+        self._scores[avId] = self._scores.get(avId, 0) + score
 
     def endGame(self, unknown: int) -> None:
         if self.gameID == MINIGAME_DAILY_CHANCE:
@@ -30,11 +30,11 @@ class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
         print("endGame", unknown)
 
         avatarId = self.air.getAvatarIdFromSender()
+        totalScore = self._scores.pop(avatarId, 0)
 
-        rewards = calc_rewards(self.gameID, self.totalScore)
+        rewards = calc_rewards(self.gameID, totalScore)
         self._pendingRewards[avatarId] = rewards
         self.sendUpdateToAvatarId(avatarId, "setRewards", [rewards])
-        self.totalScore = 0
 
     def chooseReward(self, rewardId: int) -> None:
         avId = self.air.getAvatarIdFromSender()
