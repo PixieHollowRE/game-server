@@ -45,6 +45,33 @@ end
 readChatPhrases()
 print("TalkFilter: Successfully loaded SpeedChat phrases.")
 
+-- Name generator prefix/suffix lists, used to allow mixed-and-matched
+-- pixie names like "Bumblebee" (Bumble + bee) even if the combined
+-- word isn't individually listed in the whitelist.
+NAME_PREFIXES = {}
+function readNamePrefixes()
+    local io = require("io")
+    local f, err = io.open("../assets/localization/NamePrefixes.txt")
+    assert(not err, err)
+    for line in f:lines() do
+        NAME_PREFIXES[line] = true
+    end
+end
+readNamePrefixes()
+print("TalkFilter: Successfully loaded name prefixes.")
+
+NAME_SUFFIXES = {}
+function readNameSuffixes()
+    local io = require("io")
+    local f, err = io.open("../assets/localization/NameSuffixes.txt")
+    assert(not err, err)
+    for line in f:lines() do
+        NAME_SUFFIXES[line] = true
+    end
+end
+readNameSuffixes()
+print("TalkFilter: Successfully loaded name suffixes.")
+
 function isWordOnWhitelist(word)
     -- Test without stripping out the punctuations first
     if WHITELIST[string.lower(word)] then
@@ -52,6 +79,26 @@ function isWordOnWhitelist(word)
     end
     -- Now try with puncutations stripped out
     return WHITELIST[string.lower(string.gsub(word, "[.,?!]", ""))]
+end
+
+-- Checks whether a word can be split into a known name prefix
+-- followed by a known name suffix, e.g. "bumble" + "bee" = "bumblebee".
+local function isPrefixSuffixName(word)
+    local lowerWord = string.lower(word)
+    local len = string.len(lowerWord)
+
+    -- Try every possible split point. Require at least 1 character
+    -- on each side.
+    for splitPoint = 1, len - 1 do
+        local left = string.sub(lowerWord, 1, splitPoint)
+        local right = string.sub(lowerWord, splitPoint + 1)
+
+        if NAME_PREFIXES[left] and NAME_SUFFIXES[right] then
+            return true
+        end
+    end
+
+    return false
 end
 
 function filterWhitelist(message, filterOverride)
@@ -99,10 +146,17 @@ function filterWhitelist(message, filterOverride)
             return true
         end
 
+        -- Check if this is a valid mixed-and-matched pixie name
+        -- (e.g. "Bumblebee" = "Bumble" + "bee").
+        if isPrefixSuffixName(wordToFind) then
+            return true
+        end
+
         wordToFind = stripLeadingAndTrailingPunctuation(wordToFind, false)
 
-        -- Now return whether the word is in the whitelist.
-        return WHITELIST[wordToFind]
+        -- Now return whether the word is in the whitelist, or whether
+        -- the stripped word is a valid prefix+suffix name.
+        return WHITELIST[wordToFind] or isPrefixSuffixName(wordToFind)
     end
 
     -- Match any character except spaces.
