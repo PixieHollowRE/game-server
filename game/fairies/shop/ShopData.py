@@ -715,7 +715,7 @@ SHOPS = [
 
                 ShopItem(itemId=2371, price=25, goldPrice=10, color1=121, color2=121, itemType="HeadItem"), # Daisy Pink Rosetta's Headwrap
                 ShopItem(itemId=1000004, price=40, goldPrice=16, color1=174, color2=121, itemType="Shirt"), # Rosetta Red Rosetta's Winter Top
-                ShopItem(itemId=1658, price=15, goldPrice=6, color1=84, color2=166, itemType="Wristitem"), # Copper Brown Cottonpuff Clutch
+                ShopItem(itemId=1658, price=15, goldPrice=6, color1=84, color2=166, itemType="WristItem"), # Copper Brown Cottonpuff Clutch
                 ShopItem(itemId=1419, price=40, goldPrice=16, color1=224, color2=174, itemType="Skirt"), # Ivory White Rosetta's Winter Skirt
                 ShopItem(itemId=3564, price=25, goldPrice=10, color1=174, color2=217, itemType="Shoes"), # Rosetta Red Slim Leaf Shoes with Gray Trim
 
