@@ -201,10 +201,12 @@ def zone_map_bounds(zone_id: int) -> SpawnBounds:
 
 
 # =============================================================================
-# Exclusion Zones
+# Spawn Exclusions
 #
-# Keep-out rectangles around gateways/signs/shops. Auto-generated from
-# GatewayConstants plus hand-tuned overrides in _MANUAL_EXCLUSIONS_BY_ZONE.
+# Keep-out rectangles around gateways, games, and shops. Gateways in
+# _TUNED_EXCLUSIONS were hand-tuned during the acorn density pass; every other
+# gateway in the meadow gets a default sign footprint at its GatewayConstants
+# position.
 # =============================================================================
 
 DEFAULT_SIGN_WIDTH = 96
@@ -258,155 +260,140 @@ def _sign(
     )
 
 
-def exclusion_rect_around(
-    origin_x: int,
-    origin_y: int,
-    padding: int = DEFAULT_SIGN_PADDING,
-    sign_width: int = DEFAULT_SIGN_WIDTH,
-    sign_height: int = DEFAULT_SIGN_HEIGHT,
-) -> SpawnExclusionZone:
-    """Build a keep-out rectangle from the upper-left corner of a sign/gateway."""
-    half_w = sign_width // 2
-    half_h = sign_height // 2
-    center_x = origin_x + half_w
-    center_y = origin_y + half_h
-    return SpawnExclusionZone(
-        center_x - half_w - padding,
-        center_x + half_w + padding,
-        center_y - half_h - padding,
-        center_y + half_h + padding,
-    )
+# Hand-tuned keep-outs keyed by gateway ID (see GatewayConstants.GATEWAYS).
+_TUNED_EXCLUSIONS: dict[int, dict[str, SpawnExclusionZone]] = {
+    # --- Spring ---
+    zc.CHERRYBLOSSOM_HEIGHTS: {
+        "9014": _sign(385, 100, margin_right=85, margin_bottom=110, margin_left=245),  # Petal Pick-Up
+        "9149": _sign(90, 555, margin_right=85, margin_bottom=245),  # Rosetta's Garden
+        "9017": _sign(1345, 570, margin_top=195, margin_right=70, margin_left=195),  # Daisy's Dyes
+        "9302": _sign(880, 815, margin_top=145, margin_bottom=145, margin_left=95),  # Troop Butterfly Hideout
+    },
+    zc.SPRINGTIME_ORCHARD: {
+        "9170": exclusion_footprint(-10, 420, 130, 120, margin_top=30, margin_right=30, margin_bottom=30, margin_left=20),  # Havendish sign
+        "9009": _sign(1460, 853, margin_top=70, margin_right=145, margin_bottom=95),  # Firefly Light Up
+        "9011": _sign(390, 765, margin_right=195, margin_bottom=195),  # Bobbin's Tailoring
+        "9203": _sign(402, 338, margin_top=85, margin_right=85, margin_bottom=165, margin_left=195),  # Beck's Animal Nursery
+    },
+    zc.DEWDROP_VALE: {
+        "9025": _sign(920, 1210, margin_top=70, margin_left=85),  # Silvermist's Grotto
+        "9021": _sign(544, 810, margin_top=195, margin_bottom=85, margin_left=235),  # Garden Supply
+        "9303": _sign(483, 330, margin_top=110, margin_bottom=70, margin_left=85),  # Troop Otter Hideout
+        "9010": _sign(100, 1190, margin_right=195, margin_bottom=195),  # Bubble Bounce
+        "9053": _sign(1125, 910, margin_right=75),  # Neverberry Thicket sign
+        "9031": _sign(98, 410, margin_right=70, margin_bottom=69),  # Springtime Orchard sign
+    },
+    zc.NEVERBERRY_THICKET: {
+        "9286": _sign(1183, 324, margin_top=120, margin_right=70, margin_bottom=70, margin_left=220),  # Harmony's Sweet Shop
+        "9205": _sign(1596, 595, margin_top=120, margin_right=70, margin_bottom=125, margin_left=120),  # Elixa's Hospital
+        "9013": _sign(1750, 705, margin_right=145, margin_bottom=195, margin_left=70),  # Water Web
+        "9155": _sign(850, 710, margin_right=145, margin_bottom=120, margin_left=70),  # Dulcie's Baking
+    },
+    zc.TREETOP_BEND: {
+        "9019": exclusion_footprint(341, 1067, 96, 100, margin_top=95, margin_right=245, margin_bottom=145, margin_left=95),  # Bella's Baubles
+        "9187": exclusion_footprint(1365, 985, 96, 100, margin_top=70, margin_right=155, margin_bottom=310, margin_left=70),  # Seed Sorting
+        "9020": exclusion_footprint(1019, 648, 96, 100, margin_top=120, margin_right=195, margin_bottom=195, margin_left=170),  # Treetop Housewares
+        "9224": exclusion_footprint(422, 238, 96, 100, margin_top=45, margin_right=445, margin_bottom=195, margin_left=45),  # Neville's New Homes
+    },
+    # --- Summer ---
+    zc.PALM_TREE_COVE: {
+        "9216": _sign(1707, 602, margin_top=145, margin_bottom=195, margin_left=150),  # Butterfly Painter
+        "9299": _sign(406, 571, margin_right=545, margin_bottom=295),  # Prism's Pixie Spa
+        "9045": _sign(1630, 233),  # Dewdrop Vale sign
+        "9159": _sign(205, 215),  # Neverfruit Grove sign
+        "9247": _sign(1450, 795, margin_right=120, margin_bottom=270),  # Mermaid Grotto
+    },
+    zc.SUNFLOWER_GULLY: {
+        "9146": _sign(285, 1030, margin_top=75, margin_right=105, margin_bottom=75, margin_left=15),  # Iridessa's Glade
+        "9147": _sign(508, 756, margin_top=245, margin_right=245, margin_bottom=95),  # Phoebe's Party Favors
+        "9079": _sign(220, 1437, margin_top=55, margin_right=75),  # Cottonpuff Field sign
+        "9272": exclusion_rect(800, 1150, 850, 1250),  # Sunbeam Bend game area
+        "9305": _sign(905, 640, margin_top=65),  # Troop Glowworm Hideout
+    },
+    zc.NEVERFRUIT_GROVE: {
+        "9278": exclusion_footprint(380, 130, 150, 170, margin_top=75, margin_right=375, margin_bottom=100, margin_left=25),  # Pixie Post Office
+        "9209": _sign(1202, 462, margin_top=95, margin_right=95, margin_bottom=195),  # First Flight
+    },
+    # --- Autumn ---
+    zc.ACORN_SUMMIT: {
+        "9023": _sign(964, 452, margin_top=90, margin_right=270, margin_bottom=125, margin_left=70),  # Summit Style
+        "9228": _sign(1017, 185, margin_right=125, margin_bottom=70, margin_left=75),  # Vidia's Daily Spin
+        "9024": _sign(460, 52, margin_right=135, margin_bottom=125, margin_left=145),  # Fairy Fireworks
+    },
+    zc.COTTONPUFF_FIELD: {
+        "9210": _sign(646, 433, margin_top=-5, margin_right=145, margin_bottom=145, margin_left=145),  # Coal's Clothiers
+        "9145": _sign(672, 745, margin_right=145, margin_bottom=195, margin_left=65),  # Tinker Toss
+        "9026": _sign(1715, 765, margin_top=95, margin_right=95, margin_bottom=95, margin_left=95),  # Tinker's Nook
+        "9304": _sign(330, 815, margin_top=95, margin_right=95, margin_bottom=95, margin_left=95),  # Troop Turtle Hideout
+    },
+    zc.MAPLE_TREE_HILL: {
+        "9154": _sign(482, 940, margin_top=145, margin_right=15, margin_bottom=135, margin_left=285),  # Copper's Tinkering
+        "9012": _sign(738, 1318, margin_top=95, margin_bottom=145, margin_left=145),  # Mendy's Tailoring
+        "9301": _sign(575, 280, margin_top=125, margin_right=70, margin_bottom=70, margin_left=70),  # Troop Rabbit Hideout
+        "9027": _sign(342, 1740, margin_top=145, margin_left=145),  # Fawn's Hideout
+        "9028": _sign(1075, 445),  # Springtime Orchard sign
+    },
+    zc.PUMPKIN_PATCH: {
+        "9015": _sign(980, 670, margin_top=95, margin_right=245, margin_bottom=145, margin_left=95),  # Harvest Hustle
+    },
+    # --- Winter ---
+    zc.SNOWCAP_GLADE: {
+        "9246": _sign(239, 124, margin_top=95, margin_right=125, margin_bottom=195, margin_left=145),  # Pinecone Pop
+        "9144": _sign(1830, 550, margin_right=270, margin_bottom=145, margin_left=85),  # Snowy Lullaby
+        "9126": _sign(1509, 215, margin_top=145, margin_bottom=20, margin_left=220),  # Gale's Outfitters
+        "9075": _sign(201, 632, margin_right=65, margin_bottom=65),  # Acorn Summit sign
+    },
+    zc.EVERGREEN_OVERLOOK: {
+        "9125": _sign(645, 1500, margin_top=120, margin_right=65, margin_bottom=165, margin_left=175),  # Snowflake Sweep
+        "9280": _sign(908, 1057, margin_top=120, margin_left=120),  # Kit's Place
+        "9291": _sign(720, 320, margin_top=195, margin_bottom=95, margin_left=125),  # Frosted Forest sign
+    },
+    zc.CHILLY_FALLS: {
+        "9124": _sign(960, 831, margin_left=345),  # Ember's Essentials
+        "9269": _sign(1001, 1096, margin_bottom=195, margin_left=270),  # Gem Juggle
+    },
+    # --- Havendish Square ---
+    zc.HAVENDISH_SQUARE: {
+        "9282": exclusion_footprint(40, 223, 220, 200, margin_top=5, margin_right=40, margin_bottom=50, margin_left=10),  # Queen's Boutique
+        "9214": exclusion_footprint(250, 300, 310, 280, margin_top=5, margin_right=105, margin_bottom=60, margin_left=20),  # Cassie's Costume Shop
+        "9267": exclusion_footprint(200, 860, 240, 360, margin_top=20, margin_right=35, margin_bottom=25, margin_left=90),  # Pixie Dust Mill
+        "9179": exclusion_footprint(940, 460, 420, 420, margin_top=80, margin_right=90, margin_bottom=90, margin_left=110),  # Fairy Tale Theater
+        "9188": exclusion_footprint(1170, 300, 250, 350, margin_top=90, margin_right=80, margin_bottom=80, margin_left=100),  # Ballroom
+        "9180": exclusion_rect(1870, 2140, 300, 610),  # Tearoom
+        "9206": _sign(1635, 949, margin_top=145, margin_right=95, margin_left=195),  # Pixie Postings
+        "9028": exclusion_footprint(1960, 760, 110, 120, margin_top=35, margin_right=35, margin_bottom=35, margin_left=35),  # Springtime Orchard sign
+    },
+}
 
 
-def _build_gateway_exclusions(zone_id: int) -> tuple[SpawnExclusionZone, ...]:
-    """Derive keep-out rectangles from GatewayConstants.GATEWAYS[zone_id] positions."""
+def _build_zone_exclusions(zone_id: int) -> tuple[SpawnExclusionZone, ...]:
+    """One keep-out per meadow gateway: tuned box if present, else default sign footprint."""
+    tuned = _TUNED_EXCLUSIONS.get(zone_id, {})
     exclusions: list[SpawnExclusionZone] = []
 
-    for gw in gc.GATEWAYS.get(zone_id, []):
-        if gw["name"] in _MANUAL_EXCLUSION_GATEWAY_NAMES:
+    for gw in gc.GATEWAYS.get(zone_id, ()):
+        gw_id = gw["name"]
+        if gw_id in tuned:
+            exclusions.append(tuned[gw_id])
             continue
 
         x, y = gw["position"]
-        sign_w, sign_h = gw.get("sign_size", (DEFAULT_SIGN_WIDTH, DEFAULT_SIGN_HEIGHT))
-        padding = gw.get("padding", DEFAULT_SIGN_PADDING)
-        exclusions.append(exclusion_rect_around(x, y, padding, sign_w, sign_h))
+        exclusions.append(_sign(x, y))
 
     return tuple(exclusions)
 
 
-_MANUAL_EXCLUSION_GATEWAY_NAMES = frozenset({
-    # Spring
-    "9017", "9302",  # Cherry Blossom Heights
-    "9170", "9009", "9011",  # Springtime Orchard
-    "9025", "9021", "9303",  # Dewdrop Vale
-    "9286", "9205",  # Neverberry Thicket
-    # Summer
-    "9216", "9299",  # Palm Tree Cove
-    "9146", "9147",  # Sunflower Gully
-    "9278",  # Neverfruit Grove
-    # Autumn
-    "9023", "9228", "9024",  # Acorn Summit
-    "9210", "9145",  # Cottonpuff Field
-    "9154", "9012", "9301",  # Maple Tree Hill
-    "9015",  # Pumpkin Patch
-    # Winter
-    "9246", "9144", "9126",  # Snowcap Glade
-    "9125", "9280",  # Evergreen Overlook
-    "9124", "9269",  # Chilly Falls
-    # Havendish Square
-    "9282", "9214", "9267", "9179", "9188", "9180", "9206", "9028",
-})
-
-_MANUAL_EXCLUSIONS_BY_ZONE: dict[int, tuple[SpawnExclusionZone, ...]] = {
-    # --- Spring ---
-    zc.CHERRYBLOSSOM_HEIGHTS: (
-        _sign(1345, 570),  # 9017 Daisy's Dyes
-        _sign(880, 815, margin_top=145, margin_bottom=145, margin_left=95),  # 9302 Troop Butterfly
-    ),
-    zc.SPRINGTIME_ORCHARD: (
-        exclusion_footprint(-10, 420, 130, 120, margin_top=30, margin_right=30, margin_bottom=30, margin_left=20),  # 9170 Havendish sign
-        _sign(1460, 853, margin_right=70),  # 9009 Firefly Light Up
-        _sign(390, 765, margin_right=145),  # 9011 Bobbin's Tailoring
-    ),
-    zc.DEWDROP_VALE: (
-        _sign(920, 1210),  # 9025 Silvermist's Grotto
-        _sign(544, 810),  # 9021 Garden Supply (shop entrance, not gateway coord)
-        _sign(483, 330, margin_top=70, margin_bottom=70),  # 9303 Troop Otter
-    ),
-    zc.NEVERBERRY_THICKET: (
-        _sign(1183, 324, margin_bottom=70, margin_left=145),  # 9286 Harmony's Sweet Shop
-        _sign(1596, 595, margin_top=70, margin_right=70, margin_bottom=70, margin_left=70),  # 9205 Elixa's Hospital
-    ),
-    # --- Summer ---
-    zc.PALM_TREE_COVE: (
-        _sign(1707, 602, margin_top=95, margin_left=95),  # 9216 Butterfly Painter
-        _sign(406, 571, margin_right=545, margin_bottom=295),  # 9299 Prism's Pixie Spa
-    ),
-    zc.SUNFLOWER_GULLY: (
-        _sign(285, 1030, margin_left=15),  # 9146 Iridessa's Glade
-        _sign(508, 756, margin_top=245, margin_right=245),  # 9147 Phoebe's Party Favors
-    ),
-    zc.NEVERFRUIT_GROVE: (
-        exclusion_footprint(380, 130, 150, 170, margin_top=75, margin_right=375, margin_bottom=100, margin_left=25),  # 9278 Pixie Post Office
-    ),
-    # --- Autumn ---
-    zc.ACORN_SUMMIT: (
-        _sign(964, 452, margin_top=70, margin_right=220, margin_bottom=95, margin_left=70),  # 9023 Summit Style
-        _sign(1017, 185, margin_right=95, margin_bottom=70),  # 9228 Vidia's Daily Spin
-        _sign(460, 52, margin_right=95, margin_bottom=95),  # 9024 Fairy Fireworks
-    ),
-    zc.COTTONPUFF_FIELD: (
-        _sign(646, 433, margin_top=-5, margin_right=145, margin_bottom=145, margin_left=145),  # 9210 Coal's Clothiers
-        _sign(672, 745),  # 9145 Tinker Toss
-    ),
-    zc.MAPLE_TREE_HILL: (
-        _sign(482, 940, margin_top=145, margin_right=15, margin_bottom=95, margin_left=245),  # 9154 Copper's Tinkering
-        _sign(738, 1318, margin_top=95, margin_bottom=95, margin_left=95),  # 9012 Mendy's Tailoring
-        _sign(575, 280, margin_top=95, margin_right=70, margin_bottom=70, margin_left=70),  # 9301 Troop Rabbit
-    ),
-    zc.PUMPKIN_PATCH: (
-        _sign(980, 670, margin_right=95),  # 9015 Harvest Hustle
-    ),
-    # --- Winter ---
-    zc.SNOWCAP_GLADE: (
-        _sign(239, 124),  # 9246 Pinecone Pop
-        _sign(1830, 550, margin_right=70),  # 9144 Snowy Lullaby
-        _sign(1509, 215, margin_top=145, margin_bottom=20, margin_left=220),  # 9126 Gale's Outfitters
-    ),
-    zc.EVERGREEN_OVERLOOK: (
-        _sign(645, 1500, margin_top=70, margin_left=95),  # 9125 Snowflake Sweep
-        _sign(908, 1057, margin_top=120, margin_left=120),  # 9280 Kit's Place
-    ),
-    zc.CHILLY_FALLS: (
-        _sign(960, 831, margin_left=345),  # 9124 Ember's Essentials
-        _sign(1001, 1096, margin_bottom=195, margin_left=270),  # 9269 Gem Juggle
-    ),
-    # --- Havendish Square ---
-    zc.HAVENDISH_SQUARE: (
-        exclusion_footprint(40, 223, 220, 200, margin_top=5, margin_right=40, margin_bottom=50, margin_left=10),  # 9282 Queen's Boutique
-        exclusion_footprint(250, 300, 310, 280, margin_top=5, margin_right=55, margin_bottom=60, margin_left=20),  # 9214 Cassie's Costume Shop
-        exclusion_footprint(200, 860, 240, 360, margin_top=20, margin_right=35, margin_bottom=25, margin_left=90),  # 9267 Pixie Dust Mill
-        exclusion_footprint(940, 460, 420, 420, margin_top=80, margin_right=90, margin_bottom=90, margin_left=110),  # 9179 Fairy Tale Theater
-        exclusion_footprint(1170, 300, 250, 350, margin_top=90, margin_right=80, margin_bottom=80, margin_left=100),  # 9188 Ballroom
-        exclusion_rect(1870, 2140, 300, 610),  # 9180 Tearoom
-        exclusion_footprint(1600, 900, 120, 130, margin_top=40, margin_right=35, margin_bottom=15, margin_left=35),  # 9206 Pixie Postings
-        exclusion_footprint(1960, 720, 110, 120, margin_top=35, margin_right=35, margin_bottom=35, margin_left=35),  # 9028 Springtime Orchard sign
-    ),
-}
-
 ZONE_EXCLUSIONS: dict[int, tuple[SpawnExclusionZone, ...]] = {
-    zone_id: _MANUAL_EXCLUSIONS_BY_ZONE.get(zone_id, ()) + _build_gateway_exclusions(zone_id)
+    zone_id: _build_zone_exclusions(zone_id)
     for zone_id in ZONE_MAP_BOUNDS
 }
 
 
 # =============================================================================
 # Pool Builder
-#
-# Assembles ActiveSpawnPool configs consumed by IngredientSpawnMgrAI at startup.
 # =============================================================================
 
-# TEMP — per-zone acorn density test (zone_id -> stack count). Clear when done tuning.
+# Dev-only — fill with {zone_id: stack_count} to visualize spawn density with acorns.
 SPAWN_DENSITY_TEST_ZONES: dict[int, int] = {}
 
 
