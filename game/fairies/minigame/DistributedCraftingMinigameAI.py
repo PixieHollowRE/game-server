@@ -17,12 +17,10 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
         # CRAFT_TYPE_TAILORING = 0
         # CRAFT_TYPE_BAKING = 1
         # CRAFT_TYPE_TINKERING = 2
-        avId = self.air.getAvatarIdFromSender()
-        self.professionId[avId] = professionId
+        self.professionId = professionId
 
     def getProfessionID(self) -> int:
-        avId = self.air.getAvatarIdFromSender()
-        return self.professionId[avId]
+        return self.professionId
 
     def setCommunityDyeIDList(self):
         # Array of dye IDs
@@ -51,7 +49,7 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
         if not recipes:
             print("something broke - fix it or else you dummy dumbo dimwit")
             return
-        
+
         recipe = recipes[0]
 
         self._removeRecipeIngredients(avId, avatar, recipe)
@@ -90,7 +88,7 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
             avatar.d_setPouch(self.air.inventoryManager.getPouch(avId))
 
     def _giveCraftedItem(self, avId, avatar, recipeId, quality, color1, color2):
-        
+
         if get_item_type(recipeId) in ("Furniture", "Lamp", "Decoration"):
             self._grant_home(avId, avatar, recipeId, quality, color1, color2)
         else:
