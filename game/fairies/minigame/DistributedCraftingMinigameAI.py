@@ -10,18 +10,19 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
     def __init__(self, air) -> None:
         super().__init__(air)
 
-        self.professionId: int = 1
-        self.recipeId = 0
-        self.craftingStyle: int = 0
+        self.professionId = 0 # This never seems to get set
+        self.recipeChoice: dict[int, tuple[int, int]] = {} # avId -> (recipeId, craftingStyle)
 
     def setProfessionID(self, professionId: int):
         # CRAFT_TYPE_TAILORING = 0
         # CRAFT_TYPE_BAKING = 1
         # CRAFT_TYPE_TINKERING = 2
-        self.professionId = professionId
+        avId = self.air.getAvatarIdFromSender()
+        self.professionId[avId] = professionId
 
     def getProfessionID(self) -> int:
-        return self.professionId
+        avId = self.air.getAvatarIdFromSender()
+        return self.professionId[avId]
 
     def setCommunityDyeIDList(self):
         # Array of dye IDs
@@ -34,21 +35,23 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
         # Current Recipe ID, 1 or 2
         # CRAFT_STYLE_COMMUNITY = 2
         # CRAFT_STYLE_PERSONAL = 1
-        self.recipeId = recId
-        self.craftingStyle = style
+        avId = self.air.getAvatarIdFromSender()
+        self.recipeChoice[avId] = (recId, style)
 
     def setResults(self, recipeId, quality, color1, color2, length):
+        avId = self.air.getAvatarIdFromSender()
+        recId, craftingStyle = self.recipeChoice.get(avId, (recipeId, 1))
+        avatar = self.air.doId2do.get(avId)
+
         if self.craftingStyle == 2:
             print("PRACTICE BAIL")
-            return # don't take stuff if practice baking
-        
-        avId = self.air.getAvatarIdFromSender()
-        avatar = self.air.doId2do.get(avId)
+            return # don't take stuff if practicing
 
         recipes = recipe_parser.parse_recipes(DEFAULT_XML, recipeId)
         if not recipes:
             print("something broke - fix it or else you dummy dumbo dimwit")
             return
+        
         recipe = recipes[0]
 
         self._removeRecipeIngredients(avId, avatar, recipe)
@@ -58,6 +61,8 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
             self._giveBakedItem(avId, avatar, recipeId, quality)
         else:
             self._giveCraftedItem(avId, avatar, recipeId, quality, color1, color2)
+
+        self.recipeChoice.pop(avId, None)
 
     def _removeRecipeIngredients(self, avId, avatar, recipe):
         for ingredient in recipe.ingredients:
