@@ -170,8 +170,13 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         docs = self.mongoInterface.retrieveDocs(
             "fairies", fairyPlayer.doId, queryField="_id"
         )
-        spin_day = int(docs[0].get("dailyChanceLastSpinDay") or 0) if docs else 0
+        doc = docs[0] if docs else {}
+        spin_day = int(doc.get("dailyChanceLastSpinDay") or 0)
         fairyPlayer.setDailyChanceLastSpinDay(spin_day)
+
+        fairyPlayer.amountGoldTradedToday = int(doc.get("amountGoldTradedToday") or 0)
+        fairyPlayer.goldTradeResetAt = int(doc.get("goldTradeResetAt") or 0)
+        fairyPlayer._refresh_gold_trade_window()
 
     def readFairyPlayer(self, fairyPlayerId, fields = None, doneEvent = '') -> DistributedFairyPlayerAI:
         dbo = DatabaseObject(self, fairyPlayerId, doneEvent)

@@ -18,6 +18,10 @@ from game.fairies.daily.DailyChanceEligibility import (
     played_flag_for_client,
 )
 from game.fairies.daily.DailyChanceGrant import get_earned_spin_badge_ids, grant_prize
+from game.fairies.daily.DailyGoldTradeEligibility import (
+    DAILY_GOLD_TRADE_CAP,
+    refresh_gold_trade_window,
+)
 
 notify = DirectNotifyGlobal.directNotify.newCategory("DistributedFairyPlayerAI")
 
@@ -35,6 +39,8 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.level: int = 0
         self.dailyChancePlayed: int = 0
         self.dailyChanceLastSpinDay: int = 0
+        self.amountGoldTradedToday: int = 0
+        self.goldTradeResetAt: int = 0
 
         self._originalDNA = {}
 
@@ -49,7 +55,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         self.air.inventoryManager.avatarOnline(self.doId)
 
-        self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [1000])
+        self._sync_daily_gold_trade_cap()
 
         glblpurchase = MiscItem.unpackFromTuple((90003, 8006, 500, 200, 200))
         self.sendUpdateToAvatarId(self.doId, "setGlobalPurchaseData", [[glblpurchase]])
@@ -178,9 +184,34 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             self._sync_daily_chance_not_played_for_client()
 
     def requestDailyGoldTradeCapData(self) -> None:
-        # TODO
-        self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [100])
-        self.sendUpdateToAvatarId(self.doId, "setAmountGoldTradedForToday", [0])
+        self._sync_daily_gold_trade_cap()
+
+    def _refresh_gold_trade_window(self) -> None:
+        amount, reset_at = refresh_gold_trade_window(
+            self.amountGoldTradedToday,
+            self.goldTradeResetAt,
+        )
+        if amount != self.amountGoldTradedToday or reset_at != self.goldTradeResetAt:
+            self.amountGoldTradedToday = amount
+            self.goldTradeResetAt = reset_at
+            self._persist_gold_trade_state()
+
+    def _persist_gold_trade_state(self) -> None:
+        self.air.mongoInterface.updateFields(
+            "fairies",
+            {
+                "amountGoldTradedToday": self.amountGoldTradedToday,
+                "goldTradeResetAt": self.goldTradeResetAt,
+            },
+            self.doId,
+        )
+
+    def _sync_daily_gold_trade_cap(self) -> None:
+        self._refresh_gold_trade_window()
+        self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [DAILY_GOLD_TRADE_CAP])
+        self.sendUpdateToAvatarId(
+            self.doId, "setAmountGoldTradedForToday", [self.amountGoldTradedToday]
+        )
 
     def requestGetSavedOutfits(self) -> None:
         # TODO
@@ -308,11 +339,21 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             self.d_setPouch(pouch)
 
     def tradeItemForGold(self, invItemToGive: int, amountToGive: int, amountToGet: int) -> None:
+        self._refresh_gold_trade_window()
+
+        remaining = DAILY_GOLD_TRADE_CAP - self.amountGoldTradedToday
+        if remaining <= 0 or amountToGet <= 0 or amountToGet > remaining:
+            self._sync_daily_gold_trade_cap()
+            return
+
         if not self.air.inventoryManager.removeIngredientsFromPouch(self.doId, invItemToGive, amountToGive):
             print("tradeItem - Couldn't Remove Ingredients??")
             return
 
         self.addGold(amountToGet)
+        self.amountGoldTradedToday += amountToGet
+        self._persist_gold_trade_state()
+        self._sync_daily_gold_trade_cap()
         # Apparently setPouch has to be sent back to the client twice here because `onCheckForGiveGetUpdates`
         # only fires if pouchUpdateCalls is greater than 1
         pouch = self.air.inventoryManager.getPouch(self.doId)
