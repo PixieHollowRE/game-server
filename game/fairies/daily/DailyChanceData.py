@@ -63,8 +63,6 @@ SPIN_BADGE_DEFAULT_RARITY: dict[int, Rarity] = {
     SPIN_BADGE_SNEAKY_MR_TWITCHES: Rarity.SUPER_RARE,
 }
 
-SPIN_BADGE_MEMBER_ONLY_IDS = frozenset({SPIN_BADGE_SOUR_PLUM})
-
 GENDER_BOTH = 3
 GENDER_FAIRY = 1
 GENDER_SPARROW = 2
@@ -320,14 +318,12 @@ def is_gender_eligible(prize: DailyChancePrize, avatar_gender: int) -> bool:
 def filter_pool(
     exclude_mask: int, avatar_gender: int, is_member: bool = False
 ) -> list[DailyChancePrize]:
+    _ = is_member
     return [
         prize
         for prize in POOL
         if not (exclude_mask & (1 << prize.pool_index))
         and is_gender_eligible(prize, avatar_gender)
-        and not (
-            prize.item_id in SPIN_BADGE_MEMBER_ONLY_IDS and not is_member
-        )
     ]
 
 

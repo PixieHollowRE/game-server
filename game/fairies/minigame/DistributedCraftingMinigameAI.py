@@ -3,6 +3,10 @@ from game.fairies.instance.DistributedInstanceBaseAI import DistributedInstanceB
 from game.fairies.minigame.recipe import recipe_parser
 from game.fairies.ai.BakingAssets import BAKED_ITEMS
 from game.fairies.ai.FairiesConstants import get_item_type
+from game.fairies.badges.StarterBadgeRegistry import (
+    CRAFT_STYLE_PERSONAL,
+    CRAFT_STYLE_PRACTICE,
+)
 
 DEFAULT_XML = os.path.join(os.path.dirname(__file__), "recipe/recipes.xml")
 
@@ -30,20 +34,23 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
         return [45, 50, 53, 54, 38]
 
     def setRecipeChoice(self, recId, style):
-        # Current Recipe ID, 1 or 2
-        # CRAFT_STYLE_COMMUNITY = 2
-        # CRAFT_STYLE_PERSONAL = 1
+        # recId = current recipe; style is CRAFT_STYLE_PERSONAL (1) or CRAFT_STYLE_PRACTICE (2).
         avId = self.air.getAvatarIdFromSender()
         self.recipeChoice[avId] = (recId, style)
 
     def setResults(self, recipeId, quality, color1, color2, length):
         avId = self.air.getAvatarIdFromSender()
-        recId, craftingStyle = self.recipeChoice.get(avId, (recipeId, 1))
+        recId, craftingStyle = self.recipeChoice.get(avId, (recipeId, CRAFT_STYLE_PERSONAL))
         avatar = self.air.doId2do.get(avId)
 
-        if craftingStyle == 2:
-            print("PRACTICE BAIL")
-            return # don't take stuff if practicing
+        if craftingStyle == CRAFT_STYLE_PRACTICE:
+            badge_manager = getattr(self.air, "badgeManager", None)
+            if badge_manager is not None:
+                badge_manager.applyCraftHelper(
+                    avId, self.professionId, recipeId, craftingStyle
+                )
+            self.recipeChoice.pop(avId, None)
+            return
 
         recipes = recipe_parser.parse_recipes(DEFAULT_XML, recipeId)
         if not recipes:
@@ -55,10 +62,18 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
         self._removeRecipeIngredients(avId, avatar, recipe)
         self._removeDyes(avId, avatar, color1, color2)
 
+        crafted = False
         if recipeId in BAKED_ITEMS:
-            self._giveBakedItem(avId, avatar, recipeId, quality)
+            crafted = self._giveBakedItem(avId, avatar, recipeId, quality)
         else:
-            self._giveCraftedItem(avId, avatar, recipeId, quality, color1, color2)
+            crafted = self._giveCraftedItem(avId, avatar, recipeId, quality, color1, color2)
+
+        if crafted:
+            badge_manager = getattr(self.air, "badgeManager", None)
+            if badge_manager is not None:
+                badge_manager.applyCraftHelper(
+                    avId, self.professionId, recipeId, craftingStyle
+                )
 
         self.recipeChoice.pop(avId, None)
 
@@ -75,7 +90,7 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
         if color1 or color2:
             avatar.d_syncPouchAfterChanges()
 
-    def _giveBakedItem(self, avId, avatar, itemId, quality):
+    def _giveBakedItem(self, avId, avatar, itemId, quality) -> bool:
         if 96 <= quality <= 100:
             amount = 6
         elif 81 <= quality <= 95:
@@ -86,13 +101,14 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
         if self.air.inventoryManager.addIngredientsToPouch(avId, itemId, amount, -1):
             print("adding:", itemId, amount)
             avatar.d_setPouch(self.air.inventoryManager.getPouch(avId))
+            return True
+        return False
 
-    def _giveCraftedItem(self, avId, avatar, recipeId, quality, color1, color2):
+    def _giveCraftedItem(self, avId, avatar, recipeId, quality, color1, color2) -> bool:
 
         if get_item_type(recipeId) in ("Furniture", "Lamp", "Decoration"):
-            self._grant_home(avId, avatar, recipeId, quality, color1, color2)
-        else:
-            self._grant_wardrobe(avId, avatar, recipeId, quality, color1, color2)
+            return self._grant_home(avId, avatar, recipeId, quality, color1, color2)
+        return self._grant_wardrobe(avId, avatar, recipeId, quality, color1, color2)
 
 
     def _grant_wardrobe(self, avId, avatar, recipeId, quality, color1, color2) -> bool:

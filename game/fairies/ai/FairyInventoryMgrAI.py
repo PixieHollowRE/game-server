@@ -92,7 +92,15 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
             }
         )
 
-        return result.modified_count > 0
+        if result.modified_count > 0:
+            return True
+
+        return False
+
+    def _applyIngredientBadgeProgress(self, avId: int, itemID: int, itemCount: int) -> None:
+        badge_manager = getattr(self.air, "badgeManager", None)
+        if badge_manager is not None:
+            badge_manager.applyIngredientCollection(avId, itemID, itemCount)
 
     def removeIngredientsFromPouch(self, avId: int, itemID: int, itemCount: int) -> bool:
         # First, read the current pouch entry
@@ -145,12 +153,13 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
         if not self.addIngredientsToPouch(avId, itemID, itemCount, slot):
             return False
 
+        self._applyIngredientBadgeProgress(avId, itemID, itemCount)
+
         avatar = self.air.doId2do.get(avId)
 
         if not avatar:
             return True
 
-        pouchSlot = self._getPouchSlotForItem(avId, itemID)
         avatar.sendUpdate("setItemEvent", [itemID, itemCount, 0, 0])
         avatar.d_syncPouchAfterChanges()
         return True
