@@ -88,6 +88,36 @@ _BADGE_DOC_FIELDS = {
     "created": 1,
 }
 
+# BadgeProgress.progress and progressUpdate args are int16 in fairy.dc.
+_WIRE_PROGRESS_MAX = 32767
+_HIGH_SCORE_THRESHOLD_BY_BADGE_ID = {
+    entry["badge_id"]: entry["threshold"] for entry in HIGH_SCORE_BADGES.values()
+}
+
+
+def wire_badge_progress(badge_id: int, progress: int) -> int:
+    """Map stored badge progress to an int16-safe wire value."""
+    progress = max(0, int(progress))
+    threshold = _HIGH_SCORE_THRESHOLD_BY_BADGE_ID.get(badge_id)
+    if threshold is not None and threshold > 0:
+        scaled = int(progress * _WIRE_PROGRESS_MAX / threshold)
+        return min(scaled, _WIRE_PROGRESS_MAX)
+    return min(progress, _WIRE_PROGRESS_MAX)
+
+
+def wire_badge_progress_delta(badge_id: int, previous: int, current: int) -> int:
+    """Client progressUpdate is additive; send scaled delta for high-score badges."""
+    wire_previous = wire_badge_progress(badge_id, previous)
+    wire_current = wire_badge_progress(badge_id, current)
+    return max(0, wire_current - wire_previous)
+
+
+def _send_progress_update(badge_manager, av_id: int, badge_id: int, amount: int) -> None:
+    wire_amount = min(max(int(amount), 0), _WIRE_PROGRESS_MAX)
+    if wire_amount <= 0:
+        return
+    badge_manager.sendUpdateToAvatarId(av_id, "progressUpdate", [badge_id, wire_amount])
+
 
 def _badge_earned_date() -> str:
     return time.strftime("%m/%d/%Y")
@@ -904,7 +934,13 @@ def build_login_payload(doc: dict) -> tuple[list, list, list]:
     ]
     unlocked_page_ids = [int(page_id) for page_id in (doc.get("unlockedPages") or [])]
     badge_progress = [
-        [int(entry["badgeId"]), int(entry.get("progress") or 0)]
+        [
+            int(entry["badgeId"]),
+            wire_badge_progress(
+                int(entry["badgeId"]),
+                int(entry.get("progress") or 0),
+            ),
+        ]
         for entry in (doc.get("badgeProgress") or [])
     ]
     return earned_badges, unlocked_page_ids, badge_progress
@@ -963,14 +999,14 @@ def apply_ingredient_collection(badge_manager, av_id: int, item_id: int, amount:
     for tier_index, tier in enumerate(entry["tiers"]):
         badge_id = tier["badge_id"]
         if tier_index < 3:
-            badge_manager.sendUpdateToAvatarId(av_id, "progressUpdate", [badge_id, amount])
+            _send_progress_update(badge_manager, av_id, badge_id, amount)
             continue
 
         previous_royal = previous_progress.get(badge_id, 0)
         new_royal = progress.get(badge_id, 0)
         royal_delta = new_royal - previous_royal
         if royal_delta > 0:
-            badge_manager.sendUpdateToAvatarId(av_id, "progressUpdate", [badge_id, royal_delta])
+            _send_progress_update(badge_manager, av_id, badge_id, royal_delta)
 
     for badge_id in newly_earned:
         badge_manager.sendUpdateToAvatarId(
@@ -1032,7 +1068,7 @@ def apply_leaf_journal_donation(badge_manager, av_id: int, track_key: str, amoun
 
     for tier in entry["tiers"]:
         badge_id = tier["badge_id"]
-        badge_manager.sendUpdateToAvatarId(av_id, "progressUpdate", [badge_id, amount])
+        _send_progress_update(badge_manager, av_id, badge_id, amount)
 
     for badge_id in newly_earned:
         badge_manager.sendUpdateToAvatarId(
@@ -1086,7 +1122,7 @@ def _apply_tier_track(
 
     for tier in track["tiers"]:
         badge_id = tier["badge_id"]
-        badge_manager.sendUpdateToAvatarId(av_id, "progressUpdate", [badge_id, progress_delta])
+        _send_progress_update(badge_manager, av_id, badge_id, progress_delta)
 
     for badge_id in newly_earned:
         badge_manager.sendUpdateToAvatarId(
@@ -1130,6 +1166,7 @@ def apply_high_score_badge(badge_manager, av_id: int, game_id: int, best_score: 
     earned_ids = _earned_badge_ids(doc)
     newly_earned: list[int] = []
 
+    previous_best = progress.get(badge_id, 0)
     progress[badge_id] = best_score
 
     if badge_id not in earned_ids and best_score >= threshold:
@@ -1153,7 +1190,8 @@ def apply_high_score_badge(badge_manager, av_id: int, game_id: int, best_score: 
         for entry in doc["earnedBadges"]
     }
 
-    badge_manager.sendUpdateToAvatarId(av_id, "progressUpdate", [badge_id, best_score])
+    wire_delta = wire_badge_progress_delta(badge_id, previous_best, best_score)
+    _send_progress_update(badge_manager, av_id, badge_id, wire_delta)
 
     for earned_badge_id in newly_earned:
         badge_manager.sendUpdateToAvatarId(
@@ -1248,7 +1286,7 @@ def apply_meadow_explorer_progress(badge_manager, av_id: int, zone_id: int) -> N
         for entry in doc["earnedBadges"]
     }
 
-    badge_manager.sendUpdateToAvatarId(av_id, "progressUpdate", [badge_id, 1])
+    _send_progress_update(badge_manager, av_id, badge_id, 1)
 
     for earned_badge_id in newly_earned:
         badge_manager.sendUpdateToAvatarId(
@@ -1364,7 +1402,7 @@ def grant_badge_direct(badge_manager, av_id: int, badge_id: int) -> bool:
         for entry in doc["earnedBadges"]
     }
 
-    badge_manager.sendUpdateToAvatarId(av_id, "progressUpdate", [badge_id, 1])
+    _send_progress_update(badge_manager, av_id, badge_id, 1)
     badge_manager.sendUpdateToAvatarId(
         av_id,
         "badgeAcquired",
