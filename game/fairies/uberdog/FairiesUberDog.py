@@ -50,9 +50,10 @@ class FairiesUberDog(UberDog):
             self.getGameDoId(), COMMUNITY_ALERTS_ALL,
             doId=self.allocateChannel())
 
+        # Inventory before badges so wardrobe/storage sync runs even if badge login fails.
+        self.inventoryManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_INVENTORY_MANAGER, "FairyInventoryMgr")
         self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
         self.realmGuardian = self.generateGlobalObject(OTP_DO_ID_REALM_GUARDIAN, "RealmGuardian")
-        self.inventoryManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_INVENTORY_MANAGER, "FairyInventoryMgr")
         self.petManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_PET_MANAGER, "PetMgr")
 
     def handlePlayGame(self, msgType, di):
