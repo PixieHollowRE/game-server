@@ -23,6 +23,12 @@ from game.fairies.fairy import FamousFairyData
 from game.fairies.ai import ZoneConstants
 from game.fairies.ai.FairiesMagicWordManagerAI import FairiesMagicWordManagerAI
 from game.fairies.ai.PetMgrAI import PetMgrAI
+from game.fairies.badges.MoreOptions import (
+    normalize_more_options,
+    parse_favorite_badge_from_more_options,
+    persist_more_options,
+    repair_more_options,
+)
 from game.fairies.shop.ShopData import SHOPS
 from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.server.ServerBase import ServerBase
@@ -83,7 +89,7 @@ class FairiesAIRepository(AIDistrict, ServerBase):
 
         for zoneId in ZoneConstants.CRAFTING_ZONE_LIST:
             crafting = DistributedCraftingMinigameAI(self)
-            if zoneId == ZoneConstants.MENDYS_TAILORING or ZoneConstants.BOBBINS_TAILORING:
+            if zoneId in (ZoneConstants.MENDYS_TAILORING, ZoneConstants.BOBBINS_TAILORING):
                 crafting.setProfessionID(0)
             elif zoneId == ZoneConstants.DULCIES_BAKING:
                 crafting.setProfessionID(1)
@@ -177,6 +183,26 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         fairyPlayer.amountGoldTradedToday = int(doc.get("amountGoldTradedToday") or 0)
         fairyPlayer.goldTradeResetAt = int(doc.get("goldTradeResetAt") or 0)
         fairyPlayer._refresh_gold_trade_window()
+
+        earned_badge_ids = {
+            int(entry["badgeId"]) for entry in (doc.get("earnedBadges") or [])
+        }
+        raw_more_options = doc.get("moreOptions") or ""
+        more_options = normalize_more_options(raw_more_options)
+        more_options = repair_more_options(
+            more_options,
+            favorite_badge_id=int(doc.get("favoriteBadgeId") or 0),
+            earned_badge_ids=earned_badge_ids,
+        )
+        if (
+            more_options != normalize_more_options(raw_more_options)
+            or parse_favorite_badge_from_more_options(more_options)
+            != int(doc.get("favoriteBadgeId") or 0)
+        ):
+            persist_more_options(fairyPlayer.air, fairyPlayer.doId, more_options)
+
+        fairyPlayer.moreOptions = more_options
+        fairyPlayer.d_setMoreOptions(more_options)
 
     def readFairyPlayer(self, fairyPlayerId, fields = None, doneEvent = '') -> DistributedFairyPlayerAI:
         dbo = DatabaseObject(self, fairyPlayerId, doneEvent)

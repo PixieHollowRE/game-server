@@ -18,10 +18,17 @@ from game.fairies.daily.DailyChanceEligibility import (
     played_flag_for_client,
 )
 from game.fairies.daily.DailyChanceGrant import get_earned_spin_badge_ids, grant_prize
+from game.fairies.stats.GameStatsService import apply_daily_spin
 from game.fairies.daily.DailyGoldTradeEligibility import (
     DAILY_GOLD_TRADE_CAP,
     refresh_gold_trade_window,
 )
+from game.fairies.badges.MoreOptions import (
+    MORE_OPTIONS_EMPTY,
+    normalize_more_options,
+    persist_more_options,
+)
+from game.fairies.badges.MeadowExplorerBadgeRegistry import ALL_EXPLORER_ZONE_IDS
 
 notify = DirectNotifyGlobal.directNotify.newCategory("DistributedFairyPlayerAI")
 
@@ -41,6 +48,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.dailyChanceLastSpinDay: int = 0
         self.amountGoldTradedToday: int = 0
         self.goldTradeResetAt: int = 0
+        self.moreOptions: str = MORE_OPTIONS_EMPTY
 
         self._originalDNA = {}
 
@@ -163,9 +171,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             prizes = [DEV_TEST_PRIZE]
 
         granted: list[tuple[int, int, int, int]] = []
+        granted_prizes = []
         for prize in prizes:
             if grant_prize(self.air, avId, self, prize):
                 granted.append(prize.as_reward_ext())
+                granted_prizes.append(prize)
             else:
                 self.notify.warning(
                     f"requestDailyChance: failed to grant item {prize.item_id} to {avId}"
@@ -178,9 +188,20 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             )
 
         self.sendUpdateToAvatarId(avId, "setDailyChanceReward", [granted])
-        if granted and DAILY_CHANCE_ONCE_PER_DAY_ENABLED:
+
+        badge_manager = getattr(self.air, "badgeManager", None)
+        inventory_manager = getattr(self.air, "inventoryManager", None)
+        if badge_manager is not None and inventory_manager is not None:
+            apply_daily_spin(
+                badge_manager,
+                inventory_manager,
+                avId,
+                granted_prizes,
+            )
+
+        if DAILY_CHANCE_ONCE_PER_DAY_ENABLED:
             self._record_daily_chance_spin()
-        elif not DAILY_CHANCE_ONCE_PER_DAY_ENABLED:
+        else:
             self._sync_daily_chance_not_played_for_client()
 
     def requestDailyGoldTradeCapData(self) -> None:
@@ -313,6 +334,18 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.setGold(gold)
         self.d_setGold(gold)
 
+    def setMoreOptions(self, options: str) -> None:
+        options = normalize_more_options(options)
+        self.moreOptions = options
+        persist_more_options(self.air, self.doId, options)
+        self.d_setMoreOptions(options)
+
+    def getMoreOptions(self) -> str:
+        return self.moreOptions
+
+    def d_setMoreOptions(self, options: str) -> None:
+        self.sendUpdate("setMoreOptions", [options])
+
     def addGold(self, deltaGold: int) -> None:
         self.b_setGold(deltaGold + self.getGold())
 
@@ -374,6 +407,18 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         pouch = self.air.inventoryManager.getPouch(self.doId)
         self.d_setPouch(pouch)
         self.d_setPouch(pouch)
+
+    def donateItem(self, itemId: int, amount: int) -> None:
+        if amount <= 0:
+            return
+
+        if not self.air.inventoryManager.removeIngredientsFromPouch(self.doId, itemId, amount):
+            self.notify.debug(
+                f"donateItem failed avId={self.doId} itemId={itemId} amount={amount}"
+            )
+            return
+
+        self.d_syncPouchAfterChanges()
 
     def auraRemover(self, task):
         self.sendUpdateToAvatarId(self.doId, "setAura", [0])
@@ -628,18 +673,47 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.air.sendUpdateToChannelFrom(self, channelId, "setWhisperSCEmoteFrom", fromId, [fromId, emoteId])
 
     def removeFromInventory(self, invId, itemId):
-        self.air.mongoInterface.mongodb.fairies.update_one(
+        fairy = self.air.mongoInterface.mongodb.fairies.find_one(
+            {"_id": self.doId, "avatar.items.inv_id": invId},
+            {"avatar.items.$": 1},
+        )
+        if not fairy or not fairy.get("avatar", {}).get("items"):
+            return
+
+        location = fairy["avatar"]["items"][0].get("location") or ""
+        track_key = None
+        if location in ("Wardrobe", "Equipped"):
+            track_key = "wardrobe"
+        elif location == "Storage":
+            track_key = "storage"
+        else:
+            return
+
+        result = self.air.mongoInterface.mongodb.fairies.update_one(
             {"_id": self.doId},
-                {
-                    "$pull": {
-                        "avatar.items": {
-                            "inv_id": invId
-                        }
+            {
+                "$pull": {
+                    "avatar.items": {
+                        "inv_id": invId
                     }
                 }
+            },
         )
+        if result.modified_count == 0:
+            return
 
-        self.air.inventoryManager.sendUpdateToAvatarId(self.doId, "wardrobeRemove", [0, invId])
+        if track_key == "storage":
+            self.air.inventoryManager.sendUpdateToAvatarId(
+                self.doId, "storageRemove", [0, invId]
+            )
+        else:
+            self.air.inventoryManager.sendUpdateToAvatarId(
+                self.doId, "wardrobeRemove", [0, invId]
+            )
+
+        badge_manager = getattr(self.air, "badgeManager", None)
+        if badge_manager is not None:
+            badge_manager.applyLeafJournalDonation(self.doId, track_key, 1)
 
     def requestGlobalPurchase(self, item):
         glblpId, qty = item[0]
@@ -653,3 +727,18 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def requestSendUpdateFairyName(self, name):
         self.b_setName(name)
         self.sendUpdateToAvatarId(self.doId, "setRedraw", [1])
+
+    def setTeleportComplete(self) -> None:
+        av_id = self.air.getAvatarIdFromSender()
+        if av_id != self.doId:
+            self.notify.warning(
+                f"setTeleportComplete from {av_id} but sender DO is {self.doId}"
+            )
+            return
+
+        badge_manager = getattr(self.air, "badgeManager", None)
+        if badge_manager is not None:
+            badge_manager.applyMeadowVisit(self.doId, self.zoneId)
+
+        if self.zoneId in ALL_EXPLORER_ZONE_IDS:
+            self.sendUpdate("setLastMeadow", [self.zoneId])

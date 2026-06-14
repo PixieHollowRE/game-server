@@ -1,5 +1,8 @@
 from direct.distributed.DistributedObjectGlobalUD import DistributedObjectGlobalUD
 
+from game.fairies.stats.GameStatsService import sync_game_stats_to_client
+
+
 class FairyInventoryMgrUD(DistributedObjectGlobalUD):
     def __init__(self, air) -> None:
         super().__init__(air)
@@ -39,6 +42,8 @@ class FairyInventoryMgrUD(DistributedObjectGlobalUD):
                 item["item_id"],
                 invItemExt
             ])
+
+        sync_game_stats_to_client(self, avatarId)
 
     def setStorageSlot(self, invId, slot) -> None:
         self.air.mongoInterface.mongodb.fairies.update_one(

@@ -1,6 +1,7 @@
 from game.fairies.instance.DistributedInstanceBaseAI import DistributedInstanceBaseAI
 from game.fairies.minigame.MinigameConstants import MINIGAME_DAILY_CHANCE
 from game.fairies.minigame.MinigameRewards import calc_rewards
+from game.fairies.stats.GameStatsService import apply_minigame_result
 
 class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
     def __init__(self, air) -> None:
@@ -31,6 +32,17 @@ class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
 
         avatarId = self.air.getAvatarIdFromSender()
         totalScore = self._scores.pop(avatarId, 0)
+
+        badge_manager = getattr(self.air, "badgeManager", None)
+        inventory_manager = getattr(self.air, "inventoryManager", None)
+        if badge_manager is not None and inventory_manager is not None:
+            apply_minigame_result(
+                badge_manager,
+                inventory_manager,
+                avatarId,
+                self.gameID,
+                totalScore,
+            )
 
         rewards = calc_rewards(self.gameID, totalScore)
         self._pendingRewards[avatarId] = rewards

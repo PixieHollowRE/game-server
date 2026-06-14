@@ -298,7 +298,8 @@ _TUNED_EXCLUSIONS: dict[int, dict[str, SpawnExclusionZone]] = {
     # --- Summer ---
     zc.PALM_TREE_COVE: {
         "9216": _sign(1707, 602, margin_top=145, margin_bottom=195, margin_left=150),  # Butterfly Painter
-        "9299": _sign(406, 571, margin_right=545, margin_bottom=295),  # Prism's Pixie Spa
+        "9299": _sign(406, 571, margin_top=145, margin_right=545, margin_bottom=295),  # Prism's Pixie Spa
+        "9148": _sign(406, 571, margin_top=145, margin_right=545, margin_bottom=295),  # Schelly's Hair Salon
         "9045": _sign(1630, 233),  # Dewdrop Vale sign
         "9159": _sign(205, 215),  # Neverfruit Grove sign
         "9247": _sign(1450, 795, margin_right=120, margin_bottom=270),  # Mermaid Grotto
@@ -393,8 +394,15 @@ ZONE_EXCLUSIONS: dict[int, tuple[SpawnExclusionZone, ...]] = {
 # Pool Builder
 # =============================================================================
 
-# Dev-only — fill with {zone_id: stack_count} to visualize spawn density with acorns.
-SPAWN_DENSITY_TEST_ZONES: dict[int, int] = {}
+# Dev-only — {zone_id: (item_id, stack_count)} replaces all normal spawns in that zone.
+SPAWN_DENSITY_TEST_ZONES: dict[int, tuple[int, int]] = {}
+
+
+def _display_name_for_item(item_id: int) -> str:
+    for ingredient in INGREDIENT_SPAWNS + FUTURE_INGREDIENT_SPAWNS:
+        if ingredient.item_id == item_id:
+            return ingredient.display_name
+    return "Ingredient"
 
 
 def _validate_zone_map_bounds() -> None:
@@ -450,20 +458,23 @@ def build_active_spawn_pools() -> list[ActiveSpawnPool]:
                 )
             )
 
-    for zone_id, stack_count in SPAWN_DENSITY_TEST_ZONES.items():
+    for zone_id, test_config in SPAWN_DENSITY_TEST_ZONES.items():
         bounds = ZONE_MAP_BOUNDS.get(zone_id)
         if bounds is None:
             continue
 
+        item_id, stack_count = test_config
+        display_name = _display_name_for_item(item_id)
+
         notify.warning(
-            "SPAWN_DENSITY_TEST_ZONES: spawning %d acorns in zone %d"
-            % (stack_count, zone_id)
+            "SPAWN_DENSITY_TEST_ZONES: spawning %d %s (item %d) in zone %d"
+            % (stack_count, display_name, item_id, zone_id)
         )
         pools.append(
             ActiveSpawnPool(
                 zone_id=zone_id,
-                item_id=fc.ACORNS,
-                display_name="Acorn",
+                item_id=item_id,
+                display_name=display_name,
                 rarity=Rarity.MOST_COMMON,
                 bounds=bounds,
                 max_stacks=stack_count,
