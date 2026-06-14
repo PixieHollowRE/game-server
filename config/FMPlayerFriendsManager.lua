@@ -1,6 +1,9 @@
 OTP_DO_ID_PLAYER_FRIENDS_MANAGER = 4687
+OTP_DO_ID_FAIRIES_BADGE_MANAGER = 4690
 
 STATESERVER_OBJECT_UPDATE_FIELD = 2004
+
+FRIEND_ACCEPT_EVENT_ID = 25003
 
 INVRESP_ACCEPTED = 5
 INVRESP_DECLINED = 1
@@ -45,6 +48,14 @@ function newInviteTable(inviterId, inviterData, inviteeId, inviteeData)
         inviteeId = inviteeId,
         inviteeData = inviteeData
     }
+end
+
+function applyFriendBadge(participant, avatarId)
+    local dg = datagram:new()
+    dg:addServerHeader(OTP_DO_ID_FAIRIES_BADGE_MANAGER, OTP_DO_ID_FAIRIES_BADGE_MANAGER, STATESERVER_OBJECT_UPDATE_FIELD)
+    dg:addUint32(OTP_DO_ID_FAIRIES_BADGE_MANAGER)
+    participant:packFieldToDatagram(dg, "FairiesBadgeManager", "accumulate", {avatarId, FRIEND_ACCEPT_EVENT_ID, 1}, true)
+    participant:routeDatagram(dg)
 end
 
 local http = require("http")
@@ -400,6 +411,8 @@ function makeFriends(participant, invite)
 
         participant:sendUpdateToAccountId(invite.inviteeId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
                 "FMPlayerFriendsManager", "updatePlayerFriend", {invite.inviterId, friendInfo, 0})
+
+        applyFriendBadge(participant, invite.inviteeData._id)
     end
 
     participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,

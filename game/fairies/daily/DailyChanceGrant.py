@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from game.fairies.badges.BadgeProgressService import grant_badge_direct
 from game.fairies.daily.DailyChanceData import (
     CATEGORY_BADGE,
     CATEGORY_HOME,
@@ -10,6 +11,7 @@ from game.fairies.daily.DailyChanceData import (
     CATEGORY_POUCH,
     CATEGORY_WARDROBE,
     DailyChancePrize,
+    SPIN_BADGE_IDS,
     is_gender_eligible,
     is_ingredient_item,
     is_spin_winnable_badge,
@@ -19,13 +21,22 @@ if TYPE_CHECKING:
     from game.fairies.fairy.DistributedFairyPlayerAI import DistributedFairyPlayerAI
 
 
+from game.fairies.stats.GameStatsService import get_earned_badge_ids_from_doc
+
+
 def get_earned_spin_badge_ids(air, avId: int) -> set[int]:
-    # TODO: wire to FairiesBadgeManager when badge persistence lands.
-    return set()
+    earned = get_earned_badge_ids_from_doc(air, avId)
+    return {badge_id for badge_id in earned if badge_id in SPIN_BADGE_IDS}
 
 
 def grant_badge_prize(air, avId: int, badge_id: int) -> bool:
-    return False
+    if not is_spin_winnable_badge(badge_id):
+        return False
+
+    badge_manager = getattr(air, "badgeManager", None)
+    if badge_manager is None:
+        return False
+    return grant_badge_direct(badge_manager, avId, badge_id)
 
 
 def grant_uses_pouch(item_id: int) -> bool:
