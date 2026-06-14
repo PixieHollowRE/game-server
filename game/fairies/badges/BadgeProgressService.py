@@ -193,12 +193,19 @@ def _friends_accepted_total(doc: dict) -> int:
 def _badge_progress_map(doc: dict) -> dict[int, int]:
     progress: dict[int, int] = {}
     for entry in doc.get("badgeProgress") or []:
+        if not isinstance(entry, dict) or "badgeId" not in entry:
+            continue
         progress[int(entry["badgeId"])] = int(entry.get("progress") or 0)
     return progress
 
 
 def _earned_badge_ids(doc: dict) -> set[int]:
-    return {int(entry["badgeId"]) for entry in (doc.get("earnedBadges") or [])}
+    earned: set[int] = set()
+    for entry in (doc.get("earnedBadges") or []):
+        if not isinstance(entry, dict) or "badgeId" not in entry:
+            continue
+        earned.add(int(entry["badgeId"]))
+    return earned
 
 
 def _ingredient_totals(doc: dict) -> dict[int, int]:
@@ -928,21 +935,27 @@ def persist_fairy_badge_state(air, av_id: int, doc: dict) -> None:
 
 
 def build_login_payload(doc: dict) -> tuple[list, list, list]:
-    earned_badges = [
-        [int(entry["badgeId"]), str(entry.get("dateEarned") or "")]
-        for entry in (doc.get("earnedBadges") or [])
-    ]
+    earned_badges = []
+    for entry in (doc.get("earnedBadges") or []):
+        if not isinstance(entry, dict) or "badgeId" not in entry:
+            continue
+        earned_badges.append(
+            [int(entry["badgeId"]), str(entry.get("dateEarned") or "")]
+        )
     unlocked_page_ids = [int(page_id) for page_id in (doc.get("unlockedPages") or [])]
-    badge_progress = [
-        [
-            int(entry["badgeId"]),
-            wire_badge_progress(
+    badge_progress = []
+    for entry in (doc.get("badgeProgress") or []):
+        if not isinstance(entry, dict) or "badgeId" not in entry:
+            continue
+        badge_progress.append(
+            [
                 int(entry["badgeId"]),
-                int(entry.get("progress") or 0),
-            ),
-        ]
-        for entry in (doc.get("badgeProgress") or [])
-    ]
+                wire_badge_progress(
+                    int(entry["badgeId"]),
+                    int(entry.get("progress") or 0),
+                ),
+            ]
+        )
     return earned_badges, unlocked_page_ids, badge_progress
 
 
