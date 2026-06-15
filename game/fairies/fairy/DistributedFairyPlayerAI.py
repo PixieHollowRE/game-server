@@ -579,10 +579,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
                 self._sync_zone_peer_profile_state()
 
     def publish_loaded_level(self, level: int | None = None) -> None:
-        """Apply Mongo talent level to AI state and owner client when needed.
+        """Apply Mongo talent level to AI state, owner client, and meadow peers.
 
-        setLevel is broadcast on generate for peers; avoid redundant owner
-        updates that re-trigger level-up FX on the client.
+        fillInFairyPlayer uses setLevel alone, which left _talentLevel at 0 on
+        clients until a peer push happened. Meadow profiles read talentLevel from
+        the distributed avatar (not profile XML), so we must publish here.
         """
         if level is None:
             level = self.getLevel()
@@ -590,14 +591,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         if level <= 0:
             return
 
-        old_level = self.getLevel()
-        if old_level != level:
+        if self.getLevel() != level:
             self.setLevel(level)
 
-        if old_level <= 0 or old_level != level:
-            self.sendUpdateToAvatarId(self.doId, "setLevel", [level])
-            self._invalidate_peer_level_pushed_for_avatar(self.doId)
-
+        self.sendUpdateToAvatarId(self.doId, "setLevel", [level])
+        self._invalidate_peer_level_pushed_for_avatar(self.doId)
         if self.zoneId:
             self._sync_zone_peer_profile_state()
 

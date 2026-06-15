@@ -315,17 +315,30 @@ function handleOnline(participant, accountId)
     for _, friendId in ipairs(account.friends) do
         local friendAccount = json.decode(retrieveFairy(string.format("identifier=%d", friendId)))
 
-        sendUpdatePlayerFriend(participant, accountId, friendAccount, friendId, 0)
-
-        local dg = datagram:new()
-        participant:addServerHeaderWithAccountId(dg, accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
-        dg:addUint32(friendAccount._id)
-        dg:addUint16(AVATAR_CLASS)
-        participant:routeDatagram(dg)
-
         queryDBSS(participant, friendAccount._id, function (doId, activated)
             participant:debug(string.format("Is friend %d online? %s", friendAccount._id, tostring(activated)))
-            sendUpdatePlayerFriend(participant, accountId, friendAccount, friendId, activated and 1 or 0)
+            local friendInfo = {
+                friendAccount.name, -- avatarName
+                friendAccount._id, -- avatarId
+                friendAccount.ownerAccount, -- playerName
+                activated, -- onlineYesNo
+                -- Most of these values appears to be unused.
+                0, -- openChatEnabledYesNo
+                0, -- openChatFriendshipYesNo
+                0, -- wlChatEnabledYesNo
+                "Fairies", -- location
+                "", -- sublocation
+                0  -- timestamp
+            }
+            -- Name cache must exist before declareObject (traveling screen).
+            participant:sendUpdateToAccountId(accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+                "FMPlayerFriendsManager", "updatePlayerFriend", {friendId, friendInfo, 0})
+
+            local dg = datagram:new()
+            participant:addServerHeaderWithAccountId(dg, accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
+            dg:addUint32(friendAccount._id)
+            dg:addUint16(AVATAR_CLASS)
+            participant:routeDatagram(dg)
         end)
     end
 end
