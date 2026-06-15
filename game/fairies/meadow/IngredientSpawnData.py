@@ -267,7 +267,7 @@ _TUNED_EXCLUSIONS: dict[int, dict[str, SpawnExclusionZone]] = {
         "9014": _sign(385, 100, margin_right=85, margin_bottom=110, margin_left=245),  # Petal Pick-Up
         "9149": _sign(90, 555, margin_right=85, margin_bottom=245),  # Rosetta's Garden
         "9017": _sign(1345, 570, margin_top=195, margin_right=70, margin_left=195),  # Daisy's Dyes
-        "9302": _sign(880, 815, margin_top=145, margin_bottom=145, margin_left=95),  # Troop Butterfly Hideout
+        "9302": _sign(880, 815, margin_top=195, margin_right=95, margin_bottom=195, margin_left=145),  # Troop Butterfly Hideout
     },
     zc.SPRINGTIME_ORCHARD: {
         "9170": exclusion_footprint(-10, 420, 130, 120, margin_top=30, margin_right=30, margin_bottom=30, margin_left=20),  # Havendish sign
@@ -278,7 +278,7 @@ _TUNED_EXCLUSIONS: dict[int, dict[str, SpawnExclusionZone]] = {
     zc.DEWDROP_VALE: {
         "9025": _sign(920, 1210, margin_top=70, margin_left=85),  # Silvermist's Grotto
         "9021": _sign(544, 810, margin_top=195, margin_bottom=85, margin_left=235),  # Garden Supply
-        "9303": _sign(483, 330, margin_top=110, margin_bottom=70, margin_left=85),  # Troop Otter Hideout
+        "9303": _sign(483, 330, margin_top=160, margin_right=95, margin_bottom=120, margin_left=135),  # Troop Otter Hideout
         "9010": _sign(100, 1190, margin_right=195, margin_bottom=195),  # Bubble Bounce
         "9053": _sign(1125, 910, margin_right=75),  # Neverberry Thicket sign
         "9031": _sign(98, 410, margin_right=70, margin_bottom=69),  # Springtime Orchard sign
@@ -309,7 +309,7 @@ _TUNED_EXCLUSIONS: dict[int, dict[str, SpawnExclusionZone]] = {
         "9147": _sign(508, 756, margin_top=245, margin_right=245, margin_bottom=95),  # Phoebe's Party Favors
         "9079": _sign(220, 1437, margin_top=55, margin_right=75),  # Cottonpuff Field sign
         "9272": exclusion_rect(800, 1150, 850, 1250),  # Sunbeam Bend game area
-        "9305": _sign(905, 640, margin_top=65),  # Troop Glowworm Hideout
+        "9305": _sign(905, 640, margin_top=115, margin_right=95, margin_bottom=95, margin_left=95),  # Troop Glowworm Hideout
     },
     zc.NEVERFRUIT_GROVE: {
         "9278": exclusion_footprint(380, 130, 150, 170, margin_top=75, margin_right=375, margin_bottom=100, margin_left=25),  # Pixie Post Office
@@ -325,12 +325,12 @@ _TUNED_EXCLUSIONS: dict[int, dict[str, SpawnExclusionZone]] = {
         "9210": _sign(646, 433, margin_top=-5, margin_right=145, margin_bottom=145, margin_left=145),  # Coal's Clothiers
         "9145": _sign(672, 745, margin_right=145, margin_bottom=195, margin_left=65),  # Tinker Toss
         "9026": _sign(1715, 765, margin_top=95, margin_right=95, margin_bottom=95, margin_left=95),  # Tinker's Nook
-        "9304": _sign(330, 815, margin_top=95, margin_right=95, margin_bottom=95, margin_left=95),  # Troop Turtle Hideout
+        "9304": _sign(330, 815, margin_top=145, margin_right=145, margin_bottom=145, margin_left=145),  # Troop Turtle Hideout
     },
     zc.MAPLE_TREE_HILL: {
         "9154": _sign(482, 940, margin_top=145, margin_right=15, margin_bottom=135, margin_left=285),  # Copper's Tinkering
         "9012": _sign(738, 1318, margin_top=95, margin_bottom=145, margin_left=145),  # Mendy's Tailoring
-        "9301": _sign(575, 280, margin_top=125, margin_right=70, margin_bottom=70, margin_left=70),  # Troop Rabbit Hideout
+        "9301": _sign(575, 280, margin_top=175, margin_right=120, margin_bottom=120, margin_left=120),  # Troop Rabbit Hideout
         "9027": _sign(342, 1740, margin_top=145, margin_left=145),  # Fawn's Hideout
         "9028": _sign(1075, 445),  # Springtime Orchard sign
     },
