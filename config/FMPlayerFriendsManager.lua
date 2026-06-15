@@ -51,6 +51,7 @@ function newInviteTable(inviterId, inviterData, inviteeId, inviteeData)
 end
 
 function applyFriendBadge(participant, avatarId)
+    participant:debug(string.format("applyFriendBadge avatarId=%d eventId=%d", avatarId, FRIEND_ACCEPT_EVENT_ID))
     local dg = datagram:new()
     dg:addServerHeader(OTP_DO_ID_FAIRIES_BADGE_MANAGER, OTP_DO_ID_FAIRIES_BADGE_MANAGER, STATESERVER_OBJECT_UPDATE_FIELD)
     dg:addUint32(OTP_DO_ID_FAIRIES_BADGE_MANAGER)
@@ -125,8 +126,8 @@ function setFairyData(playToken, data)
 
     if err then
         print(err)
-        client:sendDisconnect(CLIENT_DISCONNECT_ACCOUNT_ERROR, "Failed to encode JSON data for setFairyData.", false)
-        return
+        print(string.format("FMPlayerFriendsManager: setFairyData encode failed for %s", playToken))
+        return false
     end
 
     local connAttempts = 0
@@ -141,28 +142,45 @@ function setFairyData(playToken, data)
         })
 
         if error_message then
-            print(string.format("FMPlayerFriendsManager: setFairyData returned an error! \"%s\""), error_message)
+            print(string.format("FMPlayerFriendsManager: setFairyData returned an error! \"%s\"", error_message))
             connAttempts = connAttempts + 1
             goto retry
         end
 
         if response.status_code ~= 200 then
-            print(string.format("FMPlayerFriendsManager: setFairyData returned %d!, \"%s\""), response.status_code, response.body)
+            print(string.format("FMPlayerFriendsManager: setFairyData returned %d!, \"%s\"", response.status_code, response.body))
             connAttempts = connAttempts + 1
             goto retry
         end
 
         do
-            -- If we're here, then we can return the response.
-            return response
+            print(string.format(
+                "FMPlayerFriendsManager: setFairyData ok playToken=%s fields=%s",
+                playToken,
+                json.encode(data)
+            ))
+            return true
         end
 
-        -- retry goto to iterate again if we failed to set our fairy data.
         ::retry::
     end
 
-    -- TODO: If we're here, then we failed to set our fairy data. Disconnect here
-    -- client:sendDisconnect(CLIENT_DISCONNECT_ACCOUNT_ERROR, "Failed to setFairyData.", false)
+    print(string.format("FMPlayerFriendsManager: setFairyData failed after retries for %s", playToken))
+    return false
+end
+
+function friendListContains(friends, accountId)
+    if friends == nil then
+        return false
+    end
+
+    for _, friendId in ipairs(friends) do
+        if friendId == accountId then
+            return true
+        end
+    end
+
+    return false
 end
 
 function declareFriend(participant, avatarId, friendId)
@@ -359,14 +377,37 @@ function makeFriends(participant, invite)
         invite.inviteeData.friends = {}
     end
 
+    local inviterAlreadyFriend = friendListContains(invite.inviterData.friends, invite.inviteeId)
+    local inviteeAlreadyFriend = friendListContains(invite.inviteeData.friends, invite.inviterId)
+    if inviterAlreadyFriend and inviteeAlreadyFriend then
+        participant:debug(string.format(
+            "makeFriends already friends %d <-> %d",
+            invite.inviterId,
+            invite.inviteeId
+        ))
+        participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+            "FMPlayerFriendsManager", "invitationResponse", {invite.inviteeId, INVRESP_ALREADYFRIEND, 0})
+        return
+    end
+
     local status = INVRESP_ACCEPTED
     if #invite.inviterData.friends >= MAX_FRIENDS then
         status = INVRESP_DECLINED
     end
 
-    if status == INVRESP_ACCEPTED then
+    if status == INVRESP_ACCEPTED and not inviterAlreadyFriend then
         table.insert(invite.inviterData.friends, invite.inviteeId)
-        setFairyData(invite.inviterData.ownerAccount, {friends = invite.inviterData.friends})
+        if not setFairyData(invite.inviterData.ownerAccount, {friends = invite.inviterData.friends}) then
+            table.remove(invite.inviterData.friends)
+            participant:debug(string.format(
+                "makeFriends aborted inviter setFairyData %d -> %d",
+                invite.inviterId,
+                invite.inviteeId
+            ))
+            return
+        end
+
+        applyFriendBadge(participant, invite.inviterData._id)
 
         local friendInfo = {
             invite.inviteeData.name, -- avatarName
@@ -391,9 +432,19 @@ function makeFriends(participant, invite)
         status = INVRESP_DECLINED
     end
 
-    if status == INVRESP_ACCEPTED then
+    if status == INVRESP_ACCEPTED and not inviteeAlreadyFriend then
         table.insert(invite.inviteeData.friends, invite.inviterId)
-        setFairyData(invite.inviteeData.ownerAccount, {friends = invite.inviteeData.friends})
+        if not setFairyData(invite.inviteeData.ownerAccount, {friends = invite.inviteeData.friends}) then
+            table.remove(invite.inviteeData.friends)
+            participant:debug(string.format(
+                "makeFriends aborted invitee setFairyData %d -> %d",
+                invite.inviterId,
+                invite.inviteeId
+            ))
+            return
+        end
+
+        applyFriendBadge(participant, invite.inviteeData._id)
 
         local friendInfo = {
             invite.inviterData.name, -- avatarName
@@ -411,8 +462,6 @@ function makeFriends(participant, invite)
 
         participant:sendUpdateToAccountId(invite.inviteeId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
                 "FMPlayerFriendsManager", "updatePlayerFriend", {invite.inviterId, friendInfo, 0})
-
-        applyFriendBadge(participant, invite.inviteeData._id)
     end
 
     participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,

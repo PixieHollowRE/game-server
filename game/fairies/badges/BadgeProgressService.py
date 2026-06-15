@@ -183,11 +183,20 @@ def _craft_badges_is_bootstrapped(doc: dict) -> bool:
     return all(badge_id in progress for badge_id in ALL_CRAFT_BADGE_IDS)
 
 
+def _unique_friend_ids(doc: dict) -> list[int]:
+    seen: set[int] = set()
+    unique: list[int] = []
+    for raw in doc.get("friends") or []:
+        account_id = int(raw)
+        if account_id in seen:
+            continue
+        seen.add(account_id)
+        unique.append(account_id)
+    return unique
+
+
 def _friends_accepted_total(doc: dict) -> int:
-    friend_count = len(doc.get("friends") or [])
-    if "friendsAccepted" in doc:
-        return max(int(doc["friendsAccepted"]), friend_count)
-    return friend_count
+    return len(_unique_friend_ids(doc))
 
 
 def _badge_progress_map(doc: dict) -> dict[int, int]:
@@ -746,7 +755,38 @@ def ensure_starter_badges_bootstrapped(doc: dict) -> tuple[dict, bool]:
 
 def ensure_friend_badges_bootstrapped(doc: dict) -> tuple[dict, bool]:
     if _friend_badges_is_bootstrapped(doc):
-        return doc, False
+        total = _friends_accepted_total(doc)
+        previous_accepted = int(doc.get("friendsAccepted") or 0)
+        progress = _badge_progress_map(doc)
+        earned_ids = _earned_badge_ids(doc)
+        changed_progress = False
+        newly_earned: set[int] = set()
+
+        for tier in FRIEND_BADGE_TRACK["tiers"]:
+            badge_id = tier["badge_id"]
+            if progress.get(badge_id, 0) != total:
+                progress[badge_id] = total
+                changed_progress = True
+
+            if badge_id not in earned_ids and total >= tier["threshold"]:
+                earned_ids.add(badge_id)
+                newly_earned.add(badge_id)
+
+        if not changed_progress and not newly_earned and previous_accepted == total:
+            return doc, False
+
+        doc = dict(doc)
+        doc["badgeProgress"] = _serialize_badge_progress(progress)
+        doc["friendsAccepted"] = total
+        if newly_earned:
+            doc["earnedBadges"] = _serialize_earned_badges(
+                earned_ids,
+                doc,
+                newly_earned=newly_earned,
+            )
+            doc["badgeCount"] = len(earned_ids)
+            doc["newestBadge"] = max(newly_earned)
+        return doc, True
 
     doc, changed = ensure_starter_badge(doc)
 
@@ -1356,18 +1396,13 @@ def apply_friend_accepted_progress(badge_manager, av_id: int) -> None:
     air = badge_manager.air
     doc = load_fairy_doc(air, av_id)
     previous = int(doc.get("friendsAccepted") or 0)
-    friend_count = len(doc.get("friends") or [])
-
-    if friend_count > previous:
-        total = friend_count
-    elif friend_count == previous and friend_count > 0:
-        doc, _ = ensure_friend_badges_bootstrapped(doc)
-        return
-    else:
-        total = previous + 1
+    total = _friends_accepted_total(doc)
 
     if total <= previous:
         doc, _ = ensure_friend_badges_bootstrapped(doc)
+        if int(doc.get("friendsAccepted") or 0) != total:
+            doc["friendsAccepted"] = total
+            persist_fairy_badge_state(air, av_id, doc)
         return
 
     doc, _ = ensure_friend_badges_bootstrapped(doc)
