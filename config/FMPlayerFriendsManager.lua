@@ -183,6 +183,50 @@ function friendListContains(friends, accountId)
     return false
 end
 
+function clearInvite(invite)
+    if invite == nil then
+        return
+    end
+    invitesByInviterId[invite.inviterId] = nil
+    invitesByInviteeId[invite.inviteeId] = nil
+end
+
+function clearInviteForAccounts(inviterId, inviteeId)
+    local invite = invitesByInviterId[inviterId]
+    if invite ~= nil and invite.inviteeId == inviteeId then
+        clearInvite(invite)
+        return
+    end
+    invite = invitesByInviteeId[inviteeId]
+    if invite ~= nil and invite.inviterId == inviterId then
+        clearInvite(invite)
+        return
+    end
+    invitesByInviterId[inviterId] = nil
+    invitesByInviteeId[inviteeId] = nil
+end
+
+function buildFriendInfo(avatarData, onlineYesNo)
+    return {
+        avatarData.name, -- avatarName
+        avatarData._id, -- avatarId
+        avatarData.ownerAccount, -- playerName
+        onlineYesNo, -- onlineYesNo
+        0, -- openChatEnabledYesNo
+        0, -- openChatFriendshipYesNo
+        0, -- wlChatEnabledYesNo
+        "Fairies", -- location
+        "", -- sublocation
+        0  -- timestamp
+    }
+end
+
+function sendUpdatePlayerFriend(participant, accountId, avatarData, otherAccountId, onlineYesNo)
+    participant:sendUpdateToAccountId(accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+        "FMPlayerFriendsManager", "updatePlayerFriend",
+        {otherAccountId, buildFriendInfo(avatarData, onlineYesNo), 0})
+end
+
 function declareFriend(participant, avatarId, friendId)
     -- Make sure that these are AVATAR ids, not ACCOUNT ids.
     local dg = datagram:new()
@@ -271,21 +315,7 @@ function handleOnline(participant, accountId)
     for _, friendId in ipairs(account.friends) do
         local friendAccount = json.decode(retrieveFairy(string.format("identifier=%d", friendId)))
 
-        local initialFriendInfo = {
-            friendAccount.name, -- avatarName
-            friendAccount._id, -- avatarId
-            friendAccount.ownerAccount, -- playerName
-            0, -- onlineYesNo (updated below once DBSS responds)
-            -- Most of these values appears to be unused.
-            0, -- openChatEnabledYesNo
-            0, -- openChatFriendshipYesNo
-            0, -- wlChatEnabledYesNo
-            "Fairies", -- location
-            "", -- sublocation
-            0  -- timestamp
-        }
-        participant:sendUpdateToAccountId(accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "FMPlayerFriendsManager", "updatePlayerFriend", {friendId, initialFriendInfo, 0})
+        sendUpdatePlayerFriend(participant, accountId, friendAccount, friendId, 0)
 
         local dg = datagram:new()
         participant:addServerHeaderWithAccountId(dg, accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
@@ -295,21 +325,7 @@ function handleOnline(participant, accountId)
 
         queryDBSS(participant, friendAccount._id, function (doId, activated)
             participant:debug(string.format("Is friend %d online? %s", friendAccount._id, tostring(activated)))
-            local onlineFriendInfo = {
-                friendAccount.name, -- avatarName
-                friendAccount._id, -- avatarId
-                friendAccount.ownerAccount, -- playerName
-                activated, -- onlineYesNo
-                -- Most of these values appears to be unused.
-                0, -- openChatEnabledYesNo
-                0, -- openChatFriendshipYesNo
-                0, -- wlChatEnabledYesNo
-                "Fairies", -- location
-                "", -- sublocation
-                0  -- timestamp
-            }
-            participant:sendUpdateToAccountId(accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-                "FMPlayerFriendsManager", "updatePlayerFriend", {friendId, onlineFriendInfo, 0})
+            sendUpdatePlayerFriend(participant, accountId, friendAccount, friendId, activated and 1 or 0)
         end)
     end
 end
@@ -335,6 +351,11 @@ function handleOffline(participant, accountId)
     }
 
     for _, friendId in ipairs(account.friends) do
+        local friendAccount = json.decode(retrieveFairy(string.format("identifier=%d", friendId)))
+        if friendAccount ~= nil then
+            undeclareFriend(participant, friendAccount._id, account._id)
+        end
+
         participant:sendUpdateToAccountId(friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
             "FMPlayerFriendsManager", "updatePlayerFriend", {accountId, friendInfo, 0})
     end
@@ -359,6 +380,35 @@ function handleFMPlayerFriendsManager_requestInvite(participant, fieldId, data)
     local inviterData = json.decode(retrieveFairy(string.format("identifier=%d", senderId)))
     local inviteeData = json.decode(retrieveFairy(string.format("identifier=%d", otherPlayerId)))
 
+    if inviterData == nil or inviteeData == nil then
+        participant:debug(string.format("requestInvite missing fairy data %d -> %d", senderId, otherPlayerId))
+        return
+    end
+
+    if inviterData.friends == nil then
+        inviterData.friends = {}
+    end
+    if inviteeData.friends == nil then
+        inviteeData.friends = {}
+    end
+
+    if friendListContains(inviterData.friends, otherPlayerId)
+            and friendListContains(inviteeData.friends, senderId) then
+        participant:sendUpdateToAccountId(senderId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+            "FMPlayerFriendsManager", "invitationResponse", {otherPlayerId, INVRESP_ALREADYFRIEND, 0})
+        return
+    end
+
+    local pending = invitesByInviterId[senderId]
+    if pending ~= nil then
+        if pending.inviteeId == otherPlayerId then
+            participant:sendUpdateToAccountId(otherPlayerId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+                "FMPlayerFriendsManager", "invitationFrom", {senderId, inviterData.name})
+            return
+        end
+        clearInvite(pending)
+    end
+
     local invite = newInviteTable(senderId, inviterData, otherPlayerId, inviteeData)
     invitesByInviterId[senderId] = invite
     invitesByInviteeId[otherPlayerId] = invite
@@ -367,19 +417,31 @@ function handleFMPlayerFriendsManager_requestInvite(participant, fieldId, data)
             "FMPlayerFriendsManager", "invitationFrom", {senderId, inviterData.name})
 end
 
+function processInviteDecline(participant, declinerId, inviterId, responseContext)
+    clearInviteForAccounts(inviterId, declinerId)
+    clearInviteForAccounts(declinerId, inviterId)
+
+    if responseContext == nil or responseContext == 0 then
+        responseContext = INVRESP_DECLINED
+    end
+
+    participant:sendUpdateToAccountId(inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+        "FMPlayerFriendsManager", "invitationResponse", {declinerId, INVRESP_DECLINED, responseContext})
+end
+
 function handleFMPlayerFriendsManager_requestDecline(participant, fieldId, data)
     local senderId = participant:getAccountIdFromSender()
     local otherPlayerId = data[2]
     participant:debug(string.format("requestDecline - %d - %d", senderId, otherPlayerId))
+    processInviteDecline(participant, senderId, otherPlayerId, INVRESP_DECLINED)
+end
 
-    -- Cleanup
-    invitesByInviterId[senderId] = nil
-    invitesByInviteeId[senderId] = nil
-    invitesByInviterId[otherPlayerId] = nil
-    invitesByInviteeId[otherPlayerId] = nil
-
-    participant:sendUpdateToAccountId(otherPlayerId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "FMPlayerFriendsManager", "invitationResponse", {senderId, INVRESP_DECLINED, 0})
+function handleFMPlayerFriendsManager_requestDeclineWithReason(participant, fieldId, data)
+    local senderId = participant:getAccountIdFromSender()
+    local otherPlayerId = data[2]
+    local reason = data[3]
+    participant:debug(string.format("requestDeclineWithReason - %d - %d - %d", senderId, otherPlayerId, reason))
+    processInviteDecline(participant, senderId, otherPlayerId, reason)
 end
 
 function makeFriends(participant, invite)
@@ -400,88 +462,79 @@ function makeFriends(participant, invite)
             invite.inviterId,
             invite.inviteeId
         ))
+        clearInvite(invite)
         participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
             "FMPlayerFriendsManager", "invitationResponse", {invite.inviteeId, INVRESP_ALREADYFRIEND, 0})
         return
     end
 
-    local status = INVRESP_ACCEPTED
-    if #invite.inviterData.friends >= MAX_FRIENDS then
-        status = INVRESP_DECLINED
+    local inviterNeedsAdd = not inviterAlreadyFriend
+    local inviteeNeedsAdd = not inviteeAlreadyFriend
+
+    if inviterNeedsAdd and #invite.inviterData.friends >= MAX_FRIENDS then
+        clearInvite(invite)
+        participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+            "FMPlayerFriendsManager", "invitationResponse", {invite.inviteeId, INVRESP_DECLINED, INVRESP_DECLINED})
+        return
     end
 
-    if status == INVRESP_ACCEPTED and not inviterAlreadyFriend then
+    if inviteeNeedsAdd and #invite.inviteeData.friends >= MAX_FRIENDS then
+        clearInvite(invite)
+        participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+            "FMPlayerFriendsManager", "invitationResponse", {invite.inviteeId, INVRESP_DECLINED, INVRESP_DECLINED})
+        return
+    end
+
+    local inviterAdded = false
+    if inviterNeedsAdd then
         table.insert(invite.inviterData.friends, invite.inviteeId)
         if not setFairyData(invite.inviterData.ownerAccount, {friends = invite.inviterData.friends}) then
             table.remove(invite.inviterData.friends)
+            clearInvite(invite)
             participant:debug(string.format(
                 "makeFriends aborted inviter setFairyData %d -> %d",
                 invite.inviterId,
                 invite.inviteeId
             ))
+            participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+                "FMPlayerFriendsManager", "invitationResponse", {invite.inviteeId, INVRESP_DECLINED, INVRESP_DECLINED})
             return
         end
-
+        inviterAdded = true
         applyFriendBadge(participant, invite.inviterData._id)
-
-        local friendInfo = {
-            invite.inviteeData.name, -- avatarName
-            invite.inviteeData._id, -- avatarId
-            invite.inviteeData.ownerAccount, -- playerName
-            1, -- onlineYesNo
-            -- Most of these values appears to be unused.
-            0, -- openChatEnabledYesNo
-            0, -- openChatFriendshipYesNo
-            0, -- wlChatEnabledYesNo
-            "Fairies", -- location
-            "", -- sublocation
-            0  -- timestamp
-        }
-
-        participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-                "FMPlayerFriendsManager", "updatePlayerFriend", {invite.inviteeId, friendInfo, 0})
+        sendUpdatePlayerFriend(participant, invite.inviterId, invite.inviteeData, invite.inviteeId, 0)
     end
 
-    status = INVRESP_ACCEPTED
-    if #invite.inviteeData.friends >= MAX_FRIENDS then
-        status = INVRESP_DECLINED
-    end
-
-    if status == INVRESP_ACCEPTED and not inviteeAlreadyFriend then
+    if inviteeNeedsAdd then
         table.insert(invite.inviteeData.friends, invite.inviterId)
         if not setFairyData(invite.inviteeData.ownerAccount, {friends = invite.inviteeData.friends}) then
             table.remove(invite.inviteeData.friends)
+            if inviterAdded then
+                for i, friendId in ipairs(invite.inviterData.friends) do
+                    if friendId == invite.inviteeId then
+                        table.remove(invite.inviterData.friends, i)
+                        break
+                    end
+                end
+                setFairyData(invite.inviterData.ownerAccount, {friends = invite.inviterData.friends})
+            end
+            clearInvite(invite)
             participant:debug(string.format(
-                "makeFriends aborted invitee setFairyData %d -> %d",
+                "makeFriends aborted invitee setFairyData %d -> %d (rolled back inviter)",
                 invite.inviterId,
                 invite.inviteeId
             ))
+            participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+                "FMPlayerFriendsManager", "invitationResponse", {invite.inviteeId, INVRESP_DECLINED, INVRESP_DECLINED})
             return
         end
-
         applyFriendBadge(participant, invite.inviteeData._id)
-
-        local friendInfo = {
-            invite.inviterData.name, -- avatarName
-            invite.inviterData._id, -- avatarId
-            invite.inviterData.ownerAccount, -- playerName
-            1, -- onlineYesNo
-            -- Most of these values appears to be unused.
-            0, -- openChatEnabledYesNo
-            0, -- openChatFriendshipYesNo
-            0, -- wlChatEnabledYesNo
-            "Fairies", -- location
-            "", -- sublocation
-            0  -- timestamp
-        }
-
-        participant:sendUpdateToAccountId(invite.inviteeId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-                "FMPlayerFriendsManager", "updatePlayerFriend", {invite.inviterId, friendInfo, 0})
+        sendUpdatePlayerFriend(participant, invite.inviteeId, invite.inviterData, invite.inviterId, 0)
     end
 
+    clearInvite(invite)
     participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "FMPlayerFriendsManager", "invitationResponse", {invite.inviteeId, status, 0})
-
+            "FMPlayerFriendsManager", "invitationResponse", {invite.inviteeId, INVRESP_ACCEPTED, 0})
 end
 
 function handleFMPlayerFriendsManager_setTalkAccount(participant, fieldId, data)
