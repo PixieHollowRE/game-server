@@ -584,6 +584,27 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             if self.zoneId:
                 self._sync_zone_peer_profile_state()
 
+    def publish_loaded_level(self, level: int | None = None) -> None:
+        """Apply Mongo talent level to AI state, owner client, and meadow peers.
+
+        fillInFairyPlayer uses setLevel alone, which left _talentLevel at 0 on
+        clients until a peer push happened. Meadow profiles read talentLevel from
+        the distributed avatar (not profile XML), so we must publish here.
+        """
+        if level is None:
+            level = self.getLevel()
+        level = int(level or 0)
+        if level <= 0:
+            return
+
+        if self.getLevel() != level:
+            self.setLevel(level)
+
+        self.sendUpdateToAvatarId(self.doId, "setLevel", [level])
+        self._invalidate_peer_level_pushed_for_avatar(self.doId)
+        if self.zoneId:
+            self._sync_zone_peer_profile_state()
+
     def getLevel(self) -> int:
         return self.level
 
@@ -643,9 +664,19 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         fairy = self.air.getDo(fairyId)
 
         if fairy:
+            if fairy.getLevel() <= 0:
+                docs = self.air.mongoInterface.retrieveDocs(
+                    "fairies", fairyId, queryField="_id"
+                )
+                doc = docs[0] if docs else {}
+                mongo_level = int(doc.get("level") or 0)
+                if mongo_level > 0:
+                    fairy.publish_loaded_level(mongo_level)
+
             # This fairy is present on this shard, no need to query location from OTP server.
             gotFairyLocation(fairyId, fairy.parentId, fairy.zoneId)
             self._push_access_to_avatar(self.doId, fairy)
+            self._push_peer_more_options_to_avatar(self.doId, fairy)
             self._push_level_to_avatar(self.doId, fairy)
             return
 
@@ -804,6 +835,12 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         peer.sendUpdateToAvatarId(viewer_id, "setLevel", [level])
         pushed.add(key)
 
+    def _push_peer_more_options_to_avatar(self, viewer_id: int, peer) -> None:
+        if viewer_id <= 0 or not isinstance(peer, DistributedFairyPlayerAI):
+            return
+        options = peer.getMoreOptions() or MORE_OPTIONS_EMPTY
+        peer.sendUpdateToAvatarId(viewer_id, "setMoreOptions", [options])
+
     def _zone_fairy_peers(self) -> list:
         peers = []
         zone_map = getattr(self.air, "zoneToMeadow", None)
@@ -819,7 +856,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         return peers
 
     def _sync_zone_peer_profile_state(self) -> None:
-        """Push meadow profile fields to peers (setAccess, setLevel).
+        """Push meadow profile fields to peers (setAccess, setMoreOptions, setLevel).
 
         Client DC fields are ownrecv-only; targeted updates let other players
         open profiles with correct badge tab visibility (velvetRope) and level.
@@ -828,7 +865,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         if not self.zoneId:
             return
 
+        options = self.getMoreOptions() or MORE_OPTIONS_EMPTY
+        viewer_id = self.doId
         for peer in self._zone_fairy_peers():
+            self._push_peer_more_options_to_avatar(viewer_id, peer)
+            peer.sendUpdateToAvatarId(viewer_id, "setMoreOptions", [options])
             self._push_access_to_avatar(self.doId, peer)
             self._push_access_to_avatar(peer.doId, self)
             self._push_level_to_avatar(self.doId, peer)
