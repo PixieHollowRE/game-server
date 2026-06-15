@@ -204,7 +204,14 @@ def repair_more_options(
 
 
 def persist_more_options(air, av_id: int, more_options: str) -> None:
+    av_id = int(av_id)
+    if av_id <= 0:
+        return
+
     fairy = air.mongoInterface.mongodb.fairies.find_one({"_id": av_id}) or {}
+    if not fairy:
+        return
+
     earned_badge_ids = {
         int(entry["badgeId"]) for entry in (fairy.get("earnedBadges") or [])
     }
@@ -215,11 +222,12 @@ def persist_more_options(air, av_id: int, more_options: str) -> None:
         earned_badge_ids,
     )
 
-    air.mongoInterface.updateFields(
-        "fairies",
+    air.mongoInterface.mongodb.fairies.update_one(
+        {"_id": av_id},
         {
-            "moreOptions": more_options,
-            "favoriteBadgeId": favorite_badge_id,
+            "$set": {
+                "moreOptions": more_options,
+                "favoriteBadgeId": favorite_badge_id,
+            }
         },
-        av_id,
     )
