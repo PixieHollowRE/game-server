@@ -204,6 +204,13 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         fairyPlayer.moreOptions = more_options
         fairyPlayer.d_setMoreOptions(more_options)
 
+        mongo_level = int(doc.get("level") or 0)
+        if mongo_level > 0 and fairyPlayer.getLevel() != mongo_level:
+            fairyPlayer.setLevel(mongo_level)
+
+        if fairyPlayer.zoneId:
+            fairyPlayer._sync_zone_peer_profile_state()
+
     def readFairyPlayer(self, fairyPlayerId, fields = None, doneEvent = '') -> DistributedFairyPlayerAI:
         dbo = DatabaseObject(self, fairyPlayerId, doneEvent)
         return dbo.readFairyPlayer(fields)
