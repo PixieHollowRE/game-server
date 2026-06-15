@@ -271,16 +271,31 @@ function handleOnline(participant, accountId)
     for _, friendId in ipairs(account.friends) do
         local friendAccount = json.decode(retrieveFairy(string.format("identifier=%d", friendId)))
 
+        local initialFriendInfo = {
+            friendAccount.name, -- avatarName
+            friendAccount._id, -- avatarId
+            friendAccount.ownerAccount, -- playerName
+            0, -- onlineYesNo (updated below once DBSS responds)
+            -- Most of these values appears to be unused.
+            0, -- openChatEnabledYesNo
+            0, -- openChatFriendshipYesNo
+            0, -- wlChatEnabledYesNo
+            "Fairies", -- location
+            "", -- sublocation
+            0  -- timestamp
+        }
+        participant:sendUpdateToAccountId(accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+            "FMPlayerFriendsManager", "updatePlayerFriend", {friendId, initialFriendInfo, 0})
+
         local dg = datagram:new()
         participant:addServerHeaderWithAccountId(dg, accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
         dg:addUint32(friendAccount._id)
         dg:addUint16(AVATAR_CLASS)
         participant:routeDatagram(dg)
 
-        -- Check if this account's avatar is online or not.
         queryDBSS(participant, friendAccount._id, function (doId, activated)
             participant:debug(string.format("Is friend %d online? %s", friendAccount._id, tostring(activated)))
-            friendInfo = {
+            local onlineFriendInfo = {
                 friendAccount.name, -- avatarName
                 friendAccount._id, -- avatarId
                 friendAccount.ownerAccount, -- playerName
@@ -294,7 +309,7 @@ function handleOnline(participant, accountId)
                 0  -- timestamp
             }
             participant:sendUpdateToAccountId(accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-                "FMPlayerFriendsManager", "updatePlayerFriend", {friendId, friendInfo, 0})
+                "FMPlayerFriendsManager", "updatePlayerFriend", {friendId, onlineFriendInfo, 0})
         end)
     end
 end
