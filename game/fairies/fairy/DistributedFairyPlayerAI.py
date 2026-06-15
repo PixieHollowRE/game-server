@@ -578,6 +578,27 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             if self.zoneId:
                 self._sync_zone_peer_profile_state()
 
+    def publish_loaded_level(self, level: int | None = None) -> None:
+        """Apply Mongo talent level to AI state, owner client, and meadow peers.
+
+        fillInFairyPlayer uses setLevel alone, which left _talentLevel at 0 on
+        clients until a peer push happened. Meadow profiles read talentLevel from
+        the distributed avatar (not profile XML), so we must publish here.
+        """
+        if level is None:
+            level = self.getLevel()
+        level = int(level or 0)
+        if level <= 0:
+            return
+
+        if self.getLevel() != level:
+            self.setLevel(level)
+
+        self.sendUpdateToAvatarId(self.doId, "setLevel", [level])
+        self._invalidate_peer_level_pushed_for_avatar(self.doId)
+        if self.zoneId:
+            self._sync_zone_peer_profile_state()
+
     def getLevel(self) -> int:
         return self.level
 
@@ -637,6 +658,15 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         fairy = self.air.getDo(fairyId)
 
         if fairy:
+            if fairy.getLevel() <= 0:
+                docs = self.air.mongoInterface.retrieveDocs(
+                    "fairies", fairyId, queryField="_id"
+                )
+                doc = docs[0] if docs else {}
+                mongo_level = int(doc.get("level") or 0)
+                if mongo_level > 0:
+                    fairy.publish_loaded_level(mongo_level)
+
             # This fairy is present on this shard, no need to query location from OTP server.
             gotFairyLocation(fairyId, fairy.parentId, fairy.zoneId)
             self._push_access_to_avatar(self.doId, fairy)
