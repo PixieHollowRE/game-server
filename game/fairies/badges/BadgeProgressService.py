@@ -1131,6 +1131,29 @@ def apply_leaf_journal_donation(badge_manager, av_id: int, track_key: str, amoun
         )
 
 
+def _send_track_badge_acquired(
+    badge_manager,
+    av_id: int,
+    doc: dict,
+    track: dict,
+    earned_before: set[int],
+) -> None:
+    earned_ids = _earned_badge_ids(doc)
+    earned_dates = {
+        int(entry["badgeId"]): str(entry.get("dateEarned") or "")
+        for entry in doc.get("earnedBadges") or []
+    }
+
+    for tier in track["tiers"]:
+        badge_id = tier["badge_id"]
+        if badge_id in earned_ids and badge_id not in earned_before:
+            badge_manager.sendUpdateToAvatarId(
+                av_id,
+                "badgeAcquired",
+                [[badge_id, earned_dates.get(badge_id, "")]],
+            )
+
+
 def _apply_tier_track(
     badge_manager,
     av_id: int,
@@ -1139,6 +1162,7 @@ def _apply_tier_track(
     total: int,
     *,
     progress_delta: int,
+    earned_before: set[int] | None = None,
 ) -> None:
     air = badge_manager.air
     progress = _badge_progress_map(doc)
@@ -1177,7 +1201,17 @@ def _apply_tier_track(
         badge_id = tier["badge_id"]
         _send_progress_update(badge_manager, av_id, badge_id, progress_delta)
 
-    for badge_id in newly_earned:
+    if earned_before is None:
+        badges_to_notify = newly_earned
+    else:
+        tier_ids = {tier["badge_id"] for tier in track["tiers"]}
+        badges_to_notify = [
+            badge_id
+            for badge_id in tier_ids
+            if badge_id in earned_ids and badge_id not in earned_before
+        ]
+
+    for badge_id in badges_to_notify:
         badge_manager.sendUpdateToAvatarId(
             av_id,
             "badgeAcquired",
@@ -1395,14 +1429,24 @@ def apply_craft_progress(
 def apply_friend_accepted_progress(badge_manager, av_id: int) -> None:
     air = badge_manager.air
     doc = load_fairy_doc(air, av_id)
+    earned_before = _earned_badge_ids(doc)
     previous = int(doc.get("friendsAccepted") or 0)
     total = _friends_accepted_total(doc)
 
     if total <= previous:
-        doc, _ = ensure_friend_badges_bootstrapped(doc)
+        doc, changed = ensure_friend_badges_bootstrapped(doc)
         if int(doc.get("friendsAccepted") or 0) != total:
             doc["friendsAccepted"] = total
+            changed = True
+        if changed:
             persist_fairy_badge_state(air, av_id, doc)
+        _send_track_badge_acquired(
+            badge_manager,
+            av_id,
+            doc,
+            FRIEND_BADGE_TRACK,
+            earned_before,
+        )
         return
 
     doc, _ = ensure_friend_badges_bootstrapped(doc)
@@ -1415,6 +1459,7 @@ def apply_friend_accepted_progress(badge_manager, av_id: int) -> None:
         FRIEND_BADGE_TRACK,
         total,
         progress_delta=total - previous,
+        earned_before=earned_before,
     )
 
 
