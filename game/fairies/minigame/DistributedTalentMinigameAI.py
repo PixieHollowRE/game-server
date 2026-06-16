@@ -17,6 +17,11 @@ class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
     def getGameID(self) -> int:
         return self.gameID
 
+    def startGame(self, _unknown: int) -> None:
+        avId = self.air.getAvatarIdFromSender()
+        self._scores.pop(avId, None)
+        self._pendingRewards.pop(avId, None)
+
     def reportScore(self, score: int) -> None:
         if self.gameID == MINIGAME_DAILY_CHANCE:
             return

@@ -13,12 +13,12 @@ from direct.showbase.PythonUtil import describeException
 from direct.task.Task import Task
 from direct.task.TaskManagerGlobal import taskMgr
 
-from leaderboard.leaderboard_registry import (
+from game.fairies.uberdog.leaderboard.leaderboard_registry import (
     is_seasonal_board_request,
     is_weekly_board_request,
     SUPPORTED_GAME_IDS,
 )
-from leaderboard.leaderboard_service import (
+from game.fairies.uberdog.leaderboard.leaderboard_service import (
     _board_cache_root,
     panel_guard_entry_count,
     panel_load_guard_seconds,

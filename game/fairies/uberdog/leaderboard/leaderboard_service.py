@@ -6,7 +6,7 @@ import traceback
 from datetime import datetime, timezone
 from typing import Any
 
-from leaderboard.leaderboard_registry import (
+from game.fairies.uberdog.leaderboard.leaderboard_registry import (
     CLIENT_SEASONAL_BOARD_TYPE,
     CLIENT_WEEKLY_BOARD_TYPE,
     LEADERBOARD_SEASONAL,
@@ -20,7 +20,7 @@ from leaderboard.leaderboard_registry import (
     leaderboard_doc_id,
     threshold_for_game,
 )
-from leaderboard.leaderboard_refresh import get_current_season_id, get_current_week_id
+from game.fairies.uberdog.leaderboard.leaderboard_refresh import get_current_season_id, get_current_week_id
 
 logger = logging.getLogger(__name__)
 
