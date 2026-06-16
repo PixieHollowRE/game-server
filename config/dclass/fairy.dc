@@ -23,6 +23,8 @@ from game.fairies.uberdog import FairyInventoryMgrUD
 from game.fairies.ai import FairyInventoryMgrAI
 from game.fairies.uberdog import PetMgrUD
 from game.fairies.ai import PetMgrAI
+from leaderboard.leaderboard_manager_ud import LeaderBoardMgrUD
+from leaderboard.leaderboard_manager_ai import LeaderBoardMgrAI
 
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.
@@ -1019,7 +1021,7 @@ struct LbEntry {
 dclass LeaderBoardMgr { // 117
     putToLeaderBoard(uint32, int16, int32); // 812
     addToLeaderBoard(uint32, int16, int16); // 813
-    lbRequest(int16, int8); // 814
+    lbRequest(int16, int8) clsend airecv; // 814
     lbResponse(int16, int8, LbEntry[]); // 815
     forceRollover(int8); // 816
 };

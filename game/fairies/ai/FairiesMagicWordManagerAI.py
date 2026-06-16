@@ -22,6 +22,18 @@ class FairiesMagicWordManagerAI(DistributedObjectAI):
         if command == "set-level":
             av.b_setLevel(int(args[0]))
 
+        elif command == "lb-rollover":
+            board_type = int(args[0]) if args else 0
+            leaderboard_manager = getattr(self.air, "leaderboardManager", None)
+            if leaderboard_manager is not None:
+                leaderboard_manager.sendUpdate("forceRollover", [board_type])
+            self.sendUpdateToAvatarId(
+                av.doId,
+                "setMagicWordResponse",
+                [f"Leaderboard rollover requested for type {board_type}"],
+            )
+            return
+
         # TODO: Implement magic words located in `LiveMod`, etc.
         # For now, we will just send back a test response.
         self.sendUpdateToAvatarId(av.doId, "setMagicWordResponse", ["Test response from server!"])
