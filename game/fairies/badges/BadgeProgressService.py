@@ -1502,3 +1502,52 @@ def grant_badge_direct(badge_manager, av_id: int, badge_id: int) -> bool:
         [[badge_id, earned_dates.get(badge_id, "")]],
     )
     return True
+
+
+def grant_great_games_honors_badge(badge_manager, av_id: int) -> bool:
+    """Grant 2010 Great Games Honors (10869) and unlock page 12042. Idempotent."""
+    from game.fairies.badges.LeaderboardBadgeRegistry import (
+        GREAT_GAMES_HONORS_BADGE_ID,
+        GREAT_GAMES_HONORS_PAGE_ID,
+    )
+
+    air = badge_manager.air
+    doc = load_fairy_doc(air, av_id)
+    doc, _ = ensure_game_badges_bootstrapped(doc)
+
+    earned_ids = _earned_badge_ids(doc)
+    if GREAT_GAMES_HONORS_BADGE_ID in earned_ids:
+        return False
+
+    unlocked_pages = [int(page_id) for page_id in (doc.get("unlockedPages") or [])]
+    if GREAT_GAMES_HONORS_PAGE_ID not in unlocked_pages:
+        unlocked_pages.append(GREAT_GAMES_HONORS_PAGE_ID)
+
+    progress = _badge_progress_map(doc)
+    progress[GREAT_GAMES_HONORS_BADGE_ID] = 1
+    earned_ids.add(GREAT_GAMES_HONORS_BADGE_ID)
+
+    doc["unlockedPages"] = sorted(set(unlocked_pages))
+    doc["badgeProgress"] = _serialize_badge_progress(progress)
+    doc["earnedBadges"] = _serialize_earned_badges(
+        earned_ids,
+        doc,
+        newly_earned={GREAT_GAMES_HONORS_BADGE_ID},
+    )
+    doc["badgeCount"] = len(earned_ids)
+    doc["newestBadge"] = GREAT_GAMES_HONORS_BADGE_ID
+
+    persist_fairy_badge_state(air, av_id, doc)
+
+    earned_dates = {
+        int(entry["badgeId"]): str(entry.get("dateEarned") or "")
+        for entry in doc["earnedBadges"]
+    }
+
+    _send_progress_update(badge_manager, av_id, GREAT_GAMES_HONORS_BADGE_ID, 1)
+    badge_manager.sendUpdateToAvatarId(
+        av_id,
+        "badgeAcquired",
+        [[GREAT_GAMES_HONORS_BADGE_ID, earned_dates.get(GREAT_GAMES_HONORS_BADGE_ID, "")]],
+    )
+    return True
