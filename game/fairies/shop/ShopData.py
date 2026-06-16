@@ -981,6 +981,22 @@ SHOPS = [
                         OutfitItem(itemId=3845, price=15, goldPrice=8, color1=199, color2=26, itemType="Shoes"),
                     ],
                 ),
+                ShopOutfit(
+                    outfitId=2007, # Outfit of the Month
+                    items=[
+                        OutfitItem(itemId=13, price=35, goldPrice=13, color1=272, color2=47, itemType="Shirt"), # bra
+                        OutfitItem(itemId=1392, price=35, goldPrice=13, color1=272, color2=47, itemType="Skirt"), 
+                        OutfitItem(itemId=3518, price=15, goldPrice=8, color1=272, color2=47, itemType="Shoes"),
+                    ],
+                ),
+                ShopOutfit(
+                    outfitId=2007, # Outfit of the Month
+                    items=[
+                        OutfitItem(itemId=331, price=35, goldPrice=13, color1=189, color2=272, itemType="Shirt"), # gentian
+                        OutfitItem(itemId=1268, price=35, goldPrice=13, color1=189, color2=272, itemType="Skirt"),
+                        OutfitItem(itemId=3691, price=15, goldPrice=8, color1=189, color2=272, itemType="Shoes"),
+                    ],
+                ),
             ],
         ),
     ],
@@ -3163,9 +3179,11 @@ SHOPS = [
                     ShopItem(itemId=14082, price=10, goldPrice=1), # Raspberry Red
                     ShopItem(itemId=14113, price=10, goldPrice=1), # Pale Rose Red
                     ShopItem(itemId=14083, price=10, goldPrice=1), # Cherry Brown
+                    ShopItem(itemId=14100, price=10, goldPrice=1), # Golden Tan
                     ShopItem(itemId=14114, price=10, goldPrice=1), # Foxtail Orange
                     ShopItem(itemId=14013, price=10, goldPrice=1), # Coral Pink
                     ShopItem(itemId=14181, price=10, goldPrice=1), # Cupcake Pink
+                    ShopItem(itemId=14007, price=10, goldPrice=1), # Salmon Pink
                     ShopItem(itemId=14008, price=10, goldPrice=1), # Watermelon Pink
                     ShopItem(itemId=14121, price=10, goldPrice=1), # Daisy Pink
                     ShopItem(itemId=14084, price=10, goldPrice=1), # Copper Brown
@@ -3201,8 +3219,10 @@ SHOPS = [
                     ShopItem(itemId=14090, price=10, goldPrice=1), # Custard Yellow
                     ShopItem(itemId=14116, price=10, goldPrice=1), # Mushroom White
                     ShopItem(itemId=14109, price=10, goldPrice=1), # Soft Orange
+                    ShopItem(itemId=14108, price=10, goldPrice=1), # Creamy Tan
                     ShopItem(itemId=14111, price=10, goldPrice=1), # Sparkling Yellow
                     ShopItem(itemId=14166, price=10, goldPrice=1), # Snow White
+                    ShopItem(itemId=14227, price=10, goldPrice=1), # Moonlight Gray
                 ]
             ),
             ShopCollection(
@@ -3234,9 +3254,11 @@ SHOPS = [
                     ShopItem(itemId=14082, price=10, goldPrice=1, specialType=2), # Raspberry Red
                     ShopItem(itemId=14113, price=10, goldPrice=1, specialType=2), # Pale Rose Red
                     ShopItem(itemId=14083, price=10, goldPrice=1, specialType=2), # Cherry Brown
+                    ShopItem(itemId=14100, price=10, goldPrice=1, specialType=2), # Golden Tan
                     ShopItem(itemId=14114, price=10, goldPrice=1, specialType=2), # Foxtail Orange
                     ShopItem(itemId=14013, price=10, goldPrice=1, specialType=2), # Coral Pink
                     ShopItem(itemId=14181, price=10, goldPrice=1, specialType=2), # Cupcake Pink
+                    ShopItem(itemId=14007, price=10, goldPrice=1, specialType=2), # Salmon Pink
                     ShopItem(itemId=14008, price=10, goldPrice=1, specialType=2), # Watermelon Pink
                     ShopItem(itemId=14121, price=10, goldPrice=1, specialType=2), # Daisy Pink
                     ShopItem(itemId=14084, price=10, goldPrice=1, specialType=2), # Copper Brown
@@ -3272,8 +3294,10 @@ SHOPS = [
                     ShopItem(itemId=14090, price=10, goldPrice=1, specialType=2), # Custard Yellow
                     ShopItem(itemId=14116, price=10, goldPrice=1, specialType=2), # Mushroom White
                     ShopItem(itemId=14109, price=10, goldPrice=1, specialType=2), # Soft Orange
+                    ShopItem(itemId=14108, price=10, goldPrice=1, specialType=2), # Creamy Tan
                     ShopItem(itemId=14111, price=10, goldPrice=1, specialType=2), # Sparkling Yellow
                     ShopItem(itemId=14166, price=10, goldPrice=1, specialType=2), # Snow White
+                    ShopItem(itemId=14227, price=10, goldPrice=1, specialType=2), # Moonlight Gray
                 ]
             )
         ],
@@ -3735,6 +3759,9 @@ SHOPS = [
                     ShopItem(itemId=14057, price=5, goldPrice=1, specialType=3),
                     ShopItem(itemId=14160, price=5, goldPrice=1, specialType=3),
                     ShopItem(itemId=14007, price=5, goldPrice=1, specialType=3),
+                    ShopItem(itemId=14241, price=5, goldPrice=1, specialType=3),
+                    ShopItem(itemId=14164, price=5, goldPrice=1, specialType=3),
+                    ShopItem(itemId=14109, price=5, goldPrice=1, specialType=3),
                 ],
             ),
             ShopCollection(
