@@ -130,6 +130,9 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         self.badgeManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_BADGE_MANAGER, "FairiesBadgeManager")
         self.inventoryManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_INVENTORY_MANAGER, "FairyInventoryMgr")
         self.petManager = self.generateGlobalObject(OTP_DO_ID_FAIRIES_PET_MANAGER, "PetMgr")
+        self.leaderboardManager = self.generateGlobalObject(
+            OTP_DO_ID_FAIRIES_LEADERBOARD_MANAGER, "LeaderBoardMgr"
+        )
 
         # The Magic Word Manager
         self.magicWordManager = FairiesMagicWordManagerAI(self)

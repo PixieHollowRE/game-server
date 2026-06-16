@@ -76,6 +76,9 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
     def delete(self):
         # TODO: Set a post-remove message in case of an AI crash.
+        from leaderboard.leaderboard_panel import clear_panel_session
+
+        clear_panel_session(self.doId)
         self.air.sendFriendManagerAccountOffline(self.DISLid)
 
         self.air.decrementPopulation()
