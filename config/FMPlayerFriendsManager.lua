@@ -14,7 +14,7 @@ MAX_FRIENDS = 300
 FRIENDMANAGER_ACCOUNT_ONLINE  = 10000
 FRIENDMANAGER_ACCOUNT_OFFLINE = 10001
 
--- For verifying that their friend is online.
+-- DBSS activation (declareObject only; not used for onlineYesNo).
 DBSS_OBJECT_GET_ACTIVATED      = 2207
 DBSS_OBJECT_GET_ACTIVATED_RESP = 2208
 
@@ -33,6 +33,9 @@ invitesByInviteeId = {} -- inviteeId: invite
 
 CONTEXT = 0
 DBSS_QUERY_MAP = {}
+
+-- Account sessions: set on FRIENDMANAGER_ACCOUNT_ONLINE, cleared on OFFLINE.
+onlineAccounts = {}
 
 -- Load the TalkFilter
 dofile("TalkFilter.lua")
@@ -221,6 +224,14 @@ function buildFriendInfo(avatarData, onlineYesNo)
     }
 end
 
+function isAccountOnline(accountId)
+    return onlineAccounts[accountId] == true
+end
+
+function onlineYesNoForAccount(accountId)
+    return isAccountOnline(accountId) and 1 or 0
+end
+
 function sendUpdatePlayerFriend(participant, accountId, avatarData, otherAccountId, onlineYesNo)
     participant:sendUpdateToAccountId(accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
         "FMPlayerFriendsManager", "updatePlayerFriend",
@@ -284,21 +295,11 @@ function handleOnline(participant, accountId)
     participant:debug(string.format("handleOnline - %d", accountId))
     local json = require("json")
 
+    onlineAccounts[accountId] = true
+
     local account = json.decode(retrieveFairy(string.format("identifier=%d", accountId)))
     -- Tell this account's friends that it went online.
-    local friendInfo = {
-        account.name, -- avatarName
-        account._id, -- avatarId
-        account.ownerAccount, -- playerName
-        1, -- onlineYesNo
-        -- Most of these values appears to be unused.
-        0, -- openChatEnabledYesNo
-        0, -- openChatFriendshipYesNo
-        0, -- wlChatEnabledYesNo
-        "Fairies", -- location
-        "", -- sublocation
-        0  -- timestamp
-    }
+    local friendInfo = buildFriendInfo(account, 1)
 
     for _, friendId in ipairs(account.friends) do
         participant:sendUpdateToAccountId(friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
@@ -311,35 +312,19 @@ function handleOnline(participant, accountId)
         participant:routeDatagram(dg)
     end
 
-    -- Now to send the friend list over to the just logged in account.
+    -- Send the friend list to the just logged-in account (online from session registry).
     for _, friendId in ipairs(account.friends) do
         local friendAccount = json.decode(retrieveFairy(string.format("identifier=%d", friendId)))
+        local onlineYesNo = onlineYesNoForAccount(friendId)
+        participant:debug(string.format("Is friend %d online? %d", friendAccount._id, onlineYesNo))
 
-        queryDBSS(participant, friendAccount._id, function (doId, activated)
-            participant:debug(string.format("Is friend %d online? %s", friendAccount._id, tostring(activated)))
-            local friendInfo = {
-                friendAccount.name, -- avatarName
-                friendAccount._id, -- avatarId
-                friendAccount.ownerAccount, -- playerName
-                activated, -- onlineYesNo
-                -- Most of these values appears to be unused.
-                0, -- openChatEnabledYesNo
-                0, -- openChatFriendshipYesNo
-                0, -- wlChatEnabledYesNo
-                "Fairies", -- location
-                "", -- sublocation
-                0  -- timestamp
-            }
-            -- Name cache must exist before declareObject (traveling screen).
-            participant:sendUpdateToAccountId(accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-                "FMPlayerFriendsManager", "updatePlayerFriend", {friendId, friendInfo, 0})
+        sendUpdatePlayerFriend(participant, accountId, friendAccount, friendId, onlineYesNo)
 
-            local dg = datagram:new()
-            participant:addServerHeaderWithAccountId(dg, accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
-            dg:addUint32(friendAccount._id)
-            dg:addUint16(AVATAR_CLASS)
-            participant:routeDatagram(dg)
-        end)
+        local dg = datagram:new()
+        participant:addServerHeaderWithAccountId(dg, accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
+        dg:addUint32(friendAccount._id)
+        dg:addUint16(AVATAR_CLASS)
+        participant:routeDatagram(dg)
     end
 end
 
@@ -347,21 +332,11 @@ function handleOffline(participant, accountId)
     participant:debug(string.format("handleOffline - %d", accountId))
     local json = require("json")
 
+    onlineAccounts[accountId] = nil
+
     local account = json.decode(retrieveFairy(string.format("identifier=%d", accountId)))
     -- Tell this account's friends that it went offline.
-    local friendInfo = {
-        account.name, -- avatarName
-        account._id, -- avatarId
-        account.ownerAccount, -- playerName
-        0, -- onlineYesNo
-        -- Most of these values appears to be unused.
-        0, -- openChatEnabledYesNo
-        0, -- openChatFriendshipYesNo
-        0, -- wlChatEnabledYesNo
-        "Fairies", -- location
-        "", -- sublocation
-        0  -- timestamp
-    }
+    local friendInfo = buildFriendInfo(account, 0)
 
     for _, friendId in ipairs(account.friends) do
         local friendAccount = json.decode(retrieveFairy(string.format("identifier=%d", friendId)))
@@ -515,7 +490,7 @@ function makeFriends(participant, invite)
         end
         inviterAdded = true
         applyFriendBadge(participant, invite.inviterData._id)
-        sendUpdatePlayerFriend(participant, invite.inviterId, invite.inviteeData, invite.inviteeId, 0)
+        sendUpdatePlayerFriend(participant, invite.inviterId, invite.inviteeData, invite.inviteeId, onlineYesNoForAccount(invite.inviteeId))
     end
 
     if inviteeNeedsAdd then
@@ -542,7 +517,7 @@ function makeFriends(participant, invite)
             return
         end
         applyFriendBadge(participant, invite.inviteeData._id)
-        sendUpdatePlayerFriend(participant, invite.inviteeId, invite.inviterData, invite.inviterId, 0)
+        sendUpdatePlayerFriend(participant, invite.inviteeId, invite.inviterData, invite.inviterId, onlineYesNoForAccount(invite.inviterId))
     end
 
     clearInvite(invite)
