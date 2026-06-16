@@ -23,8 +23,8 @@ from game.fairies.uberdog import FairyInventoryMgrUD
 from game.fairies.ai import FairyInventoryMgrAI
 from game.fairies.uberdog import PetMgrUD
 from game.fairies.ai import PetMgrAI
-from leaderboard.leaderboard_manager_ud import LeaderBoardMgrUD
-from leaderboard.leaderboard_manager_ai import LeaderBoardMgrAI
+from game.fairies.uberdog.leaderboard.leaderboard_manager_ud import LeaderBoardMgrUD
+from game.fairies.uberdog.leaderboard.leaderboard_manager_ai import LeaderBoardMgrAI
 
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.

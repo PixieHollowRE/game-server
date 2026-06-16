@@ -4,7 +4,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Callable
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from leaderboard.leaderboard_registry import SEASON_END_DATE
+from game.fairies.uberdog.leaderboard.leaderboard_registry import SEASON_END_DATE
 
 
 def _pacific_tz():

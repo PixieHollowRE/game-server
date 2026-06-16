@@ -3,16 +3,16 @@ from direct.distributed.DistributedObjectGlobalUD import DistributedObjectGlobal
 from direct.showbase.PythonUtil import describeException
 from direct.task.TaskManagerGlobal import taskMgr
 
-from leaderboard.leaderboard_registry import is_weekly_board_request
-from leaderboard.leaderboard_refresh import (
+from game.fairies.uberdog.leaderboard.leaderboard_registry import is_weekly_board_request
+from game.fairies.uberdog.leaderboard.leaderboard_refresh import (
     previous_week_id,
     schedule_hourly_refresh,
     schedule_next_rollover,
     schedule_season_rollover,
 )
-from leaderboard.leaderboard_panel import handle_panel_lb_request
-from leaderboard.leaderboard_honors import grant_weekly_game_champion_badges
-from leaderboard.leaderboard_service import (
+from game.fairies.uberdog.leaderboard.leaderboard_panel import handle_panel_lb_request
+from game.fairies.uberdog.leaderboard.leaderboard_honors import grant_weekly_game_champion_badges
+from game.fairies.uberdog.leaderboard.leaderboard_service import (
     bind_score_cache,
     preload_seasonal_wire_cache,
     preload_weekly_wire_cache,
