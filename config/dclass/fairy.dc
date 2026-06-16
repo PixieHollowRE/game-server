@@ -376,7 +376,7 @@ dclass DistributedAnimationEvent { // 68
 
 dclass DistributedTalentMinigame : DistributedInstanceBaseAI { // 69
     setGameID(int16) required broadcast ram; // 312
-    startGame(uint8) clsend; // 313
+    startGame(uint8) clsend airecv; // 313
     reportScore(int32) clsend airecv; // 314
     endGame(uint8) clsend airecv; // 315
     setRewards(Reward[]) ram ownrecv; // 316
