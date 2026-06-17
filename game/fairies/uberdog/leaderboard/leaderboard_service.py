@@ -627,9 +627,10 @@ def panel_guard_entry_count(state: dict, game_id: int, board_type: int) -> int:
 def prewarm_busts_for_entries(entries: list) -> None:
     """Warm web-api bust XML cache for avIds about to be delivered to the panel."""
     import json
-    import os
     import urllib.error
     import urllib.request
+
+    from panda3d.core import ConfigVariableString
 
     fairy_ids: list[int] = []
     for entry in entries:
@@ -642,7 +643,7 @@ def prewarm_busts_for_entries(entries: list) -> None:
     if not fairy_ids:
         return
 
-    token = os.environ.get("API_TOKEN", "")
+    token = ConfigVariableString("api-token", "").getValue()
     if not token:
         return
     try:

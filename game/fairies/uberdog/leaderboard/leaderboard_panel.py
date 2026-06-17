@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import os
 import time
 import urllib.error
 import urllib.request
 from pathlib import Path
+
+from panda3d.core import ConfigVariableString
 
 from direct.directnotify import DirectNotifyGlobal
 from direct.showbase.PythonUtil import describeException
@@ -68,7 +69,7 @@ def clear_panel_session(av_id: int) -> None:
 
 
 def _trigger_bust_warm() -> None:
-    token = os.environ.get("API_TOKEN", "")
+    token = ConfigVariableString("api-token", "").getValue()
     if not token:
         return
     try:
