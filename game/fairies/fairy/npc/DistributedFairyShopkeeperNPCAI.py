@@ -15,6 +15,18 @@ from game.fairies.ai import FairiesConstants as fc
 PURCHASE_FAIL = 0
 PURCHASE_SUCCESS = 1
 
+EQUIP_SLOT_METHODS = {
+    1: "setHeadItem",
+    2: "setNecklace",
+    3: "setChestItem",
+    4: "setBelt",
+    5: "setSkirt",
+    6: "setWrist",
+    7: "setAnkle",
+    8: "setShoes",
+}
+
+
 class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
     def __init__(self, air) -> None:
         DistributedFairyNPCAI.__init__(self, air)
@@ -104,7 +116,10 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
                 {"$set": fields}
             )
 
-            self.d_setPurchaseResponse(avId, result)
+            if result.modified_count > 0 and avatar:
+                self._refresh_equipped_slot_after_dye(avatar, invId)
+
+            self.d_setPurchaseResponse(avId, result.modified_count > 0)
         else:
             # Send failure purchase response back to the client.
             self.d_setPurchaseResponse(avId, success)
@@ -274,6 +289,27 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
             itemId,
             [invId, itemId, slot, createdById, createdByName, giftedById, giftedByName, quality, color1, color2, howAcquired
         ]])
+
+    def _refresh_equipped_slot_after_dye(self, avatar, invId) -> None:
+        fairy = self.air.mongoInterface.mongodb.fairies.find_one({"_id": avatar.doId})
+        if not fairy:
+            return
+
+        for item in fairy.get("avatar", {}).get("items", []):
+            if item.get("inv_id") != invId:
+                continue
+            if item.get("location") != "Equipped":
+                return
+
+            slot = item.get("slot")
+            method = EQUIP_SLOT_METHODS.get(slot)
+            if not method:
+                return
+
+            payload = [invId, item["item_id"], item["color1"], item["color2"]]
+            avatar.sendUpdate(method, [payload])
+            avatar.redrawFairy()
+            return
 
     def d_setPurchaseResponse(self, avId: int, success: bool) -> None:
         self.sendUpdateToAvatarId(avId, "setPurchase", [PURCHASE_SUCCESS if success else PURCHASE_FAIL])
