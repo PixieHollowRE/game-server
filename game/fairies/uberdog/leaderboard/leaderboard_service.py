@@ -434,11 +434,20 @@ def rebuild_leaderboard_data(air, week_id: str | None = None, *, rollover: bool 
         week_id = get_current_week_id()
     season_id = get_current_season_id()
 
+    game_ids = sorted(SUPPORTED_GAME_IDS)
+    logger.info(
+        "Rebuilding leaderboard snapshots weekId=%s seasonId=%s games=%s",
+        week_id,
+        season_id,
+        game_ids,
+    )
+
     failed_games: list[int] = []
-    for game_id in sorted(SUPPORTED_GAME_IDS):
+    for game_id in game_ids:
         try:
             rebuild_game_leaderboard_data(air, game_id, week_id)
             rebuild_game_seasonal_data(air, game_id, season_id)
+            logger.info("  [OK] gameId=%s weekly+seasonal snapshots written", game_id)
         except Exception:
             failed_games.append(game_id)
             logger.warning(
@@ -453,6 +462,13 @@ def rebuild_leaderboard_data(air, week_id: str | None = None, *, rollover: bool 
         logger.warning(
             "leaderboard rebuild completed with failures gameIds=%s weekId=%s seasonId=%s",
             failed_games,
+            week_id,
+            season_id,
+        )
+    else:
+        logger.info(
+            "Leaderboard rebuild done — all %d game(s) OK weekId=%s seasonId=%s",
+            len(game_ids),
             week_id,
             season_id,
         )
@@ -697,16 +713,6 @@ def record_weekly_score(air, av_id: int, game_id: int, score: int) -> None:
         {"$set": {"weeklyGameStats": stats}},
         upsert=True,
     )
-    try:
-        rebuild_game_leaderboard_data(air, game_id, week_id)
-        _invalidate_all_caches()
-    except Exception:
-        logger.warning(
-            "leaderboard rebuild after score failed avId=%s gameId=%s",
-            av_id,
-            game_id,
-            exc_info=True,
-        )
 
 
 def record_seasonal_score(air, av_id: int, game_id: int, score: int) -> None:
@@ -746,16 +752,6 @@ def record_seasonal_score(air, av_id: int, game_id: int, score: int) -> None:
         {"$set": {"seasonalGameStats": stats}},
         upsert=True,
     )
-    try:
-        rebuild_game_seasonal_data(air, game_id, season_id)
-        _invalidate_all_caches()
-    except Exception:
-        logger.warning(
-            "seasonal rebuild after score failed avId=%s gameId=%s",
-            av_id,
-            game_id,
-            exc_info=True,
-        )
 
 
 def sort_entries_for_display(entries: list[dict]) -> list[dict]:

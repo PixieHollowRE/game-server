@@ -131,11 +131,27 @@ def schedule_season_rollover(task_mgr, callback: Callable[[], None]) -> None:
     task_mgr.doMethodLater(delay, _run, SEASON_ROLLOVER_TASK_NAME)
 
 
+def seconds_until_next_hour(now: datetime | None = None) -> float:
+    """Return seconds until the top of the next Pacific clock hour (e.g. 2:00, 3:00)."""
+    if now is None:
+        now = datetime.now(PACIFIC)
+    elif now.tzinfo is None:
+        now = now.replace(tzinfo=PACIFIC)
+    else:
+        now = now.astimezone(PACIFIC)
+    next_hour = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+    return max(1.0, (next_hour - now).total_seconds())
+
+
 def schedule_hourly_refresh(task_mgr, callback: Callable[[], None]) -> None:
+    """Schedule the first tick at the top of the next Pacific hour, then every 3600 s."""
+    initial_delay = seconds_until_next_hour()
+
     def _run(task):
         callback()
-        schedule_hourly_refresh(task_mgr, callback)
+        task_mgr.remove(HOURLY_REFRESH_TASK_NAME)
+        task_mgr.doMethodLater(HOURLY_REFRESH_SECONDS, _run, HOURLY_REFRESH_TASK_NAME)
         return task.done
 
     task_mgr.remove(HOURLY_REFRESH_TASK_NAME)
-    task_mgr.doMethodLater(HOURLY_REFRESH_SECONDS, _run, HOURLY_REFRESH_TASK_NAME)
+    task_mgr.doMethodLater(initial_delay, _run, HOURLY_REFRESH_TASK_NAME)
