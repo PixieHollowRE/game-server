@@ -4,11 +4,12 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import subprocess
 import sys
 from pathlib import Path
+
+from panda3d.core import ConfigVariableString, loadPrcFile
 
 GAME_SERVER = Path(__file__).resolve().parents[1]
 REPO_ROOT = GAME_SERVER.parent
@@ -19,9 +20,22 @@ LUA_PATHS = [
     GAME_SERVER / "config" / "FMPlayerFriendsManager.lua",
 ]
 
-MONGO_URI = os.environ.get("MONGO_URI", "mongodb://127.0.0.1:27017/PixieHollow")
-API_BASE = os.environ.get("FRIEND_TEST_API_BASE", "http://127.0.0.1:8013/fairies/api/internal")
-API_TOKEN = os.environ.get("API_TOKEN", "")
+loadPrcFile(str(GAME_SERVER / "config" / "config.prc"))
+if (GAME_SERVER / "config" / "local.prc").exists():
+    loadPrcFile(str(GAME_SERVER / "config" / "local.prc"))
+
+
+def _mongo_uri() -> str:
+    host = ConfigVariableString("mongodb-host", "mongodb://127.0.0.1:27017").getValue()
+    name = ConfigVariableString("mongodb-name", "PixieHollow").getValue()
+    return host.rstrip("/") + "/" + name
+
+
+MONGO_URI = _mongo_uri()
+API_BASE = ConfigVariableString(
+    "friend-test-api-base", "http://127.0.0.1:8013/fairies/api/internal"
+).getValue()
+API_TOKEN = ConfigVariableString("api-token", "").getValue()
 
 
 class TestResult:
@@ -326,7 +340,7 @@ def test_set_fairy_data_http(result: TestResult) -> None:
         return
 
     if not API_TOKEN:
-        result.warn("HTTP setFairyData test skipped: API_TOKEN not set")
+        result.warn("HTTP setFairyData test skipped: api-token not set in config")
         return
 
     from pymongo import MongoClient
@@ -444,7 +458,6 @@ def test_repair_dry_run(result: TestResult) -> None:
         capture_output=True,
         text=True,
         cwd=str(GAME_SERVER),
-        env={**os.environ, "MONGO_URI": MONGO_URI},
     )
     if proc.returncode != 0:
         result.fail("inspect_friend_badge_state.py", proc.stderr.strip() or proc.stdout.strip())
