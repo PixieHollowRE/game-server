@@ -113,7 +113,7 @@ def apply_minigame_result(
         [game_id, entry["timesPlayed"], entry["bestScore"]],
     )
 
-    from leaderboard.leaderboard_service import record_seasonal_score, record_weekly_score
+    from game.fairies.uberdog.leaderboard.leaderboard_service import record_seasonal_score, record_weekly_score
 
     record_weekly_score(air, av_id, game_id, score)
     record_seasonal_score(air, av_id, game_id, score)

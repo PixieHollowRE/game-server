@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 
 from game.fairies.badges.BadgeProgressService import grant_great_games_honors_badge
-from leaderboard.leaderboard_registry import (
+from game.fairies.uberdog.leaderboard.leaderboard_registry import (
     LEADERBOARD_DATA_COLLECTION,
     LEADERBOARD_WEEKLY,
     SUPPORTED_GAME_IDS,
