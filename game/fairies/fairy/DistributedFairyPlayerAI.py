@@ -30,6 +30,10 @@ from game.fairies.badges.MoreOptions import (
 )
 from game.fairies.badges.MeadowExplorerBadgeRegistry import ALL_EXPLORER_ZONE_IDS
 
+# Matches client MMOConstants.HOTSPOT_PLAY_AT_OFFSET — frame > offset snaps without play().
+HOTSPOT_PLAY_AT_OFFSET = 8000
+CBH_TTT_RESET_FRAME = HOTSPOT_PLAY_AT_OFFSET + 1  # keyframe 1 → empty cell
+
 notify = DirectNotifyGlobal.directNotify.newCategory("DistributedFairyPlayerAI")
 
 DAILY_CHANCE_GRANTS_ENABLED = True
@@ -310,10 +314,10 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         if not (meadow := self.air.zoneToMeadow.get(self.zoneId)):
             return
 
-        if self.zoneId == 100 and hotspotId in (0, 10): # CBH TTT Reset - HACK - FIX THIS
+        if self.zoneId == 100 and hotspotId in (0, 10): # CBH TTT Reset
             for id in range(hotspotId + 1, hotspotId + 10):
-                meadow.sendUpdate("setHotspotFrame", [id, 3])
-            hotspotFrame = 1
+                meadow.sendUpdate("setHotspotFrame", [id, CBH_TTT_RESET_FRAME])
+            hotspotFrame = CBH_TTT_RESET_FRAME
 
         meadow.sendUpdate("setHotspotFrame", [hotspotId, hotspotFrame])
 

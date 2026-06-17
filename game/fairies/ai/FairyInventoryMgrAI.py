@@ -102,20 +102,20 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
         if badge_manager is not None:
             badge_manager.applyIngredientCollection(avId, itemID, itemCount)
 
-    def removeIngredientsFromPouch(self, avId: int, itemID: int, itemCount: int) -> bool:
-        # First, read the current pouch entry
+    def hasIngredientsInPouch(self, avId: int, itemID: int, itemCount: int) -> bool:
         fairy = self.air.mongoInterface.mongodb.fairies.find_one(
             {"_id": avId, "pouch.item_id": itemID},
-            {"pouch.$": 1}  # Only return the matching pouch element
+            {"pouch.$": 1},
         )
 
         if not fairy or not fairy.get("pouch"):
-            return False  # Item doesn't exist in pouch
+            return False
 
-        currentAmount = fairy["pouch"][0]["amount"]
+        return fairy["pouch"][0]["amount"] >= itemCount
 
-        if currentAmount < itemCount:
-            return False  # Not enough
+    def removeIngredientsFromPouch(self, avId: int, itemID: int, itemCount: int) -> bool:
+        if not self.hasIngredientsInPouch(avId, itemID, itemCount):
+            return False
 
         result = self.air.mongoInterface.mongodb.fairies.update_one(
             {"_id": avId, "pouch.item_id": itemID},

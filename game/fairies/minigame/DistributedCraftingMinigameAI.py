@@ -52,15 +52,32 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
             self.recipeChoice.pop(avId, None)
             return
 
+        if avatar is None:
+            self.notify.warning(f"setResults: no avatar on AI for avId={avId}")
+            self.recipeChoice.pop(avId, None)
+            return
+
         recipes = recipe_parser.parse_recipes(DEFAULT_XML, recipeId)
         if not recipes:
-            print("something broke - fix it or else you dummy dumbo dimwit")
+            self.notify.warning(f"setResults: recipe not found for recipeId={recipeId}")
+            self.recipeChoice.pop(avId, None)
             return
 
         recipe = recipes[0]
 
-        self._removeRecipeIngredients(avId, avatar, recipe)
-        self._removeDyes(avId, avatar, color1, color2)
+        if not self._hasRecipeIngredients(avId, recipe):
+            self.notify.warning(
+                f"setResults: insufficient ingredients for recipeId={recipeId} avId={avId}"
+            )
+            self.recipeChoice.pop(avId, None)
+            return
+
+        if not self._hasDyes(avId, recipe, color1, color2):
+            self.notify.warning(
+                f"setResults: insufficient dyes for recipeId={recipeId} avId={avId}"
+            )
+            self.recipeChoice.pop(avId, None)
+            return
 
         crafted = False
         if recipeId in BAKED_ITEMS:
@@ -69,26 +86,65 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
             crafted = self._giveCraftedItem(avId, avatar, recipeId, quality, color1, color2)
 
         if crafted:
-            badge_manager = getattr(self.air, "badgeManager", None)
-            if badge_manager is not None:
-                badge_manager.applyCraftHelper(
-                    avId, self.professionId, recipeId, craftingStyle
+            if not self._removeRecipeIngredients(avId, avatar, recipe):
+                self.notify.warning(
+                    f"setResults: grant succeeded but ingredient removal failed "
+                    f"for recipeId={recipeId} avId={avId}"
                 )
+            elif not self._removeDyes(avId, avatar, recipe, color1, color2):
+                self.notify.warning(
+                    f"setResults: grant succeeded but dye removal failed "
+                    f"for recipeId={recipeId} avId={avId}"
+                )
+            else:
+                badge_manager = getattr(self.air, "badgeManager", None)
+                if badge_manager is not None:
+                    badge_manager.applyCraftHelper(
+                        avId, self.professionId, recipeId, craftingStyle
+                    )
 
         self.recipeChoice.pop(avId, None)
 
-    def _removeRecipeIngredients(self, avId, avatar, recipe):
+    def _hasRecipeIngredients(self, avId, recipe) -> bool:
         for ingredient in recipe.ingredients:
-            self.air.inventoryManager.removeIngredientsFromPouch(avId, ingredient.item_id, ingredient.amount)
-        avatar.d_syncPouchAfterChanges()
+            if not self.air.inventoryManager.hasIngredientsInPouch(
+                avId, ingredient.item_id, ingredient.amount
+            ):
+                return False
+        return True
 
-    def _removeDyes(self, avId, avatar, color1, color2):
+    def _hasDyes(self, avId, recipe, color1, color2) -> bool:
+        if recipe.dye_count <= 0:
+            return True
         for color in (color1, color2):
             if color:
                 dye_id = color + 14000
-                self.air.inventoryManager.removeIngredientsFromPouch(avId, dye_id, 1)
-        if color1 or color2:
+                if not self.air.inventoryManager.hasIngredientsInPouch(avId, dye_id, 1):
+                    return False
+        return True
+
+    def _removeRecipeIngredients(self, avId, avatar, recipe) -> bool:
+        for ingredient in recipe.ingredients:
+            if not self.air.inventoryManager.removeIngredientsFromPouch(
+                avId, ingredient.item_id, ingredient.amount
+            ):
+                return False
+        avatar.d_syncPouchAfterChanges()
+        return True
+
+    def _removeDyes(self, avId, avatar, recipe, color1, color2) -> bool:
+        if recipe.dye_count <= 0:
+            return True
+        removed_any = False
+        for color in (color1, color2):
+            if color:
+                dye_id = color + 14000
+                if not self.air.inventoryManager.removeIngredientsFromPouch(avId, dye_id, 1):
+                    return False
+                removed_any = True
+        if removed_any:
             avatar.d_syncPouchAfterChanges()
+        return True
 
     def _giveBakedItem(self, avId, avatar, itemId, quality) -> bool:
         if 96 <= quality <= 100:
