@@ -1,5 +1,4 @@
 DBSERVER_CREATE_STORED_OBJECT      = 1003
-DBSERVER_CREATE_STORED_OBJECT_RESP = 1004
 
 DBSERVER_GET_STORED_VALUES         = 1012
 DBSERVER_GET_STORED_VALUES_RESP    = 1013
@@ -8,10 +7,10 @@ DBSERVER_SET_STORED_VALUES         = 1014
 
 DATABASE_ID = 4003
 
--- This is act as a database server to bridge with the
--- API server, which hosts its own database.
+-- OtpGo DB bridge. Python AI uses OTP get/set-stored-values; we translate
+-- to web-api retrieveObject / updateObject and pack DC fields.
 
--- Load the configuration varables (see config.example.lua)
+-- Load the configuration variables (see config.example.lua)
 dofile("config.lua")
 
 local API_BASE
@@ -52,15 +51,12 @@ function retrieveObject(participant, doId)
         end
 
         do
-            -- If we're here, then we can return the response body.
             return true, response.body
         end
 
-        -- retry goto to iterate again if we failed to retrieve our car data.
         ::retry::
     end
 
-    -- If we're here, then we failed to get valid car data. Send an error response
     return false, ""
 end
 
@@ -90,21 +86,19 @@ function updateObject(participant, doId, data)
         end
 
         do
-            -- If we're here, then we can return the response body.
             return true, response.body
         end
 
-        -- retry goto to iterate again if we failed to retrieve our car data.
         ::retry::
     end
 
-    -- If we're here, then we failed to get valid car data. Send an error response
     return false, ""
 end
 
--- NOTE: setFairyDNA and other DNA fields are handled separately
+-- Scalar fairy/account fields: web-api JSON key → OTP field name.
+-- setFairyDNA, setFairyPose, and equipped slots are handled in buildFieldHandlers.
+-- Any other DB field the AI requests falls back to the DC default.
 Api2Field = {
-    -- TODO: Figure out the rest
     -- Account
     lastLogin = "LAST_LOGIN",
 
@@ -122,6 +116,97 @@ Api2Field = {
 Field2Api = {}
 for key, value in pairs(Api2Field) do
     Field2Api[value] = key
+end
+
+local function getEquippedItem(items, itemType)
+    for _, item in ipairs(items) do
+        if item.type == itemType and item.location == "Equipped" then
+            return item
+        end
+    end
+    return nil
+end
+
+local function buildFieldHandlers(data)
+    local avatar = data.avatar
+
+    local function makeItemPayload(slotType)
+        local item = getEquippedItem(avatar.items, slotType)
+        if item ~= nil then
+            return {
+                {
+                    item.inv_id,
+                    item.item_id,
+                    item.color1,
+                    item.color2
+                }
+            }
+        end
+        return {{0, 0, 0, 0}}
+    end
+
+    return {
+        setFairyDNA = function()
+            return {
+                {
+                    data.talent,
+                    avatar.proportions.head,
+                    avatar.proportions.height,
+                    avatar.proportions.body,
+                    avatar.hair_back,
+                    avatar.hair_front,
+                    avatar.face,
+                    avatar.eye,
+                    avatar.wing,
+                    avatar.hair_color,
+                    avatar.hair_color2,
+                    avatar.eye_color,
+                    avatar.skin_color,
+                    avatar.wing_color,
+                    data.gender
+                }
+            }
+        end,
+        setFairyPose = function()
+            return {
+                {
+                    avatar.rotations.head_rot,
+                    avatar.rotations.ul_arm_rot,
+                    avatar.rotations.ur_arm_rot,
+                    avatar.rotations.ll_arm_rot,
+                    avatar.rotations.lr_arm_rot,
+                    avatar.rotations.ul_leg_rot,
+                    avatar.rotations.ur_leg_rot,
+                    avatar.rotations.ll_leg_rot,
+                    avatar.rotations.lr_leg_rot
+                }
+            }
+        end,
+        setHeadItem = function()
+            return makeItemPayload("HeadItem")
+        end,
+        setNecklace = function()
+            return makeItemPayload("Necklace")
+        end,
+        setChestItem = function()
+            return makeItemPayload("Shirt")
+        end,
+        setBelt = function()
+            return makeItemPayload("Belt")
+        end,
+        setSkirt = function()
+            return makeItemPayload("Skirt")
+        end,
+        setWrist = function()
+            return makeItemPayload("WristItem")
+        end,
+        setAnkle = function()
+            return makeItemPayload("AnkleItem")
+        end,
+        setShoes = function()
+            return makeItemPayload("Shoes")
+        end
+    }
 end
 
 function init(participant)
@@ -169,6 +254,7 @@ function handleGetStoredValues(participant, dgi)
     local packedFieldData = {}
     local dcClass = dcFile:getClassByName(data.objectName)
     local packer = dcpacker:new()
+    local fieldHandlers
 
     if data.objectName == "Account" then
         -- FairyClient only use ACCOUNT_AV_SET, so let's set that up
@@ -195,114 +281,31 @@ function handleGetStoredValues(participant, dgi)
         goto finish
     end
 
+    fieldHandlers = buildFieldHandlers(data)
+
     for _, field in ipairs(requestedFields) do
         local dcField = dcClass:getFieldByName(field)
         local fieldData
-
-        local function getItemByType(items, itemType)
-            for _, item in ipairs(items) do
-                if item.type == itemType and item.location == "Equipped" then
-                    return item
-                end
-            end
-            return nil
-        end
-
-        local function makeItemPayload(slotType)
-            local item = getItemByType(data.avatar.items, slotType)
-            if item ~= nil then
-                return {
-                    {
-                        item.inv_id,
-                        item.item_id,
-                        item.color1,
-                        item.color2
-                    }
-                }
-            else
-                return {{0, 0, 0, 0}}
-            end
-        end
-
-        local fieldHandlers = {
-            setFairyDNA = function()
-                return {
-                    {
-                        data.talent,
-                        data.avatar.proportions.head,
-                        data.avatar.proportions.height,
-                        data.avatar.proportions.body,
-                        data.avatar.hair_back,
-                        data.avatar.hair_front,
-                        data.avatar.face,
-                        data.avatar.eye,
-                        data.avatar.wing,
-                        data.avatar.hair_color,
-                        data.avatar.hair_color2,
-                        data.avatar.eye_color,
-                        data.avatar.skin_color,
-                        data.avatar.wing_color,
-                        data.gender
-                    }
-                }
-            end,
-            setFairyPose = function()
-                return {
-                    {
-                        data.avatar.rotations.head_rot,
-                        data.avatar.rotations.ul_arm_rot,
-                        data.avatar.rotations.ur_arm_rot,
-                        data.avatar.rotations.ll_arm_rot,
-                        data.avatar.rotations.lr_arm_rot,
-                        data.avatar.rotations.ul_leg_rot,
-                        data.avatar.rotations.ur_leg_rot,
-                        data.avatar.rotations.ll_leg_rot,
-                        data.avatar.rotations.lr_leg_rot
-                    }
-                }
-            end,
-            setHeadItem = function()
-                return makeItemPayload("HeadItem")
-            end,
-            setNecklace = function()
-                return makeItemPayload("Necklace")
-            end,
-            setChestItem = function()
-                return makeItemPayload("Shirt")
-            end,
-            setBelt = function()
-                return makeItemPayload("Belt")
-            end,
-            setSkirt = function()
-                return makeItemPayload("Skirt")
-            end,
-            setWrist = function()
-                return makeItemPayload("WristItem")
-            end,
-            setAnkle = function()
-                return makeItemPayload("AnkleItem")
-            end,
-            setShoes = function()
-                return makeItemPayload("Shoes")
-            end
-        }
 
         local handler = fieldHandlers[field]
         if handler then
             fieldData = handler()
         else
-            if Field2Api[field] ~= nil then
-                fieldData = {data[Field2Api[field]]}
-                if fieldData == {nil} then
-                    participant:warn(string.format("\"%s\" is missing in API response, returning default value", field))
-                    packedFieldData[field] = dcField:getDefaultValue()
-                    goto continue
-                end
-            else
+            local apiKey = Field2Api[field]
+            if apiKey == nil then
                 participant:warn(string.format("\"%s\" is not in Field2Api, returning default value", field))
                 packedFieldData[field] = dcField:getDefaultValue()
                 goto continue
             end
+
+            local apiValue = data[apiKey]
+            if apiValue == nil then
+                participant:warn(string.format("\"%s\" is missing in API response, returning default value", field))
+                packedFieldData[field] = dcField:getDefaultValue()
+                goto continue
+            end
+
+            fieldData = {apiValue}
         end
         local packedDg = datagram:new()
         if packer:packField(dcField, packedDg, fieldData) then
@@ -402,9 +405,8 @@ function handleSetStoredValues(participant, dgi)
         end
     end
 
-    ::finish::
     unpacker:delete()
-    if Api2Value ~= {} then
+    if next(Api2Value) ~= nil then
         participant:debug(string.format("Sending update to %s(%d): %s", data.objectName, doId, inspect(Api2Value)))
         updateObject(participant, doId, Api2Value)
     end

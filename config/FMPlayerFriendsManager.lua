@@ -13,26 +13,20 @@ MAX_FRIENDS = 300
 
 FRIENDMANAGER_ACCOUNT_ONLINE  = 10000
 FRIENDMANAGER_ACCOUNT_OFFLINE = 10001
+FRIENDMANAGER_SYNC_FRIENDS    = 10004
 
--- DBSS activation (declareObject only; not used for onlineYesNo).
-DBSS_OBJECT_GET_ACTIVATED      = 2207
-DBSS_OBJECT_GET_ACTIVATED_RESP = 2208
-
--- For declaring friends.
+-- For declaring friends to a client's session.
 CLIENT_AGENT_DECLARE_OBJECT   = 3010
 CLIENT_AGENT_UNDECLARE_OBJECT = 3011
 
 -- Avatar class to declare.
 AVATAR_CLASS = dcFile:getClassByName("DistributedFairyPlayer"):getNumber()
 
--- Load the configuration varables (see config.example.lua)
+-- Load the configuration variables (see config.example.lua)
 dofile("config.lua")
 
 invitesByInviterId = {} -- inviterId: invite
 invitesByInviteeId = {} -- inviteeId: invite
-
-CONTEXT = 0
-DBSS_QUERY_MAP = {}
 
 -- Account sessions: set on FRIENDMANAGER_ACCOUNT_ONLINE, cleared on OFFLINE.
 onlineAccounts = {}
@@ -87,7 +81,7 @@ function urlencode(str)
   return str
 end
 
-function retrieveFairy(data)
+function retrieveFairy(data, participant)
     local connAttempts = 0
 
     while (connAttempts < 3) do
@@ -100,38 +94,38 @@ function retrieveFairy(data)
         })
 
         if error_message then
-            print(string.format("FMPlayerFriendsManager: retrieveFairy returned an error! \"%s\""), error_message)
+            if participant ~= nil then
+                participant:error(string.format("retrieveFairy returned an error! \"%s\"", error_message))
+            end
             connAttempts = connAttempts + 1
             goto retry
         end
 
         if response.status_code ~= 200 then
-            print(string.format("FMPlayerFriendsManager: retrieveFairy returned %d!, \"%s\""), response.status_code, response.body)
+            if participant ~= nil then
+                participant:error(string.format("retrieveFairy returned %d!, \"%s\"", response.status_code, response.body))
+            end
             connAttempts = connAttempts + 1
             goto retry
         end
 
         do
-            -- If we're here, then we can return the response body.
             return response.body
         end
 
-        -- retry goto to iterate again if we failed to retrieve our fairy data.
         ::retry::
     end
-
-    -- TODO: If we're here, then we failed to get valid fairy data. Disconnect here
-    -- client:sendDisconnect(CLIENT_DISCONNECT_ACCOUNT_ERROR, "Failed to retrieveFairy.", false)
 end
 
-function setFairyData(playToken, data)
+function setFairyData(playToken, data, participant)
     local request = {playToken = urlencode(playToken), fieldData = data}
     local json = require("json")
     local result, err = json.encode(request)
 
     if err then
-        print(err)
-        print(string.format("FMPlayerFriendsManager: setFairyData encode failed for %s", playToken))
+        if participant ~= nil then
+            participant:error(string.format("setFairyData encode failed for %s: %s", playToken, err))
+        end
         return false
     end
 
@@ -147,30 +141,31 @@ function setFairyData(playToken, data)
         })
 
         if error_message then
-            print(string.format("FMPlayerFriendsManager: setFairyData returned an error! \"%s\"", error_message))
+            if participant ~= nil then
+                participant:error(string.format("setFairyData returned an error! \"%s\"", error_message))
+            end
             connAttempts = connAttempts + 1
             goto retry
         end
 
         if response.status_code ~= 200 then
-            print(string.format("FMPlayerFriendsManager: setFairyData returned %d!, \"%s\"", response.status_code, response.body))
+            if participant ~= nil then
+                participant:error(string.format("setFairyData returned %d!, \"%s\"", response.status_code, response.body))
+            end
             connAttempts = connAttempts + 1
             goto retry
         end
 
         do
-            print(string.format(
-                "FMPlayerFriendsManager: setFairyData ok playToken=%s fields=%s",
-                playToken,
-                json.encode(data)
-            ))
             return true
         end
 
         ::retry::
     end
 
-    print(string.format("FMPlayerFriendsManager: setFairyData failed after retries for %s", playToken))
+    if participant ~= nil then
+        participant:error(string.format("setFairyData failed after retries for %s", playToken))
+    end
     return false
 end
 
@@ -234,17 +229,56 @@ function onlineYesNoForAccount(accountId)
     return isAccountOnline(accountId) and 1 or 0
 end
 
+function normalizeAccountId(id)
+    if id == nil then
+        return nil
+    end
+    return tonumber(id)
+end
+
 function sendUpdatePlayerFriend(participant, accountId, avatarData, otherAccountId, onlineYesNo)
+    accountId = normalizeAccountId(accountId)
+    otherAccountId = normalizeAccountId(otherAccountId)
+    if accountId == nil or otherAccountId == nil then
+        return
+    end
+
     participant:sendUpdateToAccountId(accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
         "FMPlayerFriendsManager", "updatePlayerFriend",
         {otherAccountId, buildFriendInfo(avatarData, onlineYesNo), 0})
 end
 
-function declareFriend(participant, avatarId, friendId)
-    -- Make sure that these are AVATAR ids, not ACCOUNT ids.
+function notifyFriendsPresence(participant, accountId, account, onlineYesNo)
+    local json = require("json")
+    local friendInfo = buildFriendInfo(account, onlineYesNo)
+
+    for _, friendId in ipairs(account.friends) do
+        local normalizedFriendId = normalizeAccountId(friendId)
+        if normalizedFriendId == nil then
+            participant:warn(string.format("notifyFriendsPresence - skipping non-numeric friend id %s for account %d", tostring(friendId), accountId))
+        else
+            participant:sendUpdateToAccountId(normalizedFriendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+                "FMPlayerFriendsManager", "updatePlayerFriend", {accountId, friendInfo, 0})
+
+            if onlineYesNo == 1 then
+                declareFriendAvatar(participant, normalizedFriendId, account._id)
+            else
+                local friendBody = retrieveFairy(string.format("identifier=%d", normalizedFriendId), participant)
+                if friendBody ~= nil then
+                    local friendAccount = json.decode(friendBody)
+                    if friendAccount ~= nil then
+                        undeclareFriend(participant, friendAccount._id, account._id)
+                    end
+                end
+            end
+        end
+    end
+end
+
+function declareFriendAvatar(participant, viewerAccountId, avatarDoId)
     local dg = datagram:new()
-    participant:addServerHeaderWithAvatarId(dg, avatarId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
-    dg:addUint32(friendId)
+    participant:addServerHeaderWithAccountId(dg, viewerAccountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
+    dg:addUint32(avatarDoId)
     dg:addUint16(AVATAR_CLASS)
     participant:routeDatagram(dg)
 end
@@ -257,18 +291,6 @@ function undeclareFriend(participant, avatarId, friendId)
     participant:routeDatagram(dg)
 end
 
-function queryDBSS(participant, avatarId, callback)
-    DBSS_QUERY_MAP[CONTEXT] = callback
-
-    local dg = datagram:new()
-    dg:addServerHeader(avatarId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, DBSS_OBJECT_GET_ACTIVATED)
-    dg:addUint32(CONTEXT)
-    dg:addUint32(avatarId)
-    participant:routeDatagram(dg)
-
-    CONTEXT = CONTEXT + 1
-end
-
 function handleDatagram(participant, msgType, dgi)
     if msgType == STATESERVER_OBJECT_UPDATE_FIELD then
         if dgi:readUint32() == OTP_DO_ID_PLAYER_FRIENDS_MANAGER then
@@ -278,77 +300,125 @@ function handleDatagram(participant, msgType, dgi)
         handleOnline(participant, dgi:readUint32())
     elseif msgType == FRIENDMANAGER_ACCOUNT_OFFLINE then
         handleOffline(participant, dgi:readUint32())
-    elseif msgType == DBSS_OBJECT_GET_ACTIVATED_RESP then
-        local context = dgi:readUint32()
-        local doId = dgi:readUint32()
-        local activated = dgi:readBool()
+    elseif msgType == FRIENDMANAGER_SYNC_FRIENDS then
+        syncFriendListToAccount(participant, dgi:readUint32())
+    end
+end
 
-        local callback = DBSS_QUERY_MAP[context]
-        if callback ~= nil then
-            callback(doId, activated)
-            DBSS_QUERY_MAP[context] = nil
+function syncFriendListToAccount(participant, accountId)
+    accountId = normalizeAccountId(accountId)
+    if accountId == nil then
+        return
+    end
+
+    local json = require("json")
+    local accountBody = retrieveFairy(string.format("identifier=%d", accountId), participant)
+    if accountBody == nil then
+        participant:warn(string.format("syncFriendListToAccount - failed to retrieve fairy for account %d", accountId))
+        return
+    end
+
+    local account = json.decode(accountBody)
+    if account == nil then
+        participant:warn(string.format("syncFriendListToAccount - invalid fairy JSON for account %d", accountId))
+        return
+    end
+
+    if account.friends == nil then
+        account.friends = {}
+    end
+
+    for _, friendId in ipairs(account.friends) do
+        local normalizedFriendId = normalizeAccountId(friendId)
+        if normalizedFriendId == nil then
+            participant:warn(string.format("syncFriendListToAccount - skipping non-numeric friend id %s for account %d", tostring(friendId), accountId))
         else
-            participant:warn(string.format("Got GET_ACTIVATED_RESP with unknown context: %d", context))
+            local friendBody = retrieveFairy(string.format("identifier=%d", normalizedFriendId), participant)
+            if friendBody == nil then
+                participant:warn(string.format("syncFriendListToAccount - failed to retrieve friend %d for account %d", normalizedFriendId, accountId))
+            else
+                local friendAccount = json.decode(friendBody)
+                if friendAccount ~= nil then
+                    local onlineYesNo = onlineYesNoForAccount(normalizedFriendId)
+                    sendUpdatePlayerFriend(participant, accountId, friendAccount, normalizedFriendId, onlineYesNo)
+                    if onlineYesNo == 1 then
+                        declareFriendAvatar(participant, accountId, friendAccount._id)
+                    end
+                end
+            end
         end
     end
 end
 
 function handleOnline(participant, accountId)
-    participant:debug(string.format("handleOnline - %d", accountId))
-    local json = require("json")
-
+    local wasOnline = isAccountOnline(accountId)
     onlineAccounts[accountId] = true
 
-    local account = json.decode(retrieveFairy(string.format("identifier=%d", accountId)))
-    -- Tell this account's friends that it went online.
-    local friendInfo = buildFriendInfo(account, 1)
-
-    for _, friendId in ipairs(account.friends) do
-        participant:sendUpdateToAccountId(friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "FMPlayerFriendsManager", "updatePlayerFriend", {accountId, friendInfo, 0})
-
-        local dg = datagram:new()
-        participant:addServerHeaderWithAccountId(dg, friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
-        dg:addUint32(account._id)
-        dg:addUint16(AVATAR_CLASS)
-        participant:routeDatagram(dg)
+    if wasOnline then
+        participant:debug(string.format("handleOnline: account %d already online, skipping fan-out", accountId))
+        return
     end
 
-    -- Send the friend list to the just logged-in account (online from session registry).
-    for _, friendId in ipairs(account.friends) do
-        local friendAccount = json.decode(retrieveFairy(string.format("identifier=%d", friendId)))
-        local onlineYesNo = onlineYesNoForAccount(friendId)
-        participant:debug(string.format("Is friend %d online? %d", friendAccount._id, onlineYesNo))
+    participant:debug(string.format("handleOnline: account %d session online", accountId))
+    participant:writeServerEvent("friend-session-online", "FMPlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER, string.format("%d", accountId))
+    local json = require("json")
 
-        sendUpdatePlayerFriend(participant, accountId, friendAccount, friendId, onlineYesNo)
-
-        local dg = datagram:new()
-        participant:addServerHeaderWithAccountId(dg, accountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER, CLIENT_AGENT_DECLARE_OBJECT)
-        dg:addUint32(friendAccount._id)
-        dg:addUint16(AVATAR_CLASS)
-        participant:routeDatagram(dg)
+    local accountBody = retrieveFairy(string.format("identifier=%d", accountId), participant)
+    if accountBody == nil then
+        participant:warn(string.format("handleOnline - failed to retrieve fairy for account %d", accountId))
+        return
     end
+
+    local account = json.decode(accountBody)
+    if account == nil then
+        participant:warn(string.format("handleOnline - invalid fairy JSON for account %d", accountId))
+        return
+    end
+
+    if account.friends == nil then
+        account.friends = {}
+    end
+
+    -- Tell all friends this account came online (original Disney fan-out).
+    -- TODO: See loginAccount auto-select TODO in FairyClient.lua — enter toast still fails on
+    -- first login when a friend is already in-world; offline toast + refresh reconnect works.
+    notifyFriendsPresence(participant, accountId, account, 1)
+
+    syncFriendListToAccount(participant, accountId)
 end
 
 function handleOffline(participant, accountId)
-    participant:debug(string.format("handleOffline - %d", accountId))
-    local json = require("json")
+    accountId = normalizeAccountId(accountId)
+    if accountId == nil then
+        return
+    end
 
+    if not isAccountOnline(accountId) then
+        participant:debug(string.format("handleOffline: account %d already offline, skipping fan-out", accountId))
+        return
+    end
+
+    participant:debug(string.format("handleOffline: account %d session offline", accountId))
+
+    -- Clear session state first so a fast reconnect is not blocked.
     onlineAccounts[accountId] = nil
 
-    local account = json.decode(retrieveFairy(string.format("identifier=%d", accountId)))
-    -- Tell this account's friends that it went offline.
-    local friendInfo = buildFriendInfo(account, 0)
+    participant:writeServerEvent("friend-session-offline", "FMPlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER, string.format("%d", accountId))
+    local json = require("json")
 
-    for _, friendId in ipairs(account.friends) do
-        local friendAccount = json.decode(retrieveFairy(string.format("identifier=%d", friendId)))
-        if friendAccount ~= nil then
-            undeclareFriend(participant, friendAccount._id, account._id)
-        end
-
-        participant:sendUpdateToAccountId(friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "FMPlayerFriendsManager", "updatePlayerFriend", {accountId, friendInfo, 0})
+    local accountBody = retrieveFairy(string.format("identifier=%d", accountId), participant)
+    if accountBody == nil then
+        participant:warn(string.format("handleOffline - failed to retrieve fairy for account %d", accountId))
+        return
     end
+
+    local account = json.decode(accountBody)
+    if account == nil or account.friends == nil then
+        return
+    end
+
+    -- Tell all friends this account went offline (original Disney fan-out).
+    notifyFriendsPresence(participant, accountId, account, 0)
 end
 
 function handleFMPlayerFriendsManager_requestInvite(participant, fieldId, data)
@@ -367,8 +437,16 @@ function handleFMPlayerFriendsManager_requestInvite(participant, fieldId, data)
     end
 
     local json = require("json")
-    local inviterData = json.decode(retrieveFairy(string.format("identifier=%d", senderId)))
-    local inviteeData = json.decode(retrieveFairy(string.format("identifier=%d", otherPlayerId)))
+
+    local inviterBody = retrieveFairy(string.format("identifier=%d", senderId), participant)
+    local inviteeBody = retrieveFairy(string.format("identifier=%d", otherPlayerId), participant)
+    if inviterBody == nil or inviteeBody == nil then
+        participant:debug(string.format("requestInvite missing fairy data %d -> %d", senderId, otherPlayerId))
+        return
+    end
+
+    local inviterData = json.decode(inviterBody)
+    local inviteeData = json.decode(inviteeBody)
 
     if inviterData == nil or inviteeData == nil then
         participant:debug(string.format("requestInvite missing fairy data %d -> %d", senderId, otherPlayerId))
@@ -405,6 +483,8 @@ function handleFMPlayerFriendsManager_requestInvite(participant, fieldId, data)
 
     participant:sendUpdateToAccountId(otherPlayerId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
             "FMPlayerFriendsManager", "invitationFrom", {senderId, inviterData.name})
+    participant:writeServerEvent("friend-invite", "FMPlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+        string.format("%d|%d|%d", senderId, otherPlayerId, secretYesNo))
 end
 
 function processInviteDecline(participant, declinerId, inviterId, responseContext)
@@ -414,6 +494,9 @@ function processInviteDecline(participant, declinerId, inviterId, responseContex
     if responseContext == nil or responseContext == 0 then
         responseContext = INVRESP_DECLINED
     end
+
+    participant:writeServerEvent("friend-decline", "FMPlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+        string.format("%d|%d|%d", declinerId, inviterId, responseContext))
 
     participant:sendUpdateToAccountId(inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
         "FMPlayerFriendsManager", "invitationResponse", {declinerId, INVRESP_DECLINED, responseContext})
@@ -478,7 +561,7 @@ function makeFriends(participant, invite)
     local inviterAdded = false
     if inviterNeedsAdd then
         table.insert(invite.inviterData.friends, invite.inviteeId)
-        if not setFairyData(invite.inviterData.ownerAccount, {friends = invite.inviterData.friends}) then
+        if not setFairyData(invite.inviterData.ownerAccount, {friends = invite.inviterData.friends}, participant) then
             table.remove(invite.inviterData.friends)
             clearInvite(invite)
             participant:debug(string.format(
@@ -493,11 +576,12 @@ function makeFriends(participant, invite)
         inviterAdded = true
         applyFriendBadge(participant, invite.inviterData._id)
         sendUpdatePlayerFriend(participant, invite.inviterId, invite.inviteeData, invite.inviteeId, onlineYesNoForAccount(invite.inviteeId))
+        declareFriendAvatar(participant, invite.inviterId, invite.inviteeData._id)
     end
 
     if inviteeNeedsAdd then
         table.insert(invite.inviteeData.friends, invite.inviterId)
-        if not setFairyData(invite.inviteeData.ownerAccount, {friends = invite.inviteeData.friends}) then
+        if not setFairyData(invite.inviteeData.ownerAccount, {friends = invite.inviteeData.friends}, participant) then
             table.remove(invite.inviteeData.friends)
             if inviterAdded then
                 for i, friendId in ipairs(invite.inviterData.friends) do
@@ -506,7 +590,7 @@ function makeFriends(participant, invite)
                         break
                     end
                 end
-                setFairyData(invite.inviterData.ownerAccount, {friends = invite.inviterData.friends})
+                setFairyData(invite.inviterData.ownerAccount, {friends = invite.inviterData.friends}, participant)
             end
             clearInvite(invite)
             participant:debug(string.format(
@@ -520,9 +604,12 @@ function makeFriends(participant, invite)
         end
         applyFriendBadge(participant, invite.inviteeData._id)
         sendUpdatePlayerFriend(participant, invite.inviteeId, invite.inviterData, invite.inviterId, onlineYesNoForAccount(invite.inviterId))
+        declareFriendAvatar(participant, invite.inviteeId, invite.inviterData._id)
     end
 
     clearInvite(invite)
+    participant:writeServerEvent("friend-accept", "FMPlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+        string.format("%d|%d", invite.inviterId, invite.inviteeId))
     participant:sendUpdateToAccountId(invite.inviterId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
             "FMPlayerFriendsManager", "invitationResponse", {invite.inviteeId, INVRESP_ACCEPTED, 0})
 end
@@ -543,8 +630,76 @@ function handleFMPlayerFriendsManager_setTalkAccount(participant, fieldId, data)
     -- Log it for moderation purposes.
     participant:writeServerEvent("chat-message-whisper", "FMPlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER, string.format("%d|%d|%s|%s", senderId, otherAccountId, message, cleanMessage))
 
+    local flags = data[6] or 0
     participant:sendUpdateToAccountId(otherAccountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "FMPlayerFriendsManager", "setTalkAccount", {otherAccountId, senderId, data[3], cleanMessage, modifications, 0})
+            "FMPlayerFriendsManager", "setTalkAccount", {otherAccountId, senderId, data[3], cleanMessage, modifications, flags})
+end
+
+function handleFMPlayerFriendsManager_setTalkAccountGroup(participant, fieldId, data)
+    local senderId = participant:getAccountIdFromSender()
+    participant:debug(string.format("setTalkAccountGroup - sender %d field %s", senderId, tostring(data[1])))
+
+    local message = data[3]
+    if message == "" then
+        return
+    end
+
+    local cleanMessage, modifications = filterWhitelist(message, false)
+    if cleanMessage == "" then
+        participant:warn(string.format("setTalkAccountGroup - filtered message empty for account %d", senderId))
+        return
+    end
+
+    local json = require("json")
+    local accountBody = retrieveFairy(string.format("identifier=%d", senderId), participant)
+    if accountBody == nil then
+        participant:warn(string.format("setTalkAccountGroup - failed to retrieve fairy for account %d", senderId))
+        return
+    end
+
+    local account = json.decode(accountBody)
+    if account == nil or account.friends == nil then
+        participant:warn(string.format("setTalkAccountGroup - no friends list for account %d", senderId))
+        return
+    end
+
+    participant:writeServerEvent("chat-message-group-whisper", "FMPlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER, string.format("%d|%s|%s", senderId, message, cleanMessage))
+
+    local sentCount = 0
+    local friendCount = 0
+    local skippedSelf = 0
+    local offlineFriendIds = {}
+    for _, friendId in ipairs(account.friends) do
+        friendCount = friendCount + 1
+        local normalizedFriendId = tonumber(friendId)
+        if normalizedFriendId == nil then
+            participant:warn(string.format("setTalkAccountGroup - skipping non-numeric friend id %s for account %d", tostring(friendId), senderId))
+        elseif normalizedFriendId == senderId then
+            skippedSelf = skippedSelf + 1
+        else
+            participant:debug(string.format(
+                "setTalkAccountGroup - deliver account %d -> friend %d flags=8 msg=%s",
+                senderId, normalizedFriendId, cleanMessage))
+            participant:sendUpdateToAccountId(normalizedFriendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+                "FMPlayerFriendsManager", "setTalkAccount", {normalizedFriendId, senderId, data[2], cleanMessage, modifications, 8})
+            sentCount = sentCount + 1
+            if not isAccountOnline(normalizedFriendId) then
+                table.insert(offlineFriendIds, normalizedFriendId)
+            end
+        end
+    end
+
+    if sentCount == 0 then
+        participant:debug(string.format(
+            "setTalkAccountGroup - account %d sent to 0 friends (friends=%d skipped_self=%d)",
+            senderId, friendCount, skippedSelf))
+    elseif #offlineFriendIds > 0 then
+        participant:debug(string.format(
+            "setTalkAccountGroup - account %d sent to %d friends (%s not in online registry)",
+            senderId, sentCount, table.concat(offlineFriendIds, ",")))
+    else
+        participant:debug(string.format("setTalkAccountGroup - sent to %d friends for account %d", sentCount, senderId))
+    end
 end
 
 function handleFMPlayerFriendsManager_requestRemove(participant, fieldId, data)
@@ -555,8 +710,21 @@ function handleFMPlayerFriendsManager_requestRemove(participant, fieldId, data)
 
     local json = require("json")
 
-    local ourData = json.decode(retrieveFairy(string.format("identifier=%d", senderId)))
-    local friendData = json.decode(retrieveFairy(string.format("identifier=%d", otherAccountId)))
+    local ourBody = retrieveFairy(string.format("identifier=%d", senderId), participant)
+    local friendBody = retrieveFairy(string.format("identifier=%d", otherAccountId), participant)
+    if ourBody == nil or friendBody == nil then
+        participant:warn(string.format("requestRemove - failed to retrieve fairy data %d -> %d", senderId, otherAccountId))
+        return
+    end
+
+    local ourData = json.decode(ourBody)
+    local friendData = json.decode(friendBody)
+    if ourData == nil or friendData == nil or ourData.friends == nil or friendData.friends == nil then
+        participant:warn(string.format("requestRemove - missing friends list %d -> %d", senderId, otherAccountId))
+        return
+    end
+
+    local removed = false
 
     for i, friendId in ipairs(ourData.friends) do
         if friendId == otherAccountId then
@@ -564,7 +732,7 @@ function handleFMPlayerFriendsManager_requestRemove(participant, fieldId, data)
             table.remove(ourData.friends, i)
 
             -- Update us in the database.
-            setFairyData(ourData.ownerAccount, {friends = ourData.friends})
+            setFairyData(ourData.ownerAccount, {friends = ourData.friends}, participant)
 
             -- Undeclare the object
             undeclareFriend(participant, ourData._id, friendData._id)
@@ -573,6 +741,7 @@ function handleFMPlayerFriendsManager_requestRemove(participant, fieldId, data)
             participant:sendUpdateToAccountId(senderId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
                 "FMPlayerFriendsManager", "removePlayerFriend", {otherAccountId})
 
+            removed = true
             break
         end
     end
@@ -584,7 +753,7 @@ function handleFMPlayerFriendsManager_requestRemove(participant, fieldId, data)
             table.remove(friendData.friends, i)
 
             -- Update us in the database.
-            setFairyData(friendData.ownerAccount, {friends = friendData.friends})
+            setFairyData(friendData.ownerAccount, {friends = friendData.friends}, participant)
 
             -- Undeclare the object
             undeclareFriend(participant, friendData._id, ourData._id)
@@ -593,7 +762,13 @@ function handleFMPlayerFriendsManager_requestRemove(participant, fieldId, data)
             participant:sendUpdateToAccountId(otherAccountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
                 "FMPlayerFriendsManager", "removePlayerFriend", {senderId})
 
+            removed = true
             break
         end
+    end
+
+    if removed then
+        participant:writeServerEvent("friend-remove", "FMPlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+            string.format("%d|%d", senderId, otherAccountId))
     end
 end

@@ -1,17 +1,3 @@
--- From https://stackoverflow.com/a/22831842
-function string.starts(String,Start)
-    return string.sub(String,1,string.len(Start))==Start
-end
-
--- https://gist.github.com/VADemon/afb10dbb0d10d99aeb21449752da6285
-function regexEscape(str)
-    return string.gsub(str, "[%(%)%.%%%+%-%*%?%[%^%$%]]", "%%%1")
-end
-
-string.replace = function (str, this, that)
-    return string.gsub(str, regexEscape(this), string.gsub(that, "%%", "%%%%")) -- only % needs to be escaped for 'that'
-end
-
 local function replaceModifiedText(str, modifications)
     local cleanMessage = str
     for _, modification in ipairs(modifications) do
@@ -72,15 +58,6 @@ end
 readNameSuffixes()
 print("TalkFilter: Successfully loaded name suffixes.")
 
-function isWordOnWhitelist(word)
-    -- Test without stripping out the punctuations first
-    if WHITELIST[string.lower(word)] then
-        return true
-    end
-    -- Now try with puncutations stripped out
-    return WHITELIST[string.lower(string.gsub(word, "[.,?!]", ""))]
-end
-
 -- Checks whether a word can be split into a known name prefix
 -- followed by a known name suffix, e.g. "bumble" + "bee" = "bumblebee".
 local function isPrefixSuffixName(word)
@@ -107,7 +84,6 @@ function filterWhitelist(message, filterOverride)
     end
 
     local modifications = {}
-    local wordsToSub = {}
     local offset = 0
 
     if filterOverride then
@@ -163,7 +139,6 @@ function filterWhitelist(message, filterOverride)
     for word in string.gmatch(message, "[^%s]*") do
         if filterOverride == true or word ~= "" and isWordOnWhitelist(word) ~= true then
             table.insert(modifications, {offset, offset + string.len(word) - 1})
-            table.insert(wordsToSub, word)
         end
         if word ~= "" then
             offset = offset + string.len(word) + 1

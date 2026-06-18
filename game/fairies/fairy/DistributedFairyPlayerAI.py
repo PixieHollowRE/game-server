@@ -101,6 +101,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         return self.DISLname
 
     def setDISLid(self, DISLid: int) -> None:
+        self.air.sendFriendManagerAccountOnline(DISLid)
         self.DISLid = DISLid
 
     def getDISLid(self) -> int:

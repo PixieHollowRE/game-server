@@ -65,8 +65,9 @@ BROADCAST_MESSAGE_TO_ALL_AI = 4005
 
 OTP_DO_ID_PLAYER_FRIENDS_MANAGER = 4687
 
-FRIENDMANAGER_ACCOUNT_ONLINE = 10000
+FRIENDMANAGER_ACCOUNT_ONLINE  = 10000
 FRIENDMANAGER_ACCOUNT_OFFLINE = 10001
+FRIENDMANAGER_SYNC_FRIENDS    = 10004
 
 local inspect = require("inspect")
 
@@ -357,6 +358,22 @@ function handleLogin(client, dgi)
     local json = require("json")
     local account = json.decode(retrieveAccount("userName=" .. urlencode(playToken)))
     local accountId = account._id
+
+    if not PRODUCTION_ENABLED then
+        dislId = accountId
+    end
+
+    if not PRODUCTION_ENABLED then
+        if tonumber(account.banned) == 1 or tonumber(account.terminated) == 1 then
+            accountDisabled = true
+        end
+    end
+
+    if accountDisabled then
+        client:sendDisconnect(LOGIN_BANNED, "There has been a reported violation of our Terms of Use connected to this account. For safety purposes, we have placed a temporary hold on the account. For more details, please review the messages sent to the e-mail address associated with this account.", false)
+        return
+    end
+
     -- Query the account object
     client:getDatabaseValues(accountId, "Account", {"ACCOUNT_AV_SET"}, function (doId, success, fields)
         if not success then
@@ -368,16 +385,11 @@ function handleLogin(client, dgi)
             LAST_LOGIN = os.date("%a %b %d %H:%M:%S %Y"),
         })
 
-        loginAccount(client, fields, accountId, playToken, openChat, isPaid, dislId, linkedToParent, accountType, speedChatPlus, accountDisabled)
+        loginAccount(client, fields, accountId, playToken, openChat, isPaid, dislId, linkedToParent, accountType, speedChatPlus)
     end)
 end
 
-function loginAccount(client, account, accountId, playToken, openChat, isPaid, dislId, linkedToParent, accountType, speedChatPlus, accountDisabled)
-    if accountDisabled then
-        client:sendDisconnect(LOGIN_BANNED, "There has been a reported violation of our Terms of Use connected to this account. For safety purposes, we have placed a temporary hold on the account. For more details, please review the messages sent to the e-mail address associated with this account.", false)
-        return
-    end
-
+function loginAccount(client, account, accountId, playToken, openChat, isPaid, dislId, linkedToParent, accountType, speedChatPlus)
     -- Eject other client if already logged in.
     local ejectDg = datagram:new()
     client:addServerHeaderWithAccountId(ejectDg, accountId, CLIENT_AGENT_EJECT)
@@ -419,6 +431,12 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
     end
 
     -- Prepare the login response.
+    -- TODO: Friend "entered Pixie Hollow" toast missing on first login (works after refresh).
+    -- We auto-pick avatars[1] and skip the client fairy-selection flow (legacy allowed 3;
+    -- Sunrise caps at 1). That likely rushes login before FMPlayerFriendsManager / friends
+    -- panel deferEvents flush, so friends already online never see offline->online transition.
+    -- Investigate: restore selection handshake or delay FRIENDMANAGER_SYNC_FRIENDS / session
+    -- online until after the client finishes its post-login UI pipeline.
     local avatarId = userTable.avatars[1]
 
     local json = require("json")
@@ -453,7 +471,7 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
         resp:addString("VELVET") -- access
     end
 
-    if speedChatPlus then
+    if userTable.speedChatPlus then
         resp:addString("YES") -- WhiteListResponse
     else
         resp:addString("NO") -- WhiteListResponse
@@ -492,7 +510,6 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
     else
         client:sendActivateObject(avatarId, "DistributedFairyPlayer", playerFields)
     end
-
     client:objectSetOwner(avatarId, true)
 
     -- Let the UberDog know about our avatar usage.
@@ -502,20 +519,27 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
     sendUsage(client, userTable.playToken, userTable.openChat, avatarId, 0, accountId, userTable.isPaid, true)
 
     avatarSpeedChatPlusStates[avatarId] = userTable.speedChatPlus
+end
 
-    -- Tell the player friends manager we are going online
+function sendFriendManagerSyncFriends(client, accountId)
+    local dg = datagram:new()
+    dg:addServerHeader(OTP_DO_ID_PLAYER_FRIENDS_MANAGER, accountId, FRIENDMANAGER_SYNC_FRIENDS)
+    dg:addUint32(accountId)
+    client:routeDatagram(dg)
+end
+
+function sendFriendManagerAccountOnline(client, accountId)
     local dg = datagram:new()
     dg:addServerHeader(OTP_DO_ID_PLAYER_FRIENDS_MANAGER, accountId, FRIENDMANAGER_ACCOUNT_ONLINE)
     dg:addUint32(accountId)
     client:routeDatagram(dg)
+end
 
-    -- Setup a post remove to tell the player friends manager when we go offline
-    local offlineDg = datagram:new()
+function sendFriendManagerAccountOffline(client, accountId)
+    local dg = datagram:new()
     dg:addServerHeader(OTP_DO_ID_PLAYER_FRIENDS_MANAGER, accountId, FRIENDMANAGER_ACCOUNT_OFFLINE)
     dg:addUint32(accountId)
-    client:routeDatagram(dg)
-
-    client:addPostRemove(offlineDg)
+    client:addPostRemove(dg)
 end
 
 function handleAddInterest(client, dgi)
@@ -586,6 +610,7 @@ function sendUsage(client, playToken, openChat, priorAvatar, newAvatar, accountI
 
     if postRemove then
         client:addPostRemove(dg)
+        sendFriendManagerAccountOffline(client, accountId)
     else
         client:routeDatagram(dg)
     end
@@ -597,6 +622,12 @@ function handleAddOwnership(client, doId, parent, zone, dc, dgi)
     local avatarId = userTable.avatarId
     if doId == avatarId then
         client:writeServerEvent("selected-avatar", "FairyClient", string.format("%d|%d", accountId, avatarId))
+        -- Prime the local friend list (offline baselines) before district enter / enter toasts.
+        if not userTable.friendsSessionSynced then
+            userTable.friendsSessionSynced = true
+            client:userTable(userTable)
+            sendFriendManagerSyncFriends(client, accountId)
+        end
     end
 
     client:addSessionObject(doId)
