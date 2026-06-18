@@ -362,7 +362,7 @@ function handleLogin(client, dgi)
     end
 
     if not PRODUCTION_ENABLED then:
-        if tonumber(account.Banned) == 1 or tonumber(account.Terminated) == 1 then
+        if tonumber(account.banned) == 1 or tonumber(account.terminated) == 1 then
             accountDisabled = true
         end
 
