@@ -9,6 +9,7 @@ from game.fairies.uberdog.leaderboard.leaderboard_registry import (
     LEADERBOARD_DATA_COLLECTION,
     LEADERBOARD_WEEKLY,
     SUPPORTED_GAME_IDS,
+    WEEKLY_LEADERBOARD_REWARDS_ENABLED,
     leaderboard_doc_id,
 )
 
@@ -17,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 def grant_weekly_game_champion_badges(air, closing_week_id: str) -> list[int]:
     """Grant badge 10869 to each supported game's #1 weekly finisher for closing_week_id."""
+    if not WEEKLY_LEADERBOARD_REWARDS_ENABLED:
+        return []
+
     badge_manager = getattr(air, "badgeManager", None)
     if badge_manager is None:
         logger.warning(
