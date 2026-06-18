@@ -1,8 +1,6 @@
 from typing import Dict, List
 
 from direct.directnotify import DirectNotifyGlobal
-from direct.distributed.PyDatagram import PyDatagram
-from direct.distributed.PyDatagramIterator import PyDatagramIterator
 from game.fairies.ai.FairiesAIMsgTypes import *
 from game.fairies.ai.DatabaseObject import DatabaseObject
 from game.fairies.fairy.DistributedFairyPlayerAI import DistributedFairyPlayerAI
@@ -157,18 +155,6 @@ class FairiesAIRepository(AIDistrict, ServerBase):
 
         # Update the population on the district (realm) as well.
         self.district.updatePopulationLevel()
-
-    def sendFriendManagerAccountOnline(self, accountId):
-        dg = PyDatagram()
-        dg.addServerHeader(OTP_DO_ID_PLAYER_FRIENDS_MANAGER, self.ourChannel, FRIENDMANAGER_ACCOUNT_ONLINE)
-        dg.addUint32(accountId)
-        self.send(dg)
-
-    def sendFriendManagerAccountOffline(self, accountId):
-        dg = PyDatagram()
-        dg.addServerHeader(OTP_DO_ID_PLAYER_FRIENDS_MANAGER, self.ourChannel, FRIENDMANAGER_ACCOUNT_OFFLINE)
-        dg.addUint32(accountId)
-        self.send(dg)
 
     def fillInFairyPlayer(self, fairyPlayer) -> None:
         dbo = DatabaseObject(self, fairyPlayer.doId)

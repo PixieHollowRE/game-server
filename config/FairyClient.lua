@@ -63,6 +63,11 @@ ALLOW_MODERATION_ACTIONS = 3007
 
 BROADCAST_MESSAGE_TO_ALL_AI = 4005
 
+OTP_DO_ID_PLAYER_FRIENDS_MANAGER = 4687
+
+FRIENDMANAGER_ACCOUNT_ONLINE = 10000
+FRIENDMANAGER_ACCOUNT_OFFLINE = 10001
+
 local inspect = require("inspect")
 
 -- Load the TalkFilter
@@ -487,6 +492,7 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
     else
         client:sendActivateObject(avatarId, "DistributedFairyPlayer", playerFields)
     end
+
     client:objectSetOwner(avatarId, true)
 
     -- Let the UberDog know about our avatar usage.
@@ -496,6 +502,20 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
     sendUsage(client, userTable.playToken, userTable.openChat, avatarId, 0, accountId, userTable.isPaid, true)
 
     avatarSpeedChatPlusStates[avatarId] = userTable.speedChatPlus
+
+    -- Tell the player friends manager we are going online
+    local dg = datagram:new()
+    dg:addServerHeader(OTP_DO_ID_PLAYER_FRIENDS_MANAGER, accountId, FRIENDMANAGER_ACCOUNT_ONLINE)
+    dg:addUint32(accountId)
+    client:routeDatagram(dg)
+
+    -- Setup a post remove to tell the player friends manager when we go offline
+    local offlineDg = datagram:new()
+    dg:addServerHeader(OTP_DO_ID_PLAYER_FRIENDS_MANAGER, accountId, FRIENDMANAGER_ACCOUNT_OFFLINE)
+    dg:addUint32(accountId)
+    client:routeDatagram(dg)
+
+    client:addPostRemove(offlineDg)
 end
 
 function handleAddInterest(client, dgi)

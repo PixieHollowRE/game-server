@@ -79,11 +79,9 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             self.b_setLevel(NEW_LEVEL)
 
     def delete(self):
-        # TODO: Set a post-remove message in case of an AI crash.
         from game.fairies.uberdog.leaderboard.leaderboard_panel import clear_panel_session
 
         clear_panel_session(self.doId)
-        self.air.sendFriendManagerAccountOffline(self.DISLid)
 
         self.air.decrementPopulation()
 
@@ -103,8 +101,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         return self.DISLname
 
     def setDISLid(self, DISLid: int) -> None:
-        self.air.sendFriendManagerAccountOnline(DISLid)
-
         self.DISLid = DISLid
 
     def getDISLid(self) -> int:
