@@ -68,12 +68,16 @@ class LeaderBoardMgrUD(DistributedObjectGlobalUD):
             )
 
     def _hourly_refresh(self) -> None:
+        notify.info("Leaderboard hourly refresh starting (weekly + seasonal)...")
         try:
             rebuild_leaderboard_data(self.air)
-            notify.info("Hourly leaderboard refresh completed")
+            notify.info("Leaderboard snapshots rebuilt — warming wire caches...")
+            preload_weekly_wire_cache(self.air, self._cache)
+            preload_seasonal_wire_cache(self.air, self._cache)
+            notify.info("Leaderboard hourly refresh complete — weekly and seasonal wire caches are hot")
         except Exception:
             notify.warning(
-                "Hourly leaderboard refresh failed: %s" % describeException()
+                "Leaderboard hourly refresh failed: %s" % describeException()
             )
 
     def lbRequest(self, gameId: int, boardType: int) -> None:
