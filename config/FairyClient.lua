@@ -356,9 +356,21 @@ function handleLogin(client, dgi)
     local json = require("json")
     local account = json.decode(retrieveAccount("userName=" .. urlencode(playToken)))
     local accountId = account._id
+
     if not PRODUCTION_ENABLED then
         dislId = accountId
     end
+
+    if not PRODUCTION_ENABLED then:
+        if tonumber(account.Banned) == 1 or tonumber(account.Terminated) == 1 then
+            accountDisabled = true
+        end
+
+    if accountDisabled then
+        client:sendDisconnect(LOGIN_BANNED, "There has been a reported violation of our Terms of Use connected to this account. For safety purposes, we have placed a temporary hold on the account. For more details, please review the messages sent to the e-mail address associated with this account.", false)
+        return
+    end
+
     -- Query the account object
     client:getDatabaseValues(accountId, "Account", {"ACCOUNT_AV_SET"}, function (doId, success, fields)
         if not success then
@@ -370,16 +382,11 @@ function handleLogin(client, dgi)
             LAST_LOGIN = os.date("%a %b %d %H:%M:%S %Y"),
         })
 
-        loginAccount(client, fields, accountId, playToken, openChat, isPaid, dislId, linkedToParent, accountType, speedChatPlus, accountDisabled)
+        loginAccount(client, fields, accountId, playToken, openChat, isPaid, dislId, linkedToParent, accountType, speedChatPlus)
     end)
 end
 
-function loginAccount(client, account, accountId, playToken, openChat, isPaid, dislId, linkedToParent, accountType, speedChatPlus, accountDisabled)
-    if accountDisabled then
-        client:sendDisconnect(LOGIN_BANNED, "There has been a reported violation of our Terms of Use connected to this account. For safety purposes, we have placed a temporary hold on the account. For more details, please review the messages sent to the e-mail address associated with this account.", false)
-        return
-    end
-
+function loginAccount(client, account, accountId, playToken, openChat, isPaid, dislId, linkedToParent, accountType, speedChatPlus)
     -- Eject other client if already logged in.
     local ejectDg = datagram:new()
     client:addServerHeaderWithAccountId(ejectDg, accountId, CLIENT_AGENT_EJECT)
