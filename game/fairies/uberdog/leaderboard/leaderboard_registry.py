@@ -7,6 +7,9 @@ from game.fairies.badges.GameBadgeRegistry import PLAY_COUNT_GAME_IDS
 LEADERBOARD_WEEKLY = 0
 LEADERBOARD_SEASONAL = 1
 
+# Sunday rollover honors badges (10869); boards and scoring are unaffected.
+WEEKLY_LEADERBOARD_REWARDS_ENABLED = False
+
 # Flash leaderboards panel sends tabId + 1 (see Leaderboards.showLeaderBoardForGame).
 CLIENT_WEEKLY_BOARD_TYPE = 1
 CLIENT_SEASONAL_BOARD_TYPE = 2
