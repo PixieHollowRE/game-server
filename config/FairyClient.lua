@@ -361,10 +361,11 @@ function handleLogin(client, dgi)
         dislId = accountId
     end
 
-    if not PRODUCTION_ENABLED then:
+    if not PRODUCTION_ENABLED then
         if tonumber(account.banned) == 1 or tonumber(account.terminated) == 1 then
             accountDisabled = true
         end
+    end
 
     if accountDisabled then
         client:sendDisconnect(LOGIN_BANNED, "There has been a reported violation of our Terms of Use connected to this account. For safety purposes, we have placed a temporary hold on the account. For more details, please review the messages sent to the e-mail address associated with this account.", false)
