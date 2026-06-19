@@ -9,7 +9,6 @@ from game.otp.otpbase import OTPGlobals
 from game.otp.distributed import OtpDoGlobals
 from game.otp.distributed.OtpDoGlobals import *
 from game.otp.ai.AIRepository import AIRepository
-from game.otp.ai import TimeManagerAI
 from pandac.PandaModules import *
 from game.otp.uberdog.AccountDetailRecord import AccountDetailRecord, SubDetailRecord
 

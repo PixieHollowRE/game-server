@@ -153,10 +153,6 @@ class AIDistrict(AIRepository):
     def enterPlayGame(self):
         self._zoneDataStore = AIZoneDataStore()
         AIRepository.enterPlayGame(self)
-        if simbase.config.GetBool('game-server-tests', 0):
-            from game.otp.distributed import DistributedTestObjectAI
-            self.testObject = DistributedTestObjectAI.DistributedTestObjectAI(self)
-            self.testObject.generateOtpObject(self.getGameDoId(), 3)
 
         taskMgr.doMethodLater(300, self.printPopulationToLog, self.uniqueName("printPopulationTask"))
 

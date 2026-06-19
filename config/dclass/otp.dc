@@ -3,7 +3,7 @@ from game.otp.distributed import Account/AI/UD
 from game.otp.distributed import ObjectServer/AI/UD
 from game.otp.distributed import DistributedDistrict/AI/UD
 from game.otp.distributed import DistributedDirectory/AI
-from game.otp.friends import PlayerFriendsManager/UD
+from game.otp.distributed import PlayerFriendsManager/UD
 from game.otp.distributed import CentralLogger/AI/UD
 
 struct AvatarPendingDel {

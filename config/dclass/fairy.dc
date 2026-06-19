@@ -673,8 +673,8 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     requestGetMaxOutfitSlots() ownsend airecv; // 574
     requestGetSavedOutfits() ownsend airecv; // 575
     requestAddSavedOutfit(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64) ownsend airecv; // 576
-    requestUpdateSavedOutfit(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64); // 577
-    requestRemoveSavedOutfits(LongType[]); // 578
+    requestUpdateSavedOutfit(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64) ownsend airecv; // 577
+    requestRemoveSavedOutfits(LongType[]) ownsend airecv; // 578
     requestSendSavedOutfitSlotPurchaseRequest() ownsend airecv; // 579
     requestGlobalPurchase(GlobalPurchaseItem[]) ownsend airecv; // 580
     requestGlobablPurchaseData(); // 581

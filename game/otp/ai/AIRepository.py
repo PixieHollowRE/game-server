@@ -20,7 +20,6 @@ from direct.showbase.ContainerLeakDetector import ContainerLeakDetector
 from direct.showbase import MessengerLeakDetector
 from direct.showbase import LeakDetectors
 from direct.showbase.GarbageReportScheduler import GarbageReportScheduler
-from game.otp.avatar.DistributedPlayerAI import DistributedPlayerAI
 from game.otp.distributed import OtpDoGlobals
 from game.otp.ai.GarbageLeakServerEventAggregatorAI import GarbageLeakServerEventAggregatorAI
 import time
@@ -257,8 +256,9 @@ class AIRepository(ConnectionRepository):
             fastRepr(container, maxLen=1, strFactor=50)))
 
     def getPlayerAvatars(self):
+        from game.fairies.fairy.DistributedFairyPlayerAI import DistributedFairyPlayerAI
         return [i for i in list(self.doId2do.values())
-                  if isinstance(i, DistributedPlayerAI)]
+                  if isinstance(i, DistributedFairyPlayerAI)]
 
     def uniqueName(self, desc):
         return desc+"-"+str(self.serverId)

@@ -29,6 +29,21 @@ from game.fairies.badges.MoreOptions import (
     persist_more_options,
 )
 from game.fairies.badges.MeadowExplorerBadgeRegistry import ALL_EXPLORER_ZONE_IDS
+from game.fairies.outfits.OutfitSlotTrace import trace_outfit_slot
+from game.fairies.outfits.SavedOutfitService import (
+    SAVED_OUTFIT_SLOT_ITEM_ID,
+    add_saved_outfit,
+    extract_outfit_ids,
+    get_max_outfit_slots,
+    get_outfit_slot_price,
+    load_saved_outfit_doc,
+    lookup_item_for_equip,
+    pack_saved_outfits_for_client,
+    purchase_outfit_slot,
+    remove_saved_outfits,
+    resolve_monotonic_max_outfit_slots,
+    update_saved_outfit,
+)
 
 # Matches client MMOConstants.HOTSPOT_PLAY_AT_OFFSET — frame > offset snaps without play().
 HOTSPOT_PLAY_AT_OFFSET = 8000
@@ -38,6 +53,9 @@ notify = DirectNotifyGlobal.directNotify.newCategory("DistributedFairyPlayerAI")
 
 DAILY_CHANCE_GRANTS_ENABLED = True
 DAILY_CHANCE_ONCE_PER_DAY_ENABLED = True
+
+OUTFIT_MAX_DEBOUNCE_SEC = 0.2
+OUTFIT_PURCHASE_FOLLOWUP_SEC = 0.35
 
 class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def __init__(self, air) -> None:
@@ -55,6 +73,8 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.moreOptions: str = MORE_OPTIONS_EMPTY
 
         self._originalDNA = {}
+        self._outfitSlotsClientMax: int | None = None
+        self._outfitSlotSeq: int = 0
 
     def announceGenerate(self):
         self.air.incrementPopulation()
@@ -69,12 +89,13 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         self._sync_daily_gold_trade_cap()
 
-        glblpurchase = MiscItem.unpackFromTuple((90003, 8006, 500, 200, 200))
-        self.sendUpdateToAvatarId(self.doId, "setGlobalPurchaseData", [[glblpurchase]])
+        self._sync_saved_outfits_to_client(force_max=True)
+        self._send_global_purchase_data()
 
     def delete(self):
         from game.fairies.uberdog.leaderboard.leaderboard_panel import clear_panel_session
 
+        self._cancel_outfit_slot_tasks()
         clear_panel_session(self.doId)
 
         self.air.decrementPopulation()
@@ -239,16 +260,282 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             self.doId, "setAmountGoldTradedForToday", [self.amountGoldTradedToday]
         )
 
+    def _send_saved_outfits_list(self, doc: dict | None = None) -> None:
+        if doc is None:
+            doc = load_saved_outfit_doc(self.air, self.doId)
+        self.sendUpdateToAvatarId(
+            self.doId,
+            "setSavedOutfits",
+            [pack_saved_outfits_for_client(doc)],
+        )
+
+    def _outfit_slot_task_name(self, suffix: str) -> str:
+        return f"outfitSlot-{suffix}-{self.doId}"
+
+    def _cancel_outfit_slot_tasks(self) -> None:
+        taskMgr.remove(self._outfit_slot_task_name("debounce"))
+        taskMgr.remove(self._outfit_slot_task_name("followup"))
+
+    def _schedule_debounced_max_sync(self) -> None:
+        task_name = self._outfit_slot_task_name("debounce")
+        taskMgr.remove(task_name)
+        taskMgr.doMethodLater(
+            OUTFIT_MAX_DEBOUNCE_SEC,
+            self._debounced_max_sync_task,
+            task_name,
+        )
+        trace_outfit_slot(
+            "debounce_scheduled",
+            avId=self.doId,
+            delay=OUTFIT_MAX_DEBOUNCE_SEC,
+            highwater=self._outfitSlotsClientMax,
+        )
+
+    def _debounced_max_sync_task(self, task) -> None:
+        trace_outfit_slot("debounce_fire", avId=self.doId)
+        self._send_max_outfit_slots(reason="debounced_get_max")
+
+    def _schedule_purchase_followup_resync(self) -> None:
+        task_name = self._outfit_slot_task_name("followup")
+        taskMgr.remove(task_name)
+        taskMgr.doMethodLater(
+            OUTFIT_PURCHASE_FOLLOWUP_SEC,
+            self._purchase_followup_resync_task,
+            task_name,
+        )
+        trace_outfit_slot(
+            "followup_scheduled",
+            avId=self.doId,
+            delay=OUTFIT_PURCHASE_FOLLOWUP_SEC,
+        )
+
+    def _purchase_followup_resync_task(self, task) -> None:
+        trace_outfit_slot("followup_fire", avId=self.doId)
+        self._send_max_outfit_slots(force=True, reason="purchase_followup")
+
+    def _send_max_outfit_slots(
+        self,
+        doc: dict | None = None,
+        *,
+        force: bool = False,
+        reason: str = "unspecified",
+    ) -> int:
+        if doc is None:
+            doc = load_saved_outfit_doc(self.air, self.doId)
+        mongo_max = get_max_outfit_slots(doc)
+        send_max, suppressed = resolve_monotonic_max_outfit_slots(
+            mongo_max,
+            self._outfitSlotsClientMax,
+            force=force,
+        )
+        self._outfitSlotSeq += 1
+        seq = self._outfitSlotSeq
+        highwater_before = self._outfitSlotsClientMax
+        if suppressed:
+            notify.info(
+                "suppressed stale maxOutfitSlots avId=%s mongo=%s highwater=%s reason=%s seq=%s"
+                % (self.doId, mongo_max, highwater_before, reason, seq)
+            )
+        trace_outfit_slot(
+            "send_max",
+            avId=self.doId,
+            seq=seq,
+            reason=reason,
+            force=force,
+            mongo=mongo_max,
+            highwater=highwater_before,
+            send=send_max,
+            suppressed=suppressed,
+        )
+        self._outfitSlotsClientMax = send_max
+        self.sendUpdateToAvatarId(self.doId, "setMaxOutfitSlots", [send_max])
+        notify.info(
+            "setMaxOutfitSlots avId=%s send=%s mongo=%s highwater_before=%s force=%s reason=%s seq=%s"
+            % (self.doId, send_max, mongo_max, highwater_before, force, reason, seq)
+        )
+        return send_max
+
+    def _sync_saved_outfits_to_client(self, *, force_max: bool = False) -> None:
+        doc = load_saved_outfit_doc(self.air, self.doId)
+        reason = "login_sync" if force_max else "full_sync"
+        self._send_max_outfit_slots(doc, force=force_max, reason=reason)
+        self._send_saved_outfits_list(doc)
+
+    def _send_global_purchase_data(self) -> None:
+        doc = load_saved_outfit_doc(self.air, self.doId)
+        price = get_outfit_slot_price(get_max_outfit_slots(doc))
+        outfit_slot = MiscItem.unpackFromTuple(
+            (SAVED_OUTFIT_SLOT_ITEM_ID, 8499, price, price, price)
+        )
+        name_change = MiscItem.unpackFromTuple((90003, 8006, 500, 200, 200))
+        self.sendUpdateToAvatarId(
+            self.doId,
+            "setGlobalPurchaseData",
+            [[outfit_slot, name_change]],
+        )
+
+    def _handle_outfit_slot_purchase(self) -> None:
+        self._cancel_outfit_slot_tasks()
+        trace_outfit_slot(
+            "purchase_start",
+            avId=self.doId,
+            highwater=self._outfitSlotsClientMax,
+            gold=self.getGold(),
+        )
+        new_max = purchase_outfit_slot(self.air, self.doId, self)
+        if new_max is None:
+            notify.warning(
+                "outfit slot purchase failed avId=%s gold=%s"
+                % (self.doId, self.getGold())
+            )
+            trace_outfit_slot(
+                "purchase_fail",
+                avId=self.doId,
+                gold=self.getGold(),
+                highwater=self._outfitSlotsClientMax,
+            )
+            self._send_max_outfit_slots(force=True, reason="purchase_fail_resync")
+            self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [0])
+            return
+
+        notify.info("outfit slot purchase ok avId=%s newMax=%s" % (self.doId, new_max))
+        trace_outfit_slot(
+            "purchase_ok",
+            avId=self.doId,
+            newMax=new_max,
+            gold=self.getGold(),
+        )
+        self._send_max_outfit_slots(force=True, reason="purchase_ok")
+        self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [1])
+        self._send_global_purchase_data()
+
+    def requestGetMaxOutfitSlots(self) -> None:
+        self._cancel_outfit_slot_tasks()
+        trace_outfit_slot(
+            "request_get_max",
+            avId=self.doId,
+            highwater=self._outfitSlotsClientMax,
+        )
+        notify.info(
+            "requestGetMaxOutfitSlots avId=%s highwater=%s"
+            % (self.doId, self._outfitSlotsClientMax)
+        )
+        # Panel refreshOutfits() waits for setMaxOutfitSlots before it can display.
+        self._send_max_outfit_slots(reason="get_max")
+
     def requestGetSavedOutfits(self) -> None:
-        # TODO
-        self.sendUpdateToAvatarId(self.doId, "setMaxOutfitSlots", [1])
-        self.sendUpdateToAvatarId(self.doId, "setSavedOutfits", [[]])
+        trace_outfit_slot("request_get_saved", avId=self.doId)
+        notify.info("requestGetSavedOutfits avId=%s" % self.doId)
+        self._send_saved_outfits_list()
 
-    def requestAddSavedOutfit(self, headId: int, necklaceId: int, shirtId: int, beltId: int, skirtId: int, wristId: int, ankleId: int, shoesId: int) -> None:
-        # TODO
-        self.sendUpdateToAvatarId(self.doId, "setSavedOutfits", [[]])
+    def requestAddSavedOutfit(
+        self,
+        headId: int,
+        necklaceId: int,
+        shirtId: int,
+        beltId: int,
+        skirtId: int,
+        wristId: int,
+        ankleId: int,
+        shoesId: int,
+    ) -> None:
+        inv_ids = [headId, necklaceId, shirtId, beltId, skirtId, wristId, ankleId, shoesId]
+        notify.info(
+            "requestAddSavedOutfit avId=%s invIds=%s" % (self.doId, inv_ids)
+        )
+        result, failure = add_saved_outfit(self.air, self.doId, inv_ids, player=self)
+        if result is None:
+            notify.warning(
+                "requestAddSavedOutfit failed avId=%s reason=%s invIds=%s"
+                % (self.doId, failure, inv_ids)
+            )
+            return
 
-    def setOutfitDB(self, headId: int, necklaceId: int, shirtId: int, beltId: int, skirtId: int, wristId: int, ankleId: int, shoesId: int) -> None:
+        notify.info(
+            "requestAddSavedOutfit ok avId=%s outfitCount=%s"
+            % (self.doId, len(result["savedOutfits"]))
+        )
+        self._send_saved_outfits_list(result)
+
+    def requestUpdateSavedOutfit(
+        self,
+        outfitId: int,
+        headId: int,
+        necklaceId: int,
+        shirtId: int,
+        beltId: int,
+        skirtId: int,
+        wristId: int,
+        ankleId: int,
+        shoesId: int,
+    ) -> None:
+        inv_ids = [headId, necklaceId, shirtId, beltId, skirtId, wristId, ankleId, shoesId]
+        notify.info(
+            "requestUpdateSavedOutfit avId=%s outfitId=%s invIds=%s"
+            % (self.doId, outfitId, inv_ids)
+        )
+        result, failure = update_saved_outfit(
+            self.air, self.doId, outfitId, inv_ids, player=self
+        )
+        if result is None:
+            notify.warning(
+                "requestUpdateSavedOutfit failed avId=%s outfitId=%s reason=%s invIds=%s"
+                % (self.doId, outfitId, failure, inv_ids)
+            )
+            return
+
+        notify.info(
+            "requestUpdateSavedOutfit ok avId=%s outfitId=%s" % (self.doId, outfitId)
+        )
+        self._send_saved_outfits_list(result)
+
+    def requestRemoveSavedOutfits(self, outfitIds) -> None:
+        ids = extract_outfit_ids(outfitIds)
+        notify.info(
+            "requestRemoveSavedOutfits avId=%s raw=%s parsed=%s"
+            % (self.doId, outfitIds, ids)
+        )
+        if not ids:
+            notify.warning(
+                "requestRemoveSavedOutfits empty id list avId=%s raw=%s"
+                % (self.doId, outfitIds)
+            )
+            return
+
+        result = remove_saved_outfits(self.air, self.doId, ids)
+        notify.info(
+            "requestRemoveSavedOutfits ok avId=%s remaining=%s"
+            % (self.doId, len(result["savedOutfits"]))
+        )
+        self._send_saved_outfits_list(result)
+
+    def requestSendSavedOutfitSlotPurchaseRequest(self) -> None:
+        trace_outfit_slot(
+            "request_purchase",
+            avId=self.doId,
+            highwater=self._outfitSlotsClientMax,
+            gold=self.getGold(),
+        )
+        notify.info(
+            "requestSendSavedOutfitSlotPurchaseRequest avId=%s highwater=%s gold=%s"
+            % (self.doId, self._outfitSlotsClientMax, self.getGold())
+        )
+        self._handle_outfit_slot_purchase()
+
+    def requestGlobablPurchaseData(self) -> None:
+        self._send_global_purchase_data()
+
+    def setOutfitDB(
+        self,
+        headId: int,
+        necklaceId: int,
+        shirtId: int,
+        beltId: int,
+        skirtId: int,
+        wristId: int,
+        ankleId: int,
+        shoesId: int,
+    ) -> None:
         SLOT_METHODS = {
             1: "setHeadItem",
             2: "setNecklace",
@@ -257,17 +544,27 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             5: "setSkirt",
             6: "setWrist",
             7: "setAnkle",
-            8: "setShoes"
+            8: "setShoes",
         }
 
         EMPTY_LITE_INV = [0, 0, 0, 0]
 
         desiredOutfit = {
-            1: headId, 2: necklaceId, 3: shirtId, 4: beltId,
-            5: skirtId, 6: wristId, 7: ankleId, 8: shoesId
+            1: headId,
+            2: necklaceId,
+            3: shirtId,
+            4: beltId,
+            5: skirtId,
+            6: wristId,
+            7: ankleId,
+            8: shoesId,
         }
         equippedIds = {invId: slot for slot, invId in desiredOutfit.items() if invId != 0}
         filledSlots = set(equippedIds.values())
+
+        notify.info(
+            "setOutfitDB avId=%s invIds=%s" % (self.doId, list(desiredOutfit.values()))
+        )
 
         table = self.air.mongoInterface.mongodb.fairies
         fairy = table.find_one({"_id": self.doId})
@@ -276,6 +573,8 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             return
 
         dirty = False
+        equipped_from_mongo: set[int] = set()
+
         for item in fairy["avatar"]["items"]:
             invId = item["inv_id"]
 
@@ -284,6 +583,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
                 changed = item["location"] != "Equipped" or item["slot"] != slot
                 item["location"] = "Equipped"
                 item["slot"] = slot
+                equipped_from_mongo.add(slot)
 
                 if changed:
                     dirty = True
@@ -299,10 +599,29 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
                 if oldSlot in SLOT_METHODS and oldSlot not in filledSlots:
                     self.sendUpdate(SLOT_METHODS[oldSlot], [EMPTY_LITE_INV])
 
+        for slot, inv_id in desiredOutfit.items():
+            if not inv_id or slot in equipped_from_mongo:
+                continue
+            lookup = lookup_item_for_equip(self.air, self.doId, inv_id)
+            if lookup is None:
+                notify.warning(
+                    "setOutfitDB missing item avId=%s slot=%s invId=%s"
+                    % (self.doId, slot, inv_id)
+                )
+                continue
+            payload = [
+                inv_id,
+                lookup["item_id"],
+                lookup["color1"],
+                lookup["color2"],
+            ]
+            self.sendUpdate(SLOT_METHODS[slot], [payload])
+            dirty = True
+
         if dirty:
             table.update_one(
                 {"_id": self.doId},
-                {"$set": {"avatar.items": fairy["avatar"]["items"]}}
+                {"$set": {"avatar.items": fairy["avatar"]["items"]}},
             )
 
             self.redrawFairy()
@@ -779,9 +1098,23 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             badge_manager.applyLeafJournalDonation(self.doId, track_key, 1)
 
     def requestGlobalPurchase(self, item):
-        glblpId, qty = item[0]
+        glblp_id, _qty = item[0]
 
-        if not self.takeGold(qty):
+        if glblp_id == SAVED_OUTFIT_SLOT_ITEM_ID:
+            trace_outfit_slot(
+                "request_global_purchase",
+                avId=self.doId,
+                itemId=glblp_id,
+                qty=_qty,
+            )
+            notify.info(
+                "requestGlobalPurchase outfit slot avId=%s qty=%s"
+                % (self.doId, _qty)
+            )
+            self._handle_outfit_slot_purchase()
+            return
+
+        if not self.takeGold(_qty):
             self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [0])
             return
 

@@ -95,7 +95,7 @@ class CentralLoggerUD(DistributedObjectGlobalUD, ServerBase):
                 messageObj.setWebhook(config.GetString('discord-reports-webhook'))
                 messageObj.finalize()
 
-        self.air.writeServerEvent(category, messageType = msgType, message = message, **fields)
+        self.air.writeServerEvent(category, messageType=msgType, message=message, **fields)
 
     def logAIGarbage(self):
         pass

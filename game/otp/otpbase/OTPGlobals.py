@@ -147,23 +147,21 @@ def setNametagFont(index, path):
 
 
 def getDialogClass():
-    global DialogClass
-    if DialogClass is None:
-        OTPDialog = OTPDialog
-        import otp.otpgui.OTPDialog
-        DialogClass = OTPDialog
-
-    return DialogClass
+    """Legacy Panda3D login UI removed; PHR uses the Flash client."""
+    if DialogClass is not None:
+        return DialogClass
+    raise RuntimeError(
+        'Legacy client dialogs were removed (otp/otpgui). '
+        'Pixie Hollow uses the Flash client, not Python login UI.')
 
 
 def getGlobalDialogClass():
-    global GlobalDialogClass
-    if DialogClass is None:
-        GlobalDialog = GlobalDialog
-        import otp.otpgui.OTPDialog
-        GlobalDialogClass = GlobalDialog
-
-    return GlobalDialogClass
+    """Legacy Panda3D login UI removed; PHR uses the Flash client."""
+    if GlobalDialogClass is not None:
+        return GlobalDialogClass
+    raise RuntimeError(
+        'Legacy client dialogs were removed (otp/otpgui). '
+        'Pixie Hollow uses the Flash client, not Python login UI.')
 
 
 def setDialogClasses(dialogClass, globalDialogClass):
