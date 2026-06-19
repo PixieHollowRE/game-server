@@ -3,11 +3,7 @@
 from __future__ import annotations
 
 import time
-import urllib.error
-import urllib.request
 from pathlib import Path
-
-from panda3d.core import ConfigVariableString
 
 from direct.directnotify import DirectNotifyGlobal
 from direct.showbase.PythonUtil import describeException
@@ -24,7 +20,6 @@ from game.fairies.uberdog.leaderboard.leaderboard_service import (
     panel_guard_entry_count,
     panel_load_guard_seconds,
     preload_board_wire_cache,
-    prewarm_busts_for_entries,
 )
 
 notify = DirectNotifyGlobal.directNotify.newCategory("LeaderBoardPanel")
@@ -68,22 +63,6 @@ def clear_panel_session(av_id: int) -> None:
     _clear_panel_tasks(av_id)
 
 
-def _trigger_bust_warm() -> None:
-    token = ConfigVariableString("api-token", "").getValue()
-    if not token:
-        return
-    try:
-        req = urllib.request.Request(
-            "http://127.0.0.1:8013/fairies/api/internal/warmLeaderboardBustCache",
-            data=b"",
-            headers={"Authorization": token},
-            method="POST",
-        )
-        urllib.request.urlopen(req, timeout=3)
-    except (urllib.error.URLError, OSError, ValueError):
-        pass
-
-
 def _wire_state_key(board_type: int) -> str:
     if is_seasonal_board_request(board_type):
         return "seasonWireByGame"
@@ -118,9 +97,6 @@ def _ensure_session_wire_cache(
     }
     state[wire_key] = wire_by_game
     state[period_key] = period_id
-    if not state.get("bustWarmTriggered"):
-        state["bustWarmTriggered"] = True
-        _trigger_bust_warm()
     return True
 
 
@@ -244,7 +220,6 @@ def _deliver_full(
     req_seq: int,
 ) -> None:
     entries = _wire_entries_for_game(state, game_id, board_type)
-    prewarm_busts_for_entries(entries)
     _lb_trace(
         "lbResponse avId=%s reqSeq=%s gameId=%s boardType=%s entries=%s phase=%s"
         % (

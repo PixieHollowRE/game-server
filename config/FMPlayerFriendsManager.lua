@@ -687,6 +687,11 @@ function handleFMPlayerFriendsManager_setTalkAccountGroup(participant, fieldId, 
         end
     end
 
+    -- Echo back to the sender so their chat log shows the message (same setTalkAccount
+    -- shape as friend delivery, with senderId as both toAc and whisperAll target).
+    participant:sendUpdateToAccountId(senderId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+        "FMPlayerFriendsManager", "setTalkAccount", {senderId, senderId, data[2], cleanMessage, modifications, 8})
+
     if sentCount == 0 then
         participant:debug(string.format(
             "setTalkAccountGroup - account %d sent to 0 friends (friends=%d skipped_self=%d)",

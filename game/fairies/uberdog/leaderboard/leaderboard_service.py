@@ -611,9 +611,8 @@ def preload_board_wire_cache(air, cache: dict, board_type: int) -> None:
 
 
 PANEL_LOAD_GUARD_BASE_SECONDS = 4.0
-PANEL_LOAD_GUARD_PER_ENTRY_SECONDS = 0.55
-PANEL_LOAD_GUARD_MAX_SECONDS = 14.0
-PANEL_LOAD_GUARD_DEFAULT_ENTRY_COUNT = 10
+PANEL_LOAD_GUARD_PER_ENTRY_SECONDS = 0.9
+PANEL_LOAD_GUARD_MAX_SECONDS = 24.0
 
 
 def panel_load_guard_seconds(entry_count: int) -> float:
@@ -637,44 +636,11 @@ def panel_guard_entry_count(state: dict, game_id: int, board_type: int) -> int:
     wire_by_game = state.get(wire_key) or state.get("wireByGame") or {}
     pending = len(wire_by_game.get(int(game_id)) or [])
     prior = int(state.get("lastEntryCount") or 0)
-    return max(pending, prior, PANEL_LOAD_GUARD_DEFAULT_ENTRY_COUNT)
-
-
-def prewarm_busts_for_entries(entries: list) -> None:
-    """Warm web-api bust XML cache for avIds about to be delivered to the panel."""
-    import json
-    import urllib.error
-    import urllib.request
-
-    from panda3d.core import ConfigVariableString
-
-    fairy_ids: list[int] = []
-    for entry in entries:
-        if not entry:
-            continue
-        try:
-            fairy_ids.append(int(entry[0]))
-        except (IndexError, TypeError, ValueError):
-            continue
-    if not fairy_ids:
-        return
-
-    token = ConfigVariableString("api-token", "").getValue()
-    if not token:
-        return
-    try:
-        req = urllib.request.Request(
-            "http://127.0.0.1:8013/fairies/api/internal/warmLeaderboardBustCache",
-            data=json.dumps({"fairyIds": fairy_ids}).encode("utf-8"),
-            headers={
-                "Authorization": token,
-                "Content-Type": "application/json",
-            },
-            method="POST",
-        )
-        urllib.request.urlopen(req, timeout=3)
-    except (urllib.error.URLError, OSError, ValueError):
-        pass
+    if pending > 0:
+        return max(pending, prior)
+    if prior > 0:
+        return prior
+    return 0
 
 
 def record_weekly_score(air, av_id: int, game_id: int, score: int) -> None:
