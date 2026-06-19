@@ -29,7 +29,6 @@ from game.fairies.badges.MoreOptions import (
     persist_more_options,
 )
 from game.fairies.badges.MeadowExplorerBadgeRegistry import ALL_EXPLORER_ZONE_IDS
-from game.fairies.outfits.OutfitSlotTrace import trace_outfit_slot
 from game.fairies.outfits.SavedOutfitService import (
     SAVED_OUTFIT_SLOT_ITEM_ID,
     add_saved_outfit,
@@ -282,15 +281,8 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             self._debounced_max_sync_task,
             task_name,
         )
-        trace_outfit_slot(
-            "debounce_scheduled",
-            avId=self.doId,
-            delay=OUTFIT_MAX_DEBOUNCE_SEC,
-            highwater=self._outfitSlotsClientMax,
-        )
 
     def _debounced_max_sync_task(self, task) -> None:
-        trace_outfit_slot("debounce_fire", avId=self.doId)
         self._send_max_outfit_slots(reason="debounced_get_max")
 
     def _schedule_purchase_followup_resync(self) -> None:
@@ -301,14 +293,8 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             self._purchase_followup_resync_task,
             task_name,
         )
-        trace_outfit_slot(
-            "followup_scheduled",
-            avId=self.doId,
-            delay=OUTFIT_PURCHASE_FOLLOWUP_SEC,
-        )
 
     def _purchase_followup_resync_task(self, task) -> None:
-        trace_outfit_slot("followup_fire", avId=self.doId)
         self._send_max_outfit_slots(force=True, reason="purchase_followup")
 
     def _send_max_outfit_slots(
@@ -334,17 +320,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
                 "suppressed stale maxOutfitSlots avId=%s mongo=%s highwater=%s reason=%s seq=%s"
                 % (self.doId, mongo_max, highwater_before, reason, seq)
             )
-        trace_outfit_slot(
-            "send_max",
-            avId=self.doId,
-            seq=seq,
-            reason=reason,
-            force=force,
-            mongo=mongo_max,
-            highwater=highwater_before,
-            send=send_max,
-            suppressed=suppressed,
-        )
         self._outfitSlotsClientMax = send_max
         self.sendUpdateToAvatarId(self.doId, "setMaxOutfitSlots", [send_max])
         notify.info(
@@ -374,46 +349,23 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
     def _handle_outfit_slot_purchase(self) -> None:
         self._cancel_outfit_slot_tasks()
-        trace_outfit_slot(
-            "purchase_start",
-            avId=self.doId,
-            highwater=self._outfitSlotsClientMax,
-            gold=self.getGold(),
-        )
         new_max = purchase_outfit_slot(self.air, self.doId, self)
         if new_max is None:
             notify.warning(
                 "outfit slot purchase failed avId=%s gold=%s"
                 % (self.doId, self.getGold())
             )
-            trace_outfit_slot(
-                "purchase_fail",
-                avId=self.doId,
-                gold=self.getGold(),
-                highwater=self._outfitSlotsClientMax,
-            )
             self._send_max_outfit_slots(force=True, reason="purchase_fail_resync")
             self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [0])
             return
 
         notify.info("outfit slot purchase ok avId=%s newMax=%s" % (self.doId, new_max))
-        trace_outfit_slot(
-            "purchase_ok",
-            avId=self.doId,
-            newMax=new_max,
-            gold=self.getGold(),
-        )
         self._send_max_outfit_slots(force=True, reason="purchase_ok")
         self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [1])
         self._send_global_purchase_data()
 
     def requestGetMaxOutfitSlots(self) -> None:
         self._cancel_outfit_slot_tasks()
-        trace_outfit_slot(
-            "request_get_max",
-            avId=self.doId,
-            highwater=self._outfitSlotsClientMax,
-        )
         notify.info(
             "requestGetMaxOutfitSlots avId=%s highwater=%s"
             % (self.doId, self._outfitSlotsClientMax)
@@ -422,7 +374,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self._send_max_outfit_slots(reason="get_max")
 
     def requestGetSavedOutfits(self) -> None:
-        trace_outfit_slot("request_get_saved", avId=self.doId)
         notify.info("requestGetSavedOutfits avId=%s" % self.doId)
         self._send_saved_outfits_list()
 
@@ -508,12 +459,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self._send_saved_outfits_list(result)
 
     def requestSendSavedOutfitSlotPurchaseRequest(self) -> None:
-        trace_outfit_slot(
-            "request_purchase",
-            avId=self.doId,
-            highwater=self._outfitSlotsClientMax,
-            gold=self.getGold(),
-        )
         notify.info(
             "requestSendSavedOutfitSlotPurchaseRequest avId=%s highwater=%s gold=%s"
             % (self.doId, self._outfitSlotsClientMax, self.getGold())
@@ -1086,12 +1031,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         glblp_id, _qty = item[0]
 
         if glblp_id == SAVED_OUTFIT_SLOT_ITEM_ID:
-            trace_outfit_slot(
-                "request_global_purchase",
-                avId=self.doId,
-                itemId=glblp_id,
-                qty=_qty,
-            )
             notify.info(
                 "requestGlobalPurchase outfit slot avId=%s qty=%s"
                 % (self.doId, _qty)
