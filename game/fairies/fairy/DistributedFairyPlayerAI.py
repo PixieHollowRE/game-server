@@ -322,10 +322,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             )
         self._outfitSlotsClientMax = send_max
         self.sendUpdateToAvatarId(self.doId, "setMaxOutfitSlots", [send_max])
-        notify.info(
-            "setMaxOutfitSlots avId=%s send=%s mongo=%s highwater_before=%s force=%s reason=%s seq=%s"
-            % (self.doId, send_max, mongo_max, highwater_before, force, reason, seq)
-        )
         return send_max
 
     def _sync_saved_outfits_to_client(self, *, force_max: bool = False) -> None:
@@ -361,6 +357,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         notify.info("outfit slot purchase ok avId=%s newMax=%s" % (self.doId, new_max))
         self._send_max_outfit_slots(force=True, reason="purchase_ok")
+        self._send_saved_outfits_list()
         self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [1])
         self._send_global_purchase_data()
 

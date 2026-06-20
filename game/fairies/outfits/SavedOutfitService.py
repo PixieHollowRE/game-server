@@ -44,13 +44,23 @@ def empty_slot() -> dict[str, int]:
     }
 
 
+def normalize_max_outfit_slots(max_slots: int) -> int:
+    """Clamp and snap to valid client wire values (odd: 1, 3, 5, …)."""
+    value = int(max_slots)
+    if value < SAVED_OUTFIT_SLOT_DEFAULT:
+        value = SAVED_OUTFIT_SLOT_DEFAULT
+    if value > SAVED_OUTFIT_SLOT_MAX:
+        value = SAVED_OUTFIT_SLOT_MAX
+    if value > 1 and value % 2 == 0:
+        value = min(value + 1, SAVED_OUTFIT_SLOT_MAX)
+    return value
+
+
 def ensure_defaults(doc: dict[str, Any]) -> dict[str, Any]:
     raw_max = doc.get("maxOutfitSlots")
-    max_slots = int(raw_max if raw_max is not None else SAVED_OUTFIT_SLOT_DEFAULT)
-    if max_slots < SAVED_OUTFIT_SLOT_DEFAULT:
-        max_slots = SAVED_OUTFIT_SLOT_DEFAULT
-    if max_slots > SAVED_OUTFIT_SLOT_MAX:
-        max_slots = SAVED_OUTFIT_SLOT_MAX
+    max_slots = normalize_max_outfit_slots(
+        int(raw_max if raw_max is not None else SAVED_OUTFIT_SLOT_DEFAULT)
+    )
 
     outfits = doc.get("savedOutfits")
     if outfits is None:
@@ -390,6 +400,8 @@ def update_saved_outfit(
     )
     if index is None:
         return None, "unknown_outfit_id"
+    if index >= state["maxOutfitSlots"]:
+        return None, "beyond_max_slots"
 
     saved_outfits[index] = snapshot_outfit_from_inv_ids(
         avatar_items,

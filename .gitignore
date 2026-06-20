@@ -20,6 +20,10 @@ config/local.prc
 
 # AI logs
 logs/aidistrict_*
+logs/outfit_slots.log
+
+# Local tools (not published)
+tools/
 
 # OTP
 logs/*.log
