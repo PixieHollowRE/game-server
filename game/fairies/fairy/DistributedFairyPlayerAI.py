@@ -9,6 +9,8 @@ from game.fairies.ai.BakingAssets import BAKED_ITEMS
 from game.fairies.fairy.AuraMapping import AURA_MAPPING, SKIN_COLOR_MAPPING, WING_COLOR_MAPPING
 from game.fairies.fairy.structs.RewardExt import RewardExt
 from game.fairies.fairy.structs.MiscItem import MiscItem
+from game.fairies.fairy.structs.LiteInvItemExt2 import LiteInvItemExt2
+from game.fairies.fairy.structs.SavedOutfit import SavedOutfit
 
 from game.fairies.badges import badge_events, badge_state
 from game.fairies.daily.DailyChanceConstants import (
@@ -38,25 +40,16 @@ GLOBAL_PURCHASE_ITEMS = {
 # Saved outfits. Every fairy starts with one slot and can buy more, two at a
 # time (a "tab" in the client's SavedOutfits panel holds two outfits). The cap
 # and per-purchase step mirror the client: MAX_OUTFIT_TABS(14) * 2 - 1 slots,
-# and SLOT_COST pixie diamonds per upgrade (charged from `gold`, which is what
-# the client calls diamonds).
+# and SLOT_COST pixie diamonds per upgrade.
 DEFAULT_MAX_OUTFIT_SLOTS = 1
 MAX_OUTFIT_SLOTS = 27
 OUTFIT_SLOTS_PER_PURCHASE = 2
 
-# Price ramp for slot upgrades. The first upgrade costs BASE (which must stay in
-# sync with the client's hardcoded SavedOutfits.SLOT_COST = 10, since the client
-# both labels the dialog and gates affordability on that number); each further
-# upgrade costs STEP more than the last. Set STEP = 0 for a flat price.
-OUTFIT_SLOT_COST_BASE = 10
-OUTFIT_SLOT_COST_STEP = 10
-
-
-def outfitSlotCost(maxSlots: int) -> int:
-    # Linear cost per slot-upgrade: BASE, BASE+STEP, BASE+2*STEP, ... `maxSlots`
-    # is the fairy's current slot count, before the upgrade being priced.
-    purchasesMade = (maxSlots - DEFAULT_MAX_OUTFIT_SLOTS) // OUTFIT_SLOTS_PER_PURCHASE
-    return OUTFIT_SLOT_COST_BASE + purchasesMade * OUTFIT_SLOT_COST_STEP
+# Flat cost per slot upgrade, charged from `gold` (what the client calls
+# diamonds). Must stay in sync with the client's hardcoded
+# SavedOutfits.SLOT_COST = 10, since the client both labels the dialog and gates
+# affordability on that number.
+OUTFIT_SLOT_COST = 10
 
 # The eight equipment slots, in the order the client sends the invIds for
 # add/update and reads them back in a SavedOutfit struct (see setOutfitDB).
@@ -72,6 +65,7 @@ EMPTY_LITE_INV_ITEM = [0, 0, 0, 0, 0]
 PIXIE_POWER_ENABLED = False
 
 # Pixie power the setPixiePower DC field is born with (see fairy.dc: default 100).
+# TODO: Change this later once everything works right - Default should be 10, Max 240.
 DEFAULT_PIXIE_POWER = 100
 
 class DistributedFairyPlayerAI(DistributedFairyBaseAI):
@@ -106,8 +100,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         # Fill in the missing information from the database (i.e. gold)
         self.air.fillInFairyPlayer(self)
 
-        # setHomeType is ownrecv-only (not a required field), so the AI has to
-        # push it to the owner explicitly for the home to load.
         self.b_setHomeType(self._defaultHomeType())
 
         self.air.inventoryManager.avatarOnline(self.doId)
@@ -123,6 +115,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         if self.getLevel() != NEW_LEVEL:
             # TEMP: Set level at the request of Jessibee for the Test server.
             self.b_setLevel(NEW_LEVEL)
+
+        # The client only pulls saved-outfit state once (on panel construction),
+        # so push it on generate to survive a crash + reconnect. See
+        # _pushSavedOutfitState.
+        self._pushSavedOutfitState()
 
     def delete(self):
         # TODO: Set a post-remove message in case of an AI crash.
@@ -201,16 +198,13 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             if self.dailyChanceCanSpin():
                 self.b_setDailyChancePlayed(0)
 
-        # Track home-realm occupancy. Housing zones are ownerId + offset (well
-        # above any normal zone); anything else means we're not in a home.
+        # Track home-realm occupancy. Housing zones are ownerId + offset; 
+        # anything else means we're not in a home.
         homeOwner = zoneId - HOUSING_ZONE_OFFSET if zoneId >= HOUSING_ZONE_OFFSET else 0
         if homeOwner != self.currentHomeOwner:
             self.currentHomeOwner = homeOwner
             self.air.sendRealmOccupancyUpdate(self.doId, homeOwner)
 
-        # Seasonal Meadow Explorer badges: standing in one of a season's meadows
-        # counts it toward that badge. The uberdog dedupes revisits, so just
-        # report every entry that lands in a counted meadow.
         if badge_events.get_meadow_badge_for_zone(zoneId) is not None:
             self.air.badgeManager.d_exploreMeadow(self.doId, zoneId)
 
@@ -222,10 +216,9 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         return badge_state.get_earned_badge_ids(self.air, self.doId, SPIN_BADGE_ID_SET)
 
     def _dailyChanceExcludedCategories(self, excludeMask: int) -> set[Category]:
-        # The wardrobe and storage bits say there is nowhere to put that kind of
-        # prize. Taking the client's word costs nothing -- the worst a lie can do
-        # is win someone a prize they have no room for -- and it is the only one
-        # who knows.
+        # The wardrobe and storage bits say if there is nowhere to put that kind of
+        # prize. Taking the client's word here is fine. The worst a lie can do
+        # is win someone a prize they have no room for
         excluded = set()
 
         if excludeMask & EXCLUDE_WARDROBE:
@@ -253,7 +246,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             return
 
         prizes = draw_daily_spin(
-            # A plain int off the DNA, which Gender is an IntEnum to match.
             self.fairyDNA.gender,
             self._dailyChanceExcludedBadges(),
             self._dailyChanceExcludedCategories(excludeMask),
@@ -282,40 +274,82 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         self._recordDailyChanceSpin()
 
-        # One spin, however many acorns it was worth. The rocks are counted per
-        # rock, so a member pulling three at once gets credit for three.
+        # The rocks are counted per rock, so a member pulling three at once gets credit for three.
         self.air.badgeManager.d_accumulate(avId, badge_events.EVENT_PLAYED_DAILY_SPIN)
 
         if rocksWon:
             self.air.badgeManager.d_accumulate(avId, badge_events.EVENT_WON_ROCK, rocksWon)
 
-    def _liteInvFromId(self, invId: int, itemsById: dict) -> list:
-        # Snapshot an equipped/wardrobe item into a LiteInvItemExt2 so a saved
-        # outfit keeps displaying even after the underlying item is dyed, traded
-        # or restyled. A zero invId (or one we no longer own) is an empty slot.
+    def _liteInvFromId(self, invId: int, itemsById: dict) -> LiteInvItemExt2:
         item = itemsById.get(invId)
         if not invId or item is None:
-            return list(EMPTY_LITE_INV_ITEM)
+            return LiteInvItemExt2()
 
-        return [
+        return LiteInvItemExt2.unpackFromTuple((
             invId,
             item["item_id"],
             item.get("color1", 0),
             item.get("color2", 0),
-            item.get("howAcquired", 0),
-        ]
+            item.get("howAcquired", 0)
+        ))
 
-    def _savedOutfitToStruct(self, outfit: dict) -> list:
-        # Turn a stored outfit into the SavedOutfit the dclass expects:
-        # (outfitId, headItem, necklaceItem, ... shoesItem).
+    def _buildOutfitItems(self, invIds: tuple, fairy: dict) -> dict:
+        itemsById = {item["inv_id"]: item for item in fairy["avatar"]["items"]}
+        return {
+            slot: self._liteInvFromId(invId, itemsById).asTuple()
+            for slot, invId in zip(OUTFIT_SLOT_ORDER, invIds)
+        }
+
+    def _savedOutfitToStruct(self, outfit: dict) -> SavedOutfit:
         items = outfit.get("items", {})
-        struct = [outfit["outfitId"]]
-        struct.extend(list(items.get(slot, EMPTY_LITE_INV_ITEM)) for slot in OUTFIT_SLOT_ORDER)
-        return struct
+        return SavedOutfit.unpackFromTuple((
+            outfit["outfitId"],
+            *(
+                LiteInvItemExt2.unpackFromTuple(items.get(slot, EMPTY_LITE_INV_ITEM))
+                for slot in OUTFIT_SLOT_ORDER
+            ),
+        ))
 
     def _d_setSavedOutfits(self, outfits: list) -> None:
-        payload = [self._savedOutfitToStruct(outfit) for outfit in outfits]
+        payload = [self._savedOutfitToStruct(outfit).asTuple() for outfit in outfits]
         self.sendUpdateToAvatarId(self.doId, "setSavedOutfits", [payload])
+
+    def _invalidateOutfitsForItem(self, invId: int) -> None:
+        # A saved outfit stores a snapshot of each slot's item, keyed by invId
+        # (index 0 of the stored LiteInvItemExt2 tuple). When the underlying item
+        # is donated away, any outfit referencing it is no longer wearable, so we
+        # drop the whole outfit -- the donateConfirm dialog warns the player of
+        # exactly this ("You will lose this item and saved outfits with it!").
+        fairy = self.air.mongoInterface.mongodb.fairies.find_one({"_id": self.doId})
+        if not fairy:
+            return
+
+        outfits = fairy.get("savedOutfits", [])
+        kept = [
+            outfit for outfit in outfits
+            if not any(item[0] == invId for item in outfit.get("items", {}).values())
+        ]
+        if len(kept) == len(outfits):
+            return
+
+        self.air.mongoInterface.updateField("fairies", "savedOutfits", self.doId, kept)
+        self._d_setSavedOutfits(kept)
+
+    def _pushSavedOutfitState(self) -> None:
+        # The client's SavedOutfits panel fetches maxOutfitSlots/savedOutfits
+        # exactly once -- when it's first constructed (SavedOutfits.refreshOutfits,
+        # called from the panel's one-time init) -- and caches them on the
+        # DistributedFairyPlayer. After an AI crash + reconnect the client rebuilds
+        # that player object empty (savedOutfits=null, maxOutfitSlots=-1) but never
+        # re-requests, because the panel isn't reconstructed. The book then shows
+        # no outfits and every tab looks unpurchased (and buying does nothing,
+        # since we're really already at the slot cap). Push the state on generate
+        # (which also runs on reconnect) so the freshly (re)generated client
+        # object is populated without needing a request, mirroring the pull.
+        fairy = self.air.mongoInterface.mongodb.fairies.find_one({"_id": self.doId})
+        maxSlots = (fairy or {}).get("maxOutfitSlots", DEFAULT_MAX_OUTFIT_SLOTS)
+        self.sendUpdateToAvatarId(self.doId, "setMaxOutfitSlots", [maxSlots])
+        self._d_setSavedOutfits((fairy or {}).get("savedOutfits", []))
 
     def requestGetMaxOutfitSlots(self) -> None:
         fairy = self.air.mongoInterface.mongodb.fairies.find_one({"_id": self.doId})
@@ -341,11 +375,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             return
 
         invIds = (headId, necklaceId, shirtId, beltId, skirtId, wristId, ankleId, shoesId)
-        itemsById = {item["inv_id"]: item for item in fairy["avatar"]["items"]}
-        items = {
-            slot: self._liteInvFromId(invId, itemsById)
-            for slot, invId in zip(OUTFIT_SLOT_ORDER, invIds)
-        }
+        items = self._buildOutfitItems(invIds, fairy)
 
         outfits.append({"outfitId": self.air.mongoInterface.getNextDoId(), "items": items})
         self.air.mongoInterface.updateField("fairies", "savedOutfits", self.doId, outfits)
@@ -363,11 +393,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             return
 
         invIds = (headId, necklaceId, shirtId, beltId, skirtId, wristId, ankleId, shoesId)
-        itemsById = {item["inv_id"]: item for item in fairy["avatar"]["items"]}
-        outfit["items"] = {
-            slot: self._liteInvFromId(invId, itemsById)
-            for slot, invId in zip(OUTFIT_SLOT_ORDER, invIds)
-        }
+        outfit["items"] = self._buildOutfitItems(invIds, fairy)
 
         self.air.mongoInterface.updateField("fairies", "savedOutfits", self.doId, outfits)
         self._d_setSavedOutfits(outfits)
@@ -394,10 +420,8 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             return
 
         # takeGold is the diamond balance from the client's point of view; it
-        # fails (and charges nothing) if the fairy can't afford the upgrade. Note
-        # the client always *shows* OUTFIT_SLOT_COST_BASE regardless of the real
-        # scaled cost -- see outfitSlotCost().
-        if not self.takeGold(outfitSlotCost(maxSlots)):
+        # fails (and charges nothing) if the fairy can't afford the upgrade.
+        if not self.takeGold(OUTFIT_SLOT_COST):
             return
 
         maxSlots = min(maxSlots + OUTFIT_SLOTS_PER_PURCHASE, MAX_OUTFIT_SLOTS)
@@ -971,6 +995,10 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             donationEvent = badge_events.EVENT_DONATE_WARDROBE_ITEM
 
         self.air.inventoryManager.sendUpdateToAvatarId(self.doId, field, [0, invId])
+
+        # The item is gone from inventory, so invalidate any saved outfit that
+        # still references it (the client's donate confirmation promises this).
+        self._invalidateOutfitsForItem(invId)
 
         # Donating is the only thing that reaches removeFromInventory (both
         # StorageInventoryEntry.donate and WardrobeInventoryEntry.donate), so each

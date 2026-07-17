@@ -86,6 +86,10 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
         avId = self.air.getAvatarIdFromSender()
         avatar = self.air.doId2do.get(avId)
 
+        if not avatar:
+            self.notify.warning(f"No avatar present on AI for setRequestDyeItem: {avId}")
+            return
+
         price: int = 0
 
         fields = {}
