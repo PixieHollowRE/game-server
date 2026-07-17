@@ -3,11 +3,17 @@ import subprocess
 import sys
 import random
 
-NUM_DISTRICTS = 2
+NUM_DISTRICTS = 6
 
 districtNames = [
     'Hidden Ridge',
-    'Blueberry Forest'
+    'Blueberry Forest',
+    'Strawberry Forest',
+    'Sun Plain',
+    'Autumn Cliffs',
+    'Lily Peak',
+    'Sugar Heights',
+    'Starflower Gully'
 ]
 
 cutDistrictNames = random.sample(districtNames, NUM_DISTRICTS)
