@@ -231,6 +231,7 @@ function handleLogin(client, dgi)
         client:sendDisconnect(CLIENT_DISCONNECT_BAD_VERSION, string.format("Client version mismatch: client=%s, server=%s", version, SERVER_VERSION), true)
         return
     end
+
     -- Doesn't seem dcFile.getHash() matches the client.
     -- We'll just hardcode the stock Pixie Hollow client hashVal.
     -- This shouldn't change as we won't be adding new content anyways.
