@@ -1,4 +1,8 @@
-from game.fairies.minigame.DistributedMeadowGameAI import DistributedMeadowGameAI, MEADOW_GAME_STATE_GROUPING
+from game.fairies.minigame.DistributedMeadowGameAI import (
+    DistributedMeadowGameAI,
+    MEADOW_GAME_STATE_GROUPING,
+    MEADOW_GAME_STATE_PLAY,
+)
 import game.fairies.ai.FairiesConstants as fc
 from game.fairies.daily.TimeUtils import get_season
 from direct.task.TaskManagerGlobal import taskMgr
@@ -57,6 +61,11 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
         self.whoseTurn: int = 0 # p7
 
     def init_game(self) -> None:
+        # A pending reset belongs to the *previous* game. If a new pair sat down
+        # inside RESET_DELAY, letting it fire would wipe the board out from under
+        # them mid-play and leave card_ids empty for turnRequest.
+        self.cancelReset()
+
         valid_cards = list(range(1, 13)) + list(range(21, 26)) + [41]
         chosen = random.sample(valid_cards, 12)
         cards = chosen * 2
@@ -125,14 +134,24 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
         if len(self.players) < 2:
             self.scheduleReset()
 
+    @property
+    def resetTaskName(self) -> str:
+        return f"MatchGameReset-{self.doId}"
+
     def scheduleReset(self) -> None:
-        taskName = f"MatchGameReset-{self.doId}"
-        taskMgr.remove(taskName)
-        taskMgr.doMethodLater(RESET_DELAY, self._resetTask, taskName)
+        taskMgr.remove(self.resetTaskName)
+        taskMgr.doMethodLater(RESET_DELAY, self._resetTask, self.resetTaskName)
+
+    def cancelReset(self) -> None:
+        taskMgr.remove(self.resetTaskName)
 
     def _resetTask(self, task):
         self.resetGame()
         return task.done
+
+    def delete(self) -> None:
+        self.cancelReset()
+        super().delete()
 
     def resetGame(self) -> None:
         # Empty the table and return to grouping so a fresh pair can start.
@@ -156,6 +175,9 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
 
     def turnRequest(self, unkn, card_index):
         player_id = self.air.getAvatarIdFromSender()
+
+        if not self.validateTurn(player_id, card_index):
+            return
 
         card_id = self.card_ids[card_index]
 
@@ -225,6 +247,37 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
 
             self.lastPlayType = MEADOW_GAME_MEMORY_PLAYTYPE_NONE
             self.lastFlipOffset = -1
+
+    def validateTurn(self, player_id, card_index) -> bool:
+        # turnRequest is clsend, and card_index is a uint8 on the wire (0-255),
+        # so nothing here can be trusted (ugh). A client whose board has outlived the
+        # server's game -- it left, the hotspot reset, the round ended -- will
+        # still happily send flips at an empty table. yay
+        if self.state != MEADOW_GAME_STATE_PLAY or len(self.card_ids) != CARD_COUNT:
+            self.notify.warning(
+                f"turnRequest from {player_id} with no game in play "
+                f"(state={self.state}, cards={len(self.card_ids)})")
+            return False
+
+        # Log errors instead of throwing a tantrum - we'll see if this fixes the issue.
+        if player_id not in self.players:
+            self.notify.warning(f"turnRequest from non-player {player_id}")
+            return False
+
+        if player_id != self.whoseTurn:
+            self.notify.warning(f"turnRequest from {player_id} out of turn")
+            return False
+
+        if not 0 <= card_index < CARD_COUNT:
+            self.notify.warning(f"turnRequest from {player_id} for card {card_index}")
+            return False
+
+        # -1 is face down. Anything else is already revealed by this turn's first
+        # flip, or 0 for a slot whose pair has been matched away.
+        if self.cardStates[card_index] != -1:
+            return False
+
+        return True
 
     def get_other_player(self, current_doid):
         print(next(p for p in self.players if p != current_doid))
