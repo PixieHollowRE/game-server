@@ -64,6 +64,22 @@ EVENT_WON_SOUR_PLUM_BADGE = 30031
 EVENT_WON_LUCKY_PURPLE_FEATHERS_BADGE = 30032
 EVENT_WON_SNEAKY_MR_TWITCHES_BADGE = 30033
 
+# ───────────────────────────────────── DONATIONS ──────────────────────────────────── #
+# Donating an inventory item (DistributedFairyPlayerAI.removeFromInventory, which
+# is where both StorageInventoryEntry.donate and WardrobeInventoryEntry.donate
+# land) advances one of two three-tier ladders, chosen by where the item lived:
+# wardrobe (clothing) or storage (furniture/lamps/decoration). Tiers are 5/25/100,
+# read from badges.xml.
+EVENT_DONATE_WARDROBE_ITEM = 30300
+EVENT_DONATE_STORAGE_ITEM = 30301
+
+# The Honors badge that tops out both ladders at once ("Royal Wardrobe and Storage
+# Donation"). It has no goal of its own (goal 0 in badges.xml), so it is not
+# accumulated and is left out of EVENT_TO_BADGES; the badge manager grants it
+# outright once both Flitterific tiers below are earned.
+ROYAL_DONATION_BADGE = 10821
+DONATION_TOP_TIERS = (10813, 10816)  # Flitterific Wardrobe, Flitterific Storage
+
 # ──────────────────────────────────── INGREDIENTS ─────────────────────────────────── #
 COLLECTION_EVENT_BASE = 30100
 
@@ -151,6 +167,9 @@ EVENT_TO_BADGES: dict[int, tuple[int, ...]] = {
     EVENT_WON_SOUR_PLUM_BADGE:             (10903,),  # Sour Plum
     EVENT_WON_LUCKY_PURPLE_FEATHERS_BADGE: (10902,),  # Lucky Purple Feathers
     EVENT_WON_SNEAKY_MR_TWITCHES_BADGE:    (11130,),  # Sneaky Mr. Twitches
+
+    EVENT_DONATE_WARDROBE_ITEM:       (10811, 10812, 10813),  # Wardrobe / Super / Flitterific Donation
+    EVENT_DONATE_STORAGE_ITEM:        (10814, 10815, 10816),  # Storage / Super / Flitterific Donation
 }
 
 EVENT_TO_BADGES.update(

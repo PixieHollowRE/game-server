@@ -28,24 +28,42 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
 
         avatar.d_setPouch(self.getPouch(avId))
 
+    # Gold charged to make a temporary item permanent, keyed by the item's
+    # type. These mirror priceData.xml conversionPrices categories -- a type's
+    # index in FairiesConstants.ITEM_TYPES is the category id the client prices
+    # from. Wardrobe items are the clothing types; storage items are Furniture,
+    # Lamp and Decoration.
+    CONV_COSTS = {
+        "Shirt": 6,
+        "Belt": 4,
+        "Skirt": 7,
+        "WristItem": 3,
+        "HeadItem": 5,
+        "Necklace": 3,
+        "AnkleItem": 3,
+        "Shoes": 5,
+        "Furniture": 6,
+        "Lamp": 4,
+        "Decoration": 5,
+    }
+
     def wardrobeConversion(self, inv_id):
+        self._convertItem(inv_id)
+
+    def storageConversion(self, inv_id):
+        self._convertItem(inv_id)
+
+    def _convertItem(self, inv_id):
+        # Storage and wardrobe items both live in avatar.items and convert
+        # identically -- flip howAcquired to 0 (permanent) and charge gold for
+        # the item's type. The client sends the matching conversion for the
+        # entry it holds; we look the item up by inv_id either way.
         avId = self.air.getAvatarIdFromSender()
         avatar = self.air.doId2do.get(avId)
 
         if not avatar:
-            self.notify.warning(f"wardrobeConversion: no avatar on AI for avId={avId}")
+            self.notify.warning(f"convertItem: no avatar on AI for avId={avId}")
             return
-
-        CONV_COSTS = {
-            "Shirt": 6,
-            "Skirt": 7,
-            "Shoes": 5,
-            "Belt": 4,
-            "HeadItem": 5,
-            "Necklace": 3,
-            "WristItem": 3,
-            "AnkleItem": 3,
-        }
 
         result = self.air.mongoInterface.mongodb.fairies.find_one(
             {"_id": avId, "avatar.items.inv_id": inv_id},
@@ -54,7 +72,7 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
         if result:
             item_type = result["avatar"]["items"][0]["type"]
         else:
-            print("WARDROBECONVERSION PANIC")
+            self.notify.warning(f"convertItem: no item inv_id={inv_id} for avId={avId}")
             return
 
         self.air.mongoInterface.mongodb.fairies.update_one(
@@ -67,7 +85,7 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
             array_filters=[{"item.inv_id": inv_id}]
         )
 
-        avatar.takeGold(CONV_COSTS[item_type])
+        avatar.takeGold(self.CONV_COSTS[item_type])
 
     def addIngredientsToPouch(self, avId: int, itemID: int, itemCount: int, slot: int) -> bool:
         if not self._addIngredientsToPouch(avId, itemID, itemCount, slot):

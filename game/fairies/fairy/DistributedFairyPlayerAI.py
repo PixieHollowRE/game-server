@@ -931,6 +931,17 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.air.sendUpdateToChannelFrom(self, channelId, "setWhisperSCEmoteFrom", fromId, [fromId, emoteId])
 
     def removeFromInventory(self, invId, itemId):
+        # Donating an item (StorageInventoryEntry.donate / WardrobeInventoryEntry.donate)
+        # both land here -- storage and wardrobe items share avatar.items. We must
+        # echo the removal on the matching client list: storageRemove for Storage
+        # items, wardrobeRemove for Wardrobe/Equipped. Sending the wrong one leaves
+        # a stale entry in the client's inventory model and skips its donate
+        # confirmation (clearDonate). Read the location before pulling.
+        item = self.air.mongoInterface.mongodb.fairies.find_one(
+            {"_id": self.doId, "avatar.items.inv_id": invId},
+            {"avatar.items.$": 1}
+        )
+
         self.air.mongoInterface.mongodb.fairies.update_one(
             {"_id": self.doId},
                 {
@@ -942,7 +953,23 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
                 }
         )
 
-        self.air.inventoryManager.sendUpdateToAvatarId(self.doId, "wardrobeRemove", [0, invId])
+        location = None
+        if item and item.get("avatar", {}).get("items"):
+            location = item["avatar"]["items"][0].get("location")
+
+        if location == "Storage":
+            field = "storageRemove"
+            donationEvent = badge_events.EVENT_DONATE_STORAGE_ITEM
+        else:
+            field = "wardrobeRemove"
+            donationEvent = badge_events.EVENT_DONATE_WARDROBE_ITEM
+
+        self.air.inventoryManager.sendUpdateToAvatarId(self.doId, field, [0, invId])
+
+        # Donating is the only thing that reaches removeFromInventory (both
+        # StorageInventoryEntry.donate and WardrobeInventoryEntry.donate), so each
+        # call is one item given to the community -- advance the donation ladder.
+        self.air.badgeManager.d_accumulate(self.doId, donationEvent)
 
     def requestGlobalPurchase(self, item):
         avId = self.air.getAvatarIdFromSender()
