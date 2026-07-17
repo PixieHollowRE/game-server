@@ -7,7 +7,6 @@ import game.fairies.ai.FairiesConstants as fc
 from game.fairies.daily.TimeUtils import get_season
 from direct.task.TaskManagerGlobal import taskMgr
 from datetime import datetime, timezone
-import math
 import random
 
 CARD_COUNT = 24
@@ -28,7 +27,7 @@ REWARD_SECOND_PLACE = 15
 
 # Seconds to leave the finished game standing before wiping it back to grouping.
 # Should outlast the client results panel (panel.config.multiplayerResultsDelay).
-RESET_DELAY = 12.0
+RESET_DELAY = 5.0
 
 MEADOW_GAME_MEMORY_PLAYTYPE_NONE = 0
 MEADOW_GAME_MEMORY_PLAYTYPE_FLIP_FIRST = 2
@@ -363,11 +362,6 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
         self.lastFlipOffset = -1
 
     def reshuffle_in_play(self):
-        # Pull every card still on the board, shuffle it, and re-lay the board
-        # from the top-left so the gaps left by matched/removed pairs all collect
-        # at the bottom. The client re-deals from DMG.cards in index order, so
-        # packing the live cards into the front slots here is what pushes the
-        # empty spaces to the end.
         ids = [self.card_ids[i] for i, s in enumerate(self.cardStates) if s != 0]
         random.shuffle(ids)
         for i in range(CARD_COUNT):
@@ -431,22 +425,22 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
             amount = REWARD_FIRST_PLACE if rank == 0 else REWARD_SECOND_PLACE
             self.grantReward(avId, itemId, amount)
 
-            # Record the finished game on the fairy's profile -- games played,
-            # best match count, running total -- the way the talent minigames do,
-            # read back by FairiesInventoryRequest (type "games"). Then credit a
-            # win on the weekly/seasonal board; Two for Tea is a "wins" board
-            # (leaderboards.xml threshold is a win count), so this goes through
-            # addToLeaderBoard ($inc) rather than a high score. A tie ranks both
-            # first, so both are credited, matching the first-place reward above.
-            self.air.mongoInterface.recordStat(avId, "game", self.gameId, score)
+            # Record the finished game on the fairy's profile, read back by
+            # FairiesInventoryRequest (type "games"). For the multiplayer meadow
+            # games the client reads the stat's `total` as the running WINS count
+            # (not a score total), so we feed recordStat the win result (1 on a
+            # win, 0 on a loss) instead of the match score. That keeps `count`
+            # as games played and makes `total` accumulate wins, which is what the
+            # client displays. A tie ranks both first, so both are credited,
+            # matching the first-place reward above.
+            won = 1 if rank == 0 else 0
+            self.air.mongoInterface.recordStat(avId, "game", self.gameId, won)
 
-            if rank == 0:
-                self.air.leaderBoardManager.d_addToLeaderBoard(avId, self.gameId, 1)
+            #if rank == 0:
+               # self.air.leaderBoardManager.d_addToLeaderBoard(avId, self.gameId, 1)
 
             # Rank struct order: (fairyId, score, Reward(itemId, amount), rank)
             ranks.append((avId, score, (itemId, amount), rank))
 
-        # Both players get the full ranking so each results panel shows both
-        # cards. setRewards isn't a broadcast field, so send it per-avatar.
         for avId in self.players:
             self.sendUpdateToAvatarId(avId, "setRewards", [ranks])
