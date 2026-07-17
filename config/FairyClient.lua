@@ -236,7 +236,7 @@ function handleLogin(client, dgi)
     -- We'll just hardcode the stock Pixie Hollow client hashVal.
     -- This shouldn't change as we won't be adding new content anyways.
     if hash ~= 3495383147 then
-        client:sendDisconnect(CLIENT_DISCONNECT_BAD_VERSION, string.format("Client DC hash mismatch: client=%d, server=%d", hash, CLIENT_HASH), true)
+        client:sendDisconnect(CLIENT_DISCONNECT_BAD_VERSION, string.format("Client DC hash mismatch: client=%d, server=%d", hash, DC_HASH), true)
         return
     end
 
