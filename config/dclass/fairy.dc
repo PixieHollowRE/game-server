@@ -16,16 +16,18 @@ from game.fairies.uberdog import FairiesBadgeManagerUD
 from game.fairies.ai import FairiesBadgeManagerAI
 from game.fairies.meadow import DistributedMeadowAI
 from game.fairies.meadow import DistributedSpawnStackAI
+from game.fairies.meadow import DistributedMultiplayerSpawnStackAI
 from game.fairies.ai import FairiesMagicWordManagerAI
 from game.fairies.housing import DistributedHomeAI
+from game.fairies.housing import FairiesHomeRealmAI
+from game.fairies.housing import DistributedHomeItemAI
 from game.fairies.uberdog import RealmGuardianUD
 from game.fairies.uberdog import FairyInventoryMgrUD
 from game.fairies.ai import FairyInventoryMgrAI
 from game.fairies.uberdog import PetMgrUD
 from game.fairies.ai import PetMgrAI
-from game.fairies.uberdog.leaderboard.leaderboard_manager_ud import LeaderBoardMgrUD
-from game.fairies.uberdog.leaderboard.leaderboard_manager_ai import LeaderBoardMgrAI
-
+from game.fairies.uberdog import LeaderBoardMgrUD
+from game.fairies.ai import LeaderBoardMgrAI
 // This keyword will help FairyClient filter the owner
 // generate message into the one that the client expects.
 keyword ownrequired;
@@ -365,8 +367,8 @@ dclass DistributedSpawnStack { // 66
 };
 
 dclass DistributedMultiplayerSpawnStack : DistributedSpawnStack { // 67
-    setCountdown(int16) required; // 308
-    setRecipients(uint32[]) required; // 309
+    setCountdown(int16) required broadcast; // 308
+    setRecipients(uint32[]) required broadcast; // 309
 };
 
 dclass DistributedAnimationEvent { // 68
@@ -384,15 +386,15 @@ dclass DistributedTalentMinigame : DistributedInstanceBaseAI { // 69
 };
 
 dclass FairiesHomeRealm : DistributedDistrict { // 70
-    setParentingRules(string, string); // 318
+    setParentingRules(string, string) broadcast ram; // 318
     createHomeRequest(uint32); // 319
-    addHomeObject(uint64, uint32, uint32, uint32, uint8, uint8, uint8); // 320
-    removeHomeObject(uint64, uint32); // 321
+    addHomeObject(uint64, uint32, uint32, uint32, uint8, uint8, uint8) broadcast clsend airecv; // 320
+    removeHomeObject(uint64, uint32) broadcast clsend airecv; // 321
     removeHomeHotspotObject(uint32); // 322
-    setServerTime(uint32); // 323
+    setServerTime(uint32) clsend airecv; // 323
     setPetState(uint32, int8); // 324
     requestDropGame(uint64, int32, int32, int32, int32, uint32, uint8, uint8, int16); // 325
-    bootRequest(uint32); // 326
+    bootRequest(uint32) clsend airecv; // 326
 };
 
 dclass DistributedHome : DistributedInstanceBaseAI { // 71
@@ -413,15 +415,15 @@ dclass DistributedHome : DistributedInstanceBaseAI { // 71
 };
 
 dclass DistributedHomeItem { // 72
-    setItemID(uint32) required; // 341
-    setInventoryID(uint64) required; // 342
+    setItemID(uint32) required broadcast ownrecv; // 341
+    setInventoryID(uint64) required broadcast ownrecv; // 342
     setHomeManagerDOID(uint32); // 343
-    setColorIDs(uint32[]) required; // 344
-    requestItemChange(uint32, uint32, uint32, uint8, uint8); // 345
-    setPosition(uint32, uint32, uint32) required; // 346
-    setFlip(uint8) required; // 347
-    setScale(uint8) required; // 348
-    setRoomID(int32) required; // 349
+    setColorIDs(uint32[]) required broadcast ownrecv; // 344
+    requestItemChange(uint32, uint32, uint32, uint8, uint8) broadcast clsend airecv; // 345
+    setPosition(uint32, uint32, uint32) required broadcast ownrecv; // 346
+    setFlip(uint8) required broadcast ownrecv; // 347
+    setScale(uint8) required broadcast ownrecv; // 348
+    setRoomID(int32) required broadcast ownrecv; // 349
 };
 
 dclass DistributedHomeHotspot { // 73
@@ -585,20 +587,20 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     setHasTagalong(int16) required ownrequired broadcast db ownrecv; // 486
     setTagalongExpire(int32) ownrequired broadcast db ownrecv; // 487
     setOutfitDB(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64) ownsend airecv; // 488
-    setStatus(uint8, uint8, uint8, uint8) broadcast ownsend; // 489
+    setStatus(uint8, uint8, uint8, uint8) broadcast ownsend ownrecv airecv; // 489
     setSCEmote(uint32, uint16) broadcast ownsend airecv; // 490
     setChatMessage(string) ownsend broadcast; // 491
     setWhisperSCEmoteTo(uint32 toId, uint16 emoteId) ownsend ownrecv airecv; // 492
     setWhisperSCEmoteFrom(uint32 fromId, uint16 emoteId) ownrecv ownsend; // 493
-    setActualZoneId(uint32 zoneId) ownsend; // 494
+    setActualZoneId(uint32 zoneId) ownsend airecv; // 494
     setTeleportComplete() ownsend airecv; // 495
     teleportRequestTo(uint32 fairyId) ownsend airecv; // 496
-    teleportRequest(uint32); // 497
+    teleportRequest(uint32) ownsend airecv; // 497
     teleportResponseTo(uint32, int8); // 498
     teleportResponse(uint32 fairyId, int8 available, uint32 districtId, uint32 zoneId, uint32 roomId); // 499
     setOptionsMask(int32) ownsend db; // 500
-    setMoreOptions(string) ownsend db airecv; // 501
-    setItemEvent(uint32, uint32, uint32, uint32) ownsend ownrecv; // 502
+    setMoreOptions(string) ownsend db; // 501
+    setItemEvent(uint32, uint32, uint32, uint32) ownsend ownrecv broadcast; // 502
     statusUpdateFromFairy(uint32, uint32); // 503
     badgeAcquired(int16); // 504
     setMeadowFlags(int32) ownrequired broadcast db ownrecv; // 505
@@ -615,7 +617,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     removeFromInventory(uint64, int32) clsend airecv; // 516
     setLastMeadow(int32) ownrequired broadcast db ownrecv; // 517
     setCurrentHolidayActivity(int32, int32) ownrequired broadcast db ownrecv; // 518
-    setAccess(uint8 = 2) broadcast ownrecv required ram airecv; // 519
+    setAccess(uint8 = 2) broadcast ownrecv ram airecv; // 519
     setAdEligible(uint8, uint32); // 520
     setQuestHistory(QuestHistory[]); // 521
     setMute(uint8); // 522
@@ -641,11 +643,11 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     setPetEmote(uint16); // 542
     setPetDetail(PetDetail); // 543
     setPetGameScore(int16, int16, int8); // 544
-    setNametag(int8) ownrequired broadcast db ownrecv; // 545
+    setNametag(int8) required ownrequired broadcast db ownrecv; // 545
     setHomeType(int32, int8) ownrequired broadcast db ownrecv; // 546
     setDailyChancePlayed(uint8) ownrequired broadcast db ownrecv; // 547
     requestDailyChance(uint32) ownsend airecv; // 548
-    setDailyChanceReward(RewardExt[]); // 549
+    setDailyChanceReward(RewardExt[]) ownrecv; // 549
     gardenState(GardenState[]); // 550
     giftGiven(int8, RewardExt); // 551
     hasPetOutfits(int32[]); // 552
@@ -673,8 +675,8 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     requestGetMaxOutfitSlots() ownsend airecv; // 574
     requestGetSavedOutfits() ownsend airecv; // 575
     requestAddSavedOutfit(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64) ownsend airecv; // 576
-    requestUpdateSavedOutfit(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64); // 577
-    requestRemoveSavedOutfits(LongType[]); // 578
+    requestUpdateSavedOutfit(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64) ownsend airecv; // 577
+    requestRemoveSavedOutfits(LongType[]) ownsend airecv; // 578
     requestSendSavedOutfitSlotPurchaseRequest() ownsend airecv; // 579
     requestGlobalPurchase(GlobalPurchaseItem[]) ownsend airecv; // 580
     requestGlobablPurchaseData(); // 581
@@ -1019,9 +1021,9 @@ struct LbEntry {
 };
 
 dclass LeaderBoardMgr { // 117
-    putToLeaderBoard(uint32, int16, int32); // 812
-    addToLeaderBoard(uint32, int16, int16); // 813
+    putToLeaderBoard(uint32, int16, int32) clsend airecv; // 812
+    addToLeaderBoard(uint32, int16, int16) clsend airecv; // 813
     lbRequest(int16, int8) clsend airecv; // 814
-    lbResponse(int16, int8, LbEntry[]); // 815
-    forceRollover(int8); // 816
+    lbResponse(int16, int8, LbEntry[]) ownrecv; // 815
+    forceRollover(int8) airecv; // 816
 };
