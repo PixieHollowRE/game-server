@@ -5,7 +5,7 @@ from game.fairies.minigame.recipe import recipe_parser
 from game.fairies.ai.BakingAssets import BAKED_ITEMS
 from game.fairies.ai.FairiesConstants import get_item_type
 
-DEFAULT_XML = XML / "recipies.xml"
+DEFAULT_XML = XML / "recipes.xml"
 
 MIN_QUALITY = 0
 MAX_QUALITY = 100

@@ -24,15 +24,11 @@ class Recipe:
  
 def parse_recipes(xml_source: str, item_id: int = None) -> list[Recipe]:
     """
-    Parse recipeData XML from a string or file path.
+    Parse recipeData XML from a file path.
     Returns a list of Recipe objects.
     """
-    try:
-        root = ET.fromstring(xml_source)
-    except ET.ParseError:
-        # Try treating it as a file path
-        tree = ET.parse(xml_source)
-        root = tree.getroot()
+    tree = ET.parse(xml_source)
+    root = tree.getroot()
  
     recipes = []
  
