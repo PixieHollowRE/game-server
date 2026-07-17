@@ -1,4 +1,5 @@
 CENTRAL_LOGGER_REQUEST = 15000
+CENTRAL_LOGGER_REQUEST_RESP = 15001
 
 SERVER_TYPE = 11 -- Pixie Hollow
 
@@ -31,7 +32,7 @@ function handleDatagram(participant, msgType, dgi)
     if msgType == CENTRAL_LOGGER_REQUEST then
         handleCentralLoggerRequest(participant, dgi)
     else
-        participant:warn(string.format("Got unknown message type: %d", msgType))
+        participant:warning(string.format("Got unknown message type: %d", msgType))
     end
 end
 
@@ -54,17 +55,17 @@ function handleCentralLoggerRequest(participant, dgi)
         },
         {
             name = "Target Avatar Id",
-            value = tostring(targetAvId),
+            value = targetAvId,
             inline = true
         },
         {
             name = "Sender Avatar Id",
-            value = tostring(participant:getAvatarIdFromSender()),
+            value = participant:getAvatarIdFromSender(),
             inline = true
         },
         {
             name = "Server Type",
-            value = tostring(SERVER_TYPE),
+            value = SERVER_TYPE,
             inline = true
         }
     })

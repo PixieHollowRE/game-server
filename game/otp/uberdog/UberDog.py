@@ -30,6 +30,7 @@ class UberDog(AIRepository):
         self.onlineAccountDetails = {}
         self.onlineAvatars = {}
         self.onlinePlayers = {}
+        self.paidAvatars = {}
 
         self.pending={}
         self.doId2doCache={}
@@ -208,6 +209,10 @@ class UberDog(AIRepository):
             pass
 
         if newAvatar:
+            # Recorded before avatarOnline so anything reacting to that event
+            # can already ask whether this avatar is a member.
+            self.paidAvatars[newAvatar] = (piratesAccess == "FULL")
+
             # Set up the new guy
             self.avatarOnline(newAvatar, newAvatarType,
                               playerAccountId,
@@ -261,6 +266,10 @@ class UberDog(AIRepository):
         return self.onlinePlayers.get(accountId, 0)
 
     @report(types = ['args'], dConfigParam = 'avatarmgr')
+    def isAvatarPaid(self, avatarId):
+        return self.paidAvatars.get(avatarId, True)
+
+    @report(types = ['args'], dConfigParam = 'avatarmgr')
     def checkAccountId(self, accountId):
         if not accountId:
             # SUSPICIOUS
@@ -305,6 +314,7 @@ class UberDog(AIRepository):
 
         self.onlinePlayers.pop(accountId, None)
         self.onlineAvatars.pop(avatarId, None)
+        self.paidAvatars.pop(avatarId, None)
 
         # necessary for local UD manager objects
         messenger.send("avatarOffline", [avatarId])

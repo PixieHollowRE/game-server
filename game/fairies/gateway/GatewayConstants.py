@@ -1,5 +1,27 @@
+from datetime import datetime, timezone
+
 from game.fairies.ai import ZoneConstants
 from game.fairies.ai import FairiesConstants as fc
+from game.fairies.daily.TimeUtils import get_season
+
+# A handful of signs use a different asset per season. The name in GATEWAYS stays
+# the canonical one all year (other server code keys off it, e.g.
+# IngredientSpawnData._TUNED_EXCLUSIONS) — only the name handed to the client gets
+# swapped, by get_gateway_name(). Season keys must match TimeUtils.SEASON_NAMES.
+SEASONAL_NAMES: dict[str, dict[str, str]] = {
+    # Pixie Postings (Havendish Square)
+    "9206": {"spring": "9206", "summer": "9225", "fall": "9181", "winter": "9183"},
+}
+
+
+def get_gateway_name(name: str) -> str:
+    """The asset name for this gateway in the season we're currently in."""
+    variants = SEASONAL_NAMES.get(name)
+    if not variants:
+        return name
+
+    return variants[get_season(datetime.now(timezone.utc))]
+
 
 # targetLocationName is the Location name of where you want the fairy to appear
 # on the other side (so in the other meadow). These can be found in each meadow's
@@ -74,7 +96,7 @@ GATEWAYS: dict[int, list[dict]] = {
         },
         {
             # Pixie Postings
-            "name": "9206", # 9206 (Spring), 9225 (Summer), 9181 (Autumn), 9183 (Winter)
+            "name": "9206", # seasonal, see SEASONAL_NAMES
             "position": (1635, 949),
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.PIXIE_POSTINGS,

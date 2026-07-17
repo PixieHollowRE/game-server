@@ -1,4 +1,7 @@
-# Ingredients
+from dataclasses import dataclass
+from enum import Enum
+
+# Ingredients - NEED TO BE REFACTORED BUT THEY'RE STILL DEPENDED ON TODO HACK
 OAK_LEAVES = 8001
 MAPLE_LEAVES = 8002
 IVY = 8003
@@ -22,6 +25,44 @@ BLUE_GEMS = 8020
 YELLOW_GEMS = 8021
 FEATHERS = 8022
 BITS_OF_METAL = 8023
+
+class Rarity(Enum):
+    VERY_COMMON = 1
+    COMMON = 2
+    AVERAGE = 3
+    RARE = 4
+    VERY_RARE = 5
+
+@dataclass(frozen=True)
+class Ingredient:
+    id: int
+    rarity: Rarity
+
+INGREDIENTS: dict[str, Ingredient] = {
+    "OAK_LEAVES":       Ingredient(8001, Rarity.RARE),
+    "MAPLE_LEAVES":     Ingredient(8002, Rarity.COMMON),
+    "IVY":              Ingredient(8003, Rarity.VERY_RARE),
+    "ROSE_PETALS":      Ingredient(8004, Rarity.RARE),
+    "DAISY_PETALS":     Ingredient(8005, Rarity.COMMON),
+    "LILY_PETALS":      Ingredient(8006, Rarity.VERY_RARE),
+    "BUTTERCUP_PETALS": Ingredient(8007, Rarity.AVERAGE),
+    "SPIDER_SILK":      Ingredient(8008, Rarity.VERY_COMMON),
+    "MEADOW_GRASS":     Ingredient(8009, Rarity.AVERAGE),
+    "SUNFLOWER_SEEDS":  Ingredient(8010, Rarity.VERY_COMMON),
+    "ACORNS":           Ingredient(8011, Rarity.RARE),
+    "BLUEBERRIES":      Ingredient(8012, Rarity.AVERAGE),
+    "DANDELION_FLUFF":  Ingredient(8013, Rarity.VERY_COMMON),
+    "RASPBERRIES":      Ingredient(8014, Rarity.COMMON),
+    "PINE_NEEDLES":     Ingredient(8015, Rarity.AVERAGE),
+    "SNOWFLAKES":       Ingredient(8016, Rarity.VERY_COMMON),
+    "HONEYCOMBS":       Ingredient(8017, Rarity.AVERAGE),
+    "TWIGS":            Ingredient(8018, Rarity.VERY_COMMON),
+    "TRUFFLES":         Ingredient(8019, Rarity.VERY_COMMON),
+    "BLUE_GEMS":        Ingredient(8020, Rarity.RARE),
+    "YELLOW_GEMS":      Ingredient(8021, Rarity.AVERAGE),
+    "FEATHERS":         Ingredient(8022, Rarity.COMMON),
+    "BITS_OF_METAL":    Ingredient(8023, Rarity.RARE),
+}
 
 COLOR_IDS = {
     "Mint Green": 1,
@@ -334,6 +375,22 @@ ITEM_TYPES = [
     "Lamp",        # 14
     "Decoration",  # 15
 ]
+
+# The types the client files under storage rather than the wardrobe
+# (Util.getCategory -> CATEGORY_STORAGE).
+STORAGE_ITEM_TYPES = ("Furniture", "Lamp", "Decoration")
+
+# A dye's itemId is its COLOR_IDS value plus this.
+DYE_ITEM_ID_OFFSET = 14000
+
+# An expression sets a face and its matching eye; the eye's itemId is the
+# face's plus this.
+FACE_TO_EYE_OFFSET = -500
+
+# A home's itemId minus this is the fairy's homeType, so 29001-29026 are
+# homeType 1-26. The client derives the same number as
+# TYPE_HOME_PREVIEW_ID (58) * IDS_PER_TYPE (500).
+HOME_ITEM_ID_OFFSET = 29000
 
 def get_item_type(itemId: int) -> str:
     if itemId <= 0:

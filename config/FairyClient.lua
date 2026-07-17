@@ -63,12 +63,6 @@ ALLOW_MODERATION_ACTIONS = 3007
 
 BROADCAST_MESSAGE_TO_ALL_AI = 4005
 
-OTP_DO_ID_PLAYER_FRIENDS_MANAGER = 4687
-
-FRIENDMANAGER_ACCOUNT_ONLINE  = 10000
-FRIENDMANAGER_ACCOUNT_OFFLINE = 10001
-FRIENDMANAGER_SYNC_FRIENDS    = 10004
-
 local inspect = require("inspect")
 
 -- Load the TalkFilter
@@ -360,10 +354,6 @@ function handleLogin(client, dgi)
     local accountId = account._id
 
     if not PRODUCTION_ENABLED then
-        dislId = accountId
-    end
-
-    if not PRODUCTION_ENABLED then
         if tonumber(account.banned) == 1 or tonumber(account.terminated) == 1 then
             accountDisabled = true
         end
@@ -431,12 +421,6 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
     end
 
     -- Prepare the login response.
-    -- TODO: Friend "entered Pixie Hollow" toast missing on first login (works after refresh).
-    -- We auto-pick avatars[1] and skip the client fairy-selection flow (legacy allowed 3;
-    -- Sunrise caps at 1). That likely rushes login before FMPlayerFriendsManager / friends
-    -- panel deferEvents flush, so friends already online never see offline->online transition.
-    -- Investigate: restore selection handshake or delay FRIENDMANAGER_SYNC_FRIENDS / session
-    -- online until after the client finishes its post-login UI pipeline.
     local avatarId = userTable.avatars[1]
 
     local json = require("json")
@@ -471,7 +455,7 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
         resp:addString("VELVET") -- access
     end
 
-    if userTable.speedChatPlus then
+    if speedChatPlus then
         resp:addString("YES") -- WhiteListResponse
     else
         resp:addString("NO") -- WhiteListResponse
@@ -519,27 +503,6 @@ function loginAccount(client, account, accountId, playToken, openChat, isPaid, d
     sendUsage(client, userTable.playToken, userTable.openChat, avatarId, 0, accountId, userTable.isPaid, true)
 
     avatarSpeedChatPlusStates[avatarId] = userTable.speedChatPlus
-end
-
-function sendFriendManagerSyncFriends(client, accountId)
-    local dg = datagram:new()
-    dg:addServerHeader(OTP_DO_ID_PLAYER_FRIENDS_MANAGER, accountId, FRIENDMANAGER_SYNC_FRIENDS)
-    dg:addUint32(accountId)
-    client:routeDatagram(dg)
-end
-
-function sendFriendManagerAccountOnline(client, accountId)
-    local dg = datagram:new()
-    dg:addServerHeader(OTP_DO_ID_PLAYER_FRIENDS_MANAGER, accountId, FRIENDMANAGER_ACCOUNT_ONLINE)
-    dg:addUint32(accountId)
-    client:routeDatagram(dg)
-end
-
-function sendFriendManagerAccountOffline(client, accountId)
-    local dg = datagram:new()
-    dg:addServerHeader(OTP_DO_ID_PLAYER_FRIENDS_MANAGER, accountId, FRIENDMANAGER_ACCOUNT_OFFLINE)
-    dg:addUint32(accountId)
-    client:addPostRemove(dg)
 end
 
 function handleAddInterest(client, dgi)
@@ -610,11 +573,19 @@ function sendUsage(client, playToken, openChat, priorAvatar, newAvatar, accountI
 
     if postRemove then
         client:addPostRemove(dg)
-        sendFriendManagerAccountOffline(client, accountId)
     else
         client:routeDatagram(dg)
     end
 end
+
+-- Fields that must never be packed into an owner generate.  The client's
+-- setAccess reads localPlayerFairy, which is not assigned until
+-- processCreateOwnerObject returns, so delivering it here panics the client
+-- with a null reference.  It is neither required nor ownrequired in the
+-- client's DC: it only ever arrives as a field update once the object exists.
+local OWNER_GENERATE_SKIP_FIELDS = {
+    setAccess = true,
+}
 
 function handleAddOwnership(client, doId, parent, zone, dc, dgi)
     local userTable = client:userTable()
@@ -622,12 +593,6 @@ function handleAddOwnership(client, doId, parent, zone, dc, dgi)
     local avatarId = userTable.avatarId
     if doId == avatarId then
         client:writeServerEvent("selected-avatar", "FairyClient", string.format("%d|%d", accountId, avatarId))
-        -- Prime the local friend list (offline baselines) before district enter / enter toasts.
-        if not userTable.friendsSessionSynced then
-            userTable.friendsSessionSynced = true
-            client:userTable(userTable)
-            sendFriendManagerSyncFriends(client, accountId)
-        end
     end
 
     client:addSessionObject(doId)
@@ -703,10 +668,12 @@ function handleAddOwnership(client, doId, parent, zone, dc, dgi)
         local numOtherFields = 0
         local otherData = datagram:new()
         for fieldName, value in pairs(otherField2Value) do
-            numOtherFields = numOtherFields + 1
-            local dcField = dcClass:getFieldByName(fieldName)
-            otherData:addUint16(dcField:getNumber())
-            packer:packField(dcField, otherData, value)
+            if not OWNER_GENERATE_SKIP_FIELDS[fieldName] then
+                numOtherFields = numOtherFields + 1
+                local dcField = dcClass:getFieldByName(fieldName)
+                otherData:addUint16(dcField:getNumber())
+                packer:packField(dcField, otherData, value)
+            end
         end
 
         packer:delete()

@@ -33,6 +33,15 @@ MINIGAME_KNITTING = 50
 MINIGAME_SHEARING = 51
 MINIGAME_BUTTON_SEARCH = 52
 
+# Crafting profession IDs (DistributedCraftingMinigameAI.setProfessionID)
+CRAFT_TYPE_TAILORING = 0
+CRAFT_TYPE_BAKING = 1
+CRAFT_TYPE_TINKERING = 2
+
+# Crafting style IDs (DistributedCraftingMinigameAI.setRecipeChoice)
+CRAFT_STYLE_PERSONAL = 1
+CRAFT_STYLE_COMMUNITY = 2
+
 # Map zone IDs to game IDs
 ZONE_TO_GAME: dict[int, int] = {
     ZoneConstants.FIREFLY_LIGHT_UP_GAME: MINIGAME_FIREFLY_LIGHT_UP,

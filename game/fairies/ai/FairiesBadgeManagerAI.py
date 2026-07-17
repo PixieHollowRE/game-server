@@ -1,51 +1,42 @@
 from direct.distributed.DistributedObjectGlobalAI import DistributedObjectGlobalAI
 
-from game.fairies.badges.BadgeProgressService import (
-    apply_ingredient_collection,
-    apply_leaf_journal_donation,
-    grant_badge_direct,
-)
-from game.fairies.badges.FriendBadgeRegistry import FRIEND_ACCEPT_EVENT_ID
-from game.fairies.stats.CraftStatsService import apply_craft_result
-from game.fairies.stats.MeadowVisitService import apply_meadow_visit
+from game.fairies.badges import badge_events
 
+# accumulate() takes an int16 amount in fairy.dc.
+MAX_AMOUNT = 32767
 
 class FairiesBadgeManagerAI(DistributedObjectGlobalAI):
     def __init__(self, air) -> None:
         super().__init__(air)
 
-    def accumulateForMe(self, eventId: int) -> None:
-        av_id = self.air.getAvatarIdFromSender()
-        if eventId == FRIEND_ACCEPT_EVENT_ID:
-            # Client event 25003 credits the inviter in original SWF; friendship
-            # badge progress is applied authoritatively for the accepter only
-            # via FMPlayerFriendsManager -> FairiesBadgeManagerUD.accumulate.
-            self.notify.debug(
-                f"accumulateForMe ignored for friend event avId={av_id}, eventId={eventId}"
-            )
+    def d_accumulate(self, avatarId: int, eventId: int, amount: int = 1) -> None:
+        """Report `amount` occurrences of a badge event (see badge_events)."""
+        if amount <= 0:
             return
-        self.notify.debug(
-            f"accumulateForMe ignored for avId={av_id}, eventId={eventId} "
-            "(badges use inventory / leaf journal hooks)"
+
+        self.sendUpdate("accumulate", [avatarId, eventId, min(amount, MAX_AMOUNT)])
+
+    def d_exploreMeadow(self, avatarId: int, zoneId: int) -> None:
+        """
+        Report that a fairy entered a meadow counting toward a seasonal Meadow
+        Explorer badge.
+
+        Rides the `accumulate` field rather than a dclass method of its own:
+        adding one would renumber every field after it and break the client
+        handshake. The zoneId travels in the amount slot, and the uberdog routes
+        EVENT_EXPLORE_MEADOW to its distinct-zone path. Deduping revisits is the
+        uberdog's job, so this fires on every entry.
+        """
+        self.sendUpdate(
+            "accumulate", [avatarId, badge_events.EVENT_EXPLORE_MEADOW, zoneId]
         )
 
-    def accumulate(self, avId: int, eventId: int, amount: int) -> None:
-        if eventId == FRIEND_ACCEPT_EVENT_ID:
-            return
+    def d_giveBadge(self, avatarId: int, badgeId: int) -> None:
+        """
+        Award a badge outright, no progress to accumulate.
 
-    def applyIngredientCollection(self, avId: int, itemId: int, amount: int) -> None:
-        apply_ingredient_collection(self, avId, itemId, amount)
-
-    def applyLeafJournalDonation(self, avId: int, trackKey: str, amount: int = 1) -> None:
-        apply_leaf_journal_donation(self, avId, trackKey, amount)
-
-    def grantBadgeDirect(self, avId: int, badgeId: int) -> bool:
-        return grant_badge_direct(self, avId, badgeId)
-
-    def applyMeadowVisit(self, avId: int, zoneId: int) -> None:
-        apply_meadow_visit(self, avId, zoneId)
-
-    def applyCraftHelper(
-        self, avId: int, professionId: int, recipeId: int, craftingStyle: int
-    ) -> None:
-        apply_craft_result(self, avId, professionId, recipeId, craftingStyle)
+        For badges the district decides on its own -- e.g. a minigame High Score,
+        where the threshold is a score too large for accumulate()'s int16 amount,
+        so the comparison happens on the AI and only the verdict is sent here.
+        """
+        self.sendUpdate("giveBadge", [avatarId, badgeId])

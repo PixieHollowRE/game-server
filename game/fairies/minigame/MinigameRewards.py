@@ -29,7 +29,7 @@ GAMES = {
         GameDef(43, "Seed Sorter",       130000, (fc.ROSE_PETALS, fc.BUTTERCUP_PETALS, fc.RASPBERRIES)),
         GameDef(11, "Snowflake Sweep",   50000,  (fc.IVY, fc.PINE_NEEDLES, fc.SNOWFLAKES)),
         GameDef(15, "Snowy Lullaby",     20000,  (fc.ACORNS, fc.MAPLE_LEAVES, fc.DANDELION_FLUFF)),
-        GameDef(48, "Sunbeam Bend",      50000,  (fc.ROSE_PETALS, fc.BUTTERCUP_PETALS, fc.RASPBERRIES)),
+        GameDef(48, "Sunbeam Bend",      105000,  (fc.ROSE_PETALS, fc.BUTTERCUP_PETALS, fc.RASPBERRIES)),
         GameDef(14, "Tinker Toss",       70000,  (fc.OAK_LEAVES, fc.HONEYCOMBS, fc.TWIGS)),
         GameDef(7,  "Water Web",         110000, (fc.LILY_PETALS, fc.MEADOW_GRASS, fc.SPIDER_SILK)),
     ]

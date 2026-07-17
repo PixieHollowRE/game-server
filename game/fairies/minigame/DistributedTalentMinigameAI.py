@@ -1,7 +1,8 @@
+from game.fairies.badges import badge_events
 from game.fairies.instance.DistributedInstanceBaseAI import DistributedInstanceBaseAI
+from game.fairies.leaderboard import leaderboard_xml
 from game.fairies.minigame.MinigameConstants import MINIGAME_DAILY_CHANCE
-from game.fairies.minigame.MinigameRewards import calc_rewards
-from game.fairies.stats.GameStatsService import apply_minigame_result
+from game.fairies.minigame.MinigameRewards import GAMES, calc_rewards
 
 class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
     def __init__(self, air) -> None:
@@ -16,11 +17,9 @@ class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
 
     def getGameID(self) -> int:
         return self.gameID
-
-    def startGame(self, _unknown: int) -> None:
-        avId = self.air.getAvatarIdFromSender()
-        self._scores.pop(avId, None)
-        self._pendingRewards.pop(avId, None)
+    
+    def startGame(self, unknown: int):
+        pass
 
     def reportScore(self, score: int) -> None:
         if self.gameID == MINIGAME_DAILY_CHANCE:
@@ -38,16 +37,31 @@ class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
         avatarId = self.air.getAvatarIdFromSender()
         totalScore = self._scores.pop(avatarId, 0)
 
-        badge_manager = getattr(self.air, "badgeManager", None)
-        inventory_manager = getattr(self.air, "inventoryManager", None)
-        if badge_manager is not None and inventory_manager is not None:
-            apply_minigame_result(
-                badge_manager,
-                inventory_manager,
-                avatarId,
-                self.gameID,
-                totalScore,
-            )
+        self.air.mongoInterface.recordStat(avatarId, "game", self.gameID, totalScore)
+
+        # The helper badges count games played, not points scored, so this fires
+        # on finishing regardless of how well it went.
+        eventId = badge_events.GAME_TO_EVENT.get(self.gameID)
+
+        if eventId is not None:
+            self.air.badgeManager.d_accumulate(avatarId, eventId)
+
+        # The High Score badge, by contrast, is about the points: earned the
+        # first time a single run clears the game's threshold. GAMES holds that
+        # threshold (from minigames.xml); the badge manager awards it outright.
+        game = GAMES.get(self.gameID)
+        highScoreBadge = badge_events.GAME_TO_HIGH_SCORE_BADGE.get(self.gameID)
+
+        if game is not None and highScoreBadge is not None and totalScore >= game.badge_threshold:
+            self.air.badgeManager.d_giveBadge(avatarId, highScoreBadge)
+
+        # Submit the run to the weekly/seasonal high-score boards. The uberdog
+        # drops it if it falls short of the game's leaderboards.xml threshold, so
+        # the only gate here is whether the game has a board at all. The three
+        # Meadow "wins" games use d_addToLeaderBoard instead and are scored by
+        # their own AIs, not here.
+        if leaderboard_xml.is_leaderboard_game(self.gameID):
+            self.air.leaderBoardManager.d_putToLeaderBoard(avatarId, self.gameID, totalScore)
 
         rewards = calc_rewards(self.gameID, totalScore)
         self._pendingRewards[avatarId] = rewards

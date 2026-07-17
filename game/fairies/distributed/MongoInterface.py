@@ -33,3 +33,34 @@ class MongoInterface:
             return_document=ReturnDocument.AFTER
         )
         return ret["seq"]
+
+    def recordStat(self, doId: int, statType: str, statId: int, scoreOrQuality: int) -> None:
+        # Bumps count by 1, adds scoreOrQuality into total, and raises best to
+        # scoreOrQuality if it's higher -- upserting a new stats[] entry the
+        # first time this (statType, statId) pair is seen for this fairy.
+        table = self.mongodb.fairies
+
+        result = table.update_one(
+            {"_id": doId, "stats": {"$elemMatch": {"type": statType, "statId": statId}}},
+            {
+                "$inc": {"stats.$.count": 1, "stats.$.total": scoreOrQuality},
+                "$max": {"stats.$.best": scoreOrQuality},
+            },
+        )
+
+        if result.matched_count == 0:
+            table.update_one(
+                {"_id": doId},
+                {
+                    "$push": {
+                        "stats": {
+                            "type": statType,
+                            "statId": statId,
+                            "count": 1,
+                            "best": scoreOrQuality,
+                            "total": scoreOrQuality,
+                            "bonus": 0,
+                        }
+                    }
+                },
+            )

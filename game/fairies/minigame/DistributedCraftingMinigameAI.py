@@ -1,20 +1,20 @@
-import os
+from paths import XML
+from game.fairies.badges import badge_events
 from game.fairies.instance.DistributedInstanceBaseAI import DistributedInstanceBaseAI
 from game.fairies.minigame.recipe import recipe_parser
 from game.fairies.ai.BakingAssets import BAKED_ITEMS
 from game.fairies.ai.FairiesConstants import get_item_type
-from game.fairies.badges.StarterBadgeRegistry import (
-    CRAFT_STYLE_PERSONAL,
-    CRAFT_STYLE_PRACTICE,
-)
 
-DEFAULT_XML = os.path.join(os.path.dirname(__file__), "recipe/recipes.xml")
+DEFAULT_XML = XML / "recipies.xml"
+
+MIN_QUALITY = 0
+MAX_QUALITY = 100
 
 class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
     def __init__(self, air) -> None:
         super().__init__(air)
 
-        self.professionId = 0 # This never seems to get set
+        self.professionId = 0
         self.recipeChoice: dict[int, tuple[int, int]] = {} # avId -> (recipeId, craftingStyle)
 
     def setProfessionID(self, professionId: int):
@@ -34,119 +34,102 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
         return [45, 50, 53, 54, 38]
 
     def setRecipeChoice(self, recId, style):
-        # recId = current recipe; style is CRAFT_STYLE_PERSONAL (1) or CRAFT_STYLE_PRACTICE (2).
+        # Current Recipe ID, 1 or 2
+        # CRAFT_STYLE_COMMUNITY = 2
+        # CRAFT_STYLE_PERSONAL = 1
         avId = self.air.getAvatarIdFromSender()
         self.recipeChoice[avId] = (recId, style)
 
     def setResults(self, recipeId, quality, color1, color2, length):
         avId = self.air.getAvatarIdFromSender()
-        recId, craftingStyle = self.recipeChoice.get(avId, (recipeId, CRAFT_STYLE_PERSONAL))
+
+        choice = self.recipeChoice.get(avId)
+        if choice is None:
+            print(f"setResults called by avId={avId} with no prior setRecipeChoice - we should ignore this.")
+            return
+        
+        recId, craftingStyle = choice
+
+        if craftingStyle == 2:
+            # CRAFT_STYLE_COMMUNITY: practice. Nothing is made and nothing is
+            # spent, but a practice craft is exactly what the practice ladder
+            # counts, so bank it before bailing out of the item-granting path.
+            eventId = badge_events.PROFESSION_TO_PRACTICE_EVENT.get(self.professionId)
+
+            if eventId is not None:
+                self.air.badgeManager.d_accumulate(avId, eventId)
+
+            self.recipeChoice.pop(avId, None)
+            return
+        
         avatar = self.air.doId2do.get(avId)
-
-        if craftingStyle == CRAFT_STYLE_PRACTICE:
-            badge_manager = getattr(self.air, "badgeManager", None)
-            if badge_manager is not None:
-                badge_manager.applyCraftHelper(
-                    avId, self.professionId, recipeId, craftingStyle
-                )
-            self.recipeChoice.pop(avId, None)
-            return
-
         if avatar is None:
-            self.notify.warning(f"setResults: no avatar on AI for avId={avId}")
+            print(f"setResults: no avatar object for avId={avId}")
             self.recipeChoice.pop(avId, None)
             return
 
-        recipes = recipe_parser.parse_recipes(DEFAULT_XML, recipeId)
+        recipes = recipe_parser.parse_recipes(DEFAULT_XML, recId)
         if not recipes:
-            self.notify.warning(f"setResults: recipe not found for recipeId={recipeId}")
+            print("something broke - fix it or else you dummy dumbo dimwit")
             self.recipeChoice.pop(avId, None)
             return
 
         recipe = recipes[0]
 
-        if not self._hasRecipeIngredients(avId, recipe):
-            self.notify.warning(
-                f"setResults: insufficient ingredients for recipeId={recipeId} avId={avId}"
-            )
+        quality = max(MIN_QUALITY, min(MAX_QUALITY, quality))
+
+        if not self._removeRecipeIngredients(avId, avatar, recipe):
+            print(f"setResults: avId={avId} missing ingredients for recId={recId}, aborting")
             self.recipeChoice.pop(avId, None)
             return
-
-        if not self._hasDyes(avId, recipe, color1, color2):
-            self.notify.warning(
-                f"setResults: insufficient dyes for recipeId={recipeId} avId={avId}"
-            )
+        
+        if not self._removeDyes(avId, avatar, color1, color2):
+            print(f"setResults: avId={avId} missing dyes for recId={recId}, aborting")
             self.recipeChoice.pop(avId, None)
-            return
+            return  
 
-        crafted = False
-        if recipeId in BAKED_ITEMS:
-            crafted = self._giveBakedItem(avId, avatar, recipeId, quality)
+        if recId in BAKED_ITEMS:
+            self._giveBakedItem(avId, avatar, recId, quality)
         else:
-            crafted = self._giveCraftedItem(avId, avatar, recipeId, quality, color1, color2)
+            self._giveCraftedItem(avId, avatar, recId, quality, color1, color2)
 
-        if crafted:
-            if not self._removeRecipeIngredients(avId, avatar, recipe):
-                self.notify.warning(
-                    f"setResults: grant succeeded but ingredient removal failed "
-                    f"for recipeId={recipeId} avId={avId}"
-                )
-            elif not self._removeDyes(avId, avatar, recipe, color1, color2):
-                self.notify.warning(
-                    f"setResults: grant succeeded but dye removal failed "
-                    f"for recipeId={recipeId} avId={avId}"
-                )
-            else:
-                badge_manager = getattr(self.air, "badgeManager", None)
-                if badge_manager is not None:
-                    badge_manager.applyCraftHelper(
-                        avId, self.professionId, recipeId, craftingStyle
-                    )
+        self.air.mongoInterface.recordStat(avId, "recipe", recId, quality)
+
+        # One event per item produced. Community-style crafts bailed out above
+        # (they advance the practice ladder instead); reaching here means a
+        # personal craft that spent ingredients and made something, so it counts
+        # toward the personal ladder.
+        eventId = badge_events.PROFESSION_TO_PERSONAL_EVENT.get(self.professionId)
+
+        if eventId is not None:
+            self.air.badgeManager.d_accumulate(avId, eventId)
 
         self.recipeChoice.pop(avId, None)
 
-    def _hasRecipeIngredients(self, avId, recipe) -> bool:
+    def _removeRecipeIngredients(self, avId, avatar, recipe):
         for ingredient in recipe.ingredients:
-            if not self.air.inventoryManager.hasIngredientsInPouch(
+            removed = self.air.inventoryManager.removeIngredientsFromPouch(
                 avId, ingredient.item_id, ingredient.amount
-            ):
-                return False
-        return True
-
-    def _hasDyes(self, avId, recipe, color1, color2) -> bool:
-        if recipe.dye_count <= 0:
-            return True
-        for color in (color1, color2):
-            if color:
-                dye_id = color + 14000
-                if not self.air.inventoryManager.hasIngredientsInPouch(avId, dye_id, 1):
-                    return False
-        return True
-
-    def _removeRecipeIngredients(self, avId, avatar, recipe) -> bool:
-        for ingredient in recipe.ingredients:
-            if not self.air.inventoryManager.removeIngredientsFromPouch(
-                avId, ingredient.item_id, ingredient.amount
-            ):
+            )
+            if not removed:
                 return False
         avatar.d_syncPouchAfterChanges()
         return True
 
-    def _removeDyes(self, avId, avatar, recipe, color1, color2) -> bool:
-        if recipe.dye_count <= 0:
-            return True
+    def _removeDyes(self, avId, avatar, color1, color2):
         removed_any = False
         for color in (color1, color2):
             if color:
                 dye_id = color + 14000
-                if not self.air.inventoryManager.removeIngredientsFromPouch(avId, dye_id, 1):
+                removed = self.air.inventoryManager.removeIngredientsFromPouch(avId, dye_id, 1)
+                if not removed:
                     return False
                 removed_any = True
         if removed_any:
             avatar.d_syncPouchAfterChanges()
         return True
 
-    def _giveBakedItem(self, avId, avatar, itemId, quality) -> bool:
+    def _giveBakedItem(self, avId, avatar, itemId, quality):
         if 96 <= quality <= 100:
             amount = 6
         elif 81 <= quality <= 95:
@@ -157,71 +140,15 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
         if self.air.inventoryManager.addIngredientsToPouch(avId, itemId, amount, -1):
             print("adding:", itemId, amount)
             avatar.d_setPouch(self.air.inventoryManager.getPouch(avId))
-            return True
-        return False
 
-    def _giveCraftedItem(self, avId, avatar, recipeId, quality, color1, color2) -> bool:
+    def _giveCraftedItem(self, avId, avatar, recipeId, quality, color1, color2):
 
         if get_item_type(recipeId) in ("Furniture", "Lamp", "Decoration"):
-            return self._grant_home(avId, avatar, recipeId, quality, color1, color2)
-        return self._grant_wardrobe(avId, avatar, recipeId, quality, color1, color2)
+            self._grant_home(avId, avatar, recipeId, quality, color1, color2)
+        else:
+            self._grant_wardrobe(avId, avatar, recipeId, quality, color1, color2)
 
-
-    def _grant_wardrobe(self, avId, avatar, recipeId, quality, color1, color2) -> bool:
-        inv_id = self.air.mongoInterface.getNextDoId()
-        itemType = get_item_type(recipeId)
-        how_acquired = 11
-
-        result = self.air.mongoInterface.mongodb.fairies.update_one(
-            {"_id": avId},
-            {
-                "$push": {
-                    "avatar.items": {
-                        "inv_id": inv_id,
-                        "type": itemType,
-                        "item_id": recipeId,
-                        "slot": -1,
-                        "createdById": avId,
-                        "createdByName": avatar.getName(),
-                        "giftedById": 0,
-                        "giftedByName": "",
-                        "quality": quality,
-                        "color1": color1,
-                        "color2": color2,
-                        "howAcquired": how_acquired,
-                        "location": "Wardrobe",
-                    }
-                }
-            },
-        )
-
-        if result.modified_count == 0:
-            return False
-
-        self.air.inventoryManager.sendUpdateToAvatarId(
-            avId,
-            "wardrobeItem",
-            [
-                recipeId,
-                [
-                    inv_id,
-                    recipeId,
-                    -1,
-                    avId,
-                    avatar.getName(),
-                    0,
-                    "",
-                    quality,
-                    color1,
-                    color2,
-                    how_acquired,
-                ],
-            ],
-        )
-        return True
-
-
-    def _grant_home(self, avId, avatar, recipeId, quality, color1, color2) -> bool:
+    def _grant_item(self, avId, avatar, recipeId, quality, color1, color2, location, update_name) -> bool:
         inv_id = self.air.mongoInterface.getNextDoId()
         itemType = get_item_type(recipeId)
         how_acquired = 11
@@ -257,7 +184,7 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
                         "color1": color1,
                         "color2": color2,
                         "howAcquired": how_acquired,
-                        "location": "Storage",
+                        "location": location,
                     }
                 }
             },
@@ -267,9 +194,15 @@ class DistributedCraftingMinigameAI(DistributedInstanceBaseAI):
             return False
 
         self.air.inventoryManager.sendUpdateToAvatarId(
-            avId, "storageItem", [recipeId, inv_item_ext]
+            avId, update_name, [recipeId, inv_item_ext]
         )
         return True
+
+    def _grant_wardrobe(self, avId, avatar, recipeId, quality, color1, color2) -> bool:
+        return self._grant_item(avId, avatar, recipeId, quality, color1, color2, "Wardrobe", "wardrobeItem")
+
+    def _grant_home(self, avId, avatar, recipeId, quality, color1, color2) -> bool:
+        return self._grant_item(avId, avatar, recipeId, quality, color1, color2, "Storage", "storageItem")
 
     def setEmbellishResults(self):
         # Seems to be empty function in Client

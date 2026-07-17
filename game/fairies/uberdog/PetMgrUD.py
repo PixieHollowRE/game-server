@@ -8,7 +8,12 @@ class PetMgrUD(DistributedObjectGlobalUD):
         super().__init__(air)
 
     def petProfileRequest(self, avatarId: int) -> None:
+        # avatarId is the fairy whose profile is being viewed, not the viewer, so the
+        # response has to go back to the sender. Profile.onGotPetInfo ignores a response
+        # whose fairyId isn't the profile it has open, so the payload stays avatarId.
+        requesterId = self.air.getAvatarIdFromSender()
+
         self.sendUpdateToAvatarId(
-            avatarId, "petProfileResponse",
+            requesterId, "petProfileResponse",
             [avatarId, EMPTY_PET_DNA, EMPTY_PET_DETAIL]
         )

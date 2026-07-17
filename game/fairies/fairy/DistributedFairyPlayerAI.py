@@ -1,43 +1,78 @@
-from direct.directnotify import DirectNotifyGlobal
+from datetime import datetime, timezone
+import time
+import random
 
 from game.otp.otpbase import OTPGlobals
 
 from .DistributedFairyBaseAI import DistributedFairyBaseAI
 from game.fairies.ai.BakingAssets import BAKED_ITEMS
 from game.fairies.fairy.AuraMapping import AURA_MAPPING, SKIN_COLOR_MAPPING, WING_COLOR_MAPPING
+from game.fairies.fairy.structs.RewardExt import RewardExt
 from game.fairies.fairy.structs.MiscItem import MiscItem
 
-from game.fairies.daily.DailyChanceData import (
-    DEV_TEST_PRIZE,
-    owned_spin_badge_exclude_mask,
-    roll_rewards,
+from game.fairies.badges import badge_events, badge_state
+from game.fairies.daily.DailyChanceConstants import (
+    Category,
+    EXCLUDE_STORAGE,
+    EXCLUDE_WARDROBE,
+    FREE_ACORNS,
+    MEMBER_ACORNS,
+    SPIN_BADGE_ID_SET,
+    SPIN_ROCK_ITEM_IDS,
 )
-from game.fairies.daily.DailyChanceEligibility import (
-    can_spin_today,
-    current_spin_day,
-    played_flag_for_client,
-)
-from game.fairies.daily.DailyChanceGrant import get_earned_spin_badge_ids, grant_prize
-from game.fairies.stats.GameStatsService import apply_daily_spin
-from game.fairies.daily.DailyGoldTradeEligibility import (
-    DAILY_GOLD_TRADE_CAP,
-    refresh_gold_trade_window,
-)
-from game.fairies.badges.MoreOptions import (
-    MORE_OPTIONS_EMPTY,
-    normalize_more_options,
-    persist_more_options,
-)
-from game.fairies.badges.MeadowExplorerBadgeRegistry import ALL_EXPLORER_ZONE_IDS
+from game.fairies.daily.DailyChancePool import draw_daily_spin
+from game.fairies.daily.DailyChanceGrant import grant_prize
+from game.fairies.daily.TimeUtils import get_period_start
 
-# Matches client MMOConstants.HOTSPOT_PLAY_AT_OFFSET — frame > offset snaps without play().
-HOTSPOT_PLAY_AT_OFFSET = 8000
-CBH_TTT_RESET_FRAME = HOTSPOT_PLAY_AT_OFFSET + 1  # keyframe 1 → empty cell
+from game.fairies.housing.HouseConstants import HOUSING_ZONE_OFFSET
+from game.fairies.ai import ZoneConstants
 
-notify = DirectNotifyGlobal.directNotify.newCategory("DistributedFairyPlayerAI")
+# Global purchases the client can make from the shop panel, keyed by itemId. The
+# client only ever sends {itemId, amount} up (see GlobalShopPurchase); the server
+# is the price authority, so we keep the MiscItem here and charge from it.
+#   90003 = avatar name change (MMOConstants.AVATAR_NAME_UPDATE_ID)
+GLOBAL_PURCHASE_ITEMS = {
+    90003: MiscItem.unpackFromTuple((90003, 8006, 500, 200, 200)),
+}
 
-DAILY_CHANCE_GRANTS_ENABLED = True
-DAILY_CHANCE_ONCE_PER_DAY_ENABLED = True
+# Saved outfits. Every fairy starts with one slot and can buy more, two at a
+# time (a "tab" in the client's SavedOutfits panel holds two outfits). The cap
+# and per-purchase step mirror the client: MAX_OUTFIT_TABS(14) * 2 - 1 slots,
+# and SLOT_COST pixie diamonds per upgrade (charged from `gold`, which is what
+# the client calls diamonds).
+DEFAULT_MAX_OUTFIT_SLOTS = 1
+MAX_OUTFIT_SLOTS = 27
+OUTFIT_SLOTS_PER_PURCHASE = 2
+
+# Price ramp for slot upgrades. The first upgrade costs BASE (which must stay in
+# sync with the client's hardcoded SavedOutfits.SLOT_COST = 10, since the client
+# both labels the dialog and gates affordability on that number); each further
+# upgrade costs STEP more than the last. Set STEP = 0 for a flat price.
+OUTFIT_SLOT_COST_BASE = 10
+OUTFIT_SLOT_COST_STEP = 10
+
+
+def outfitSlotCost(maxSlots: int) -> int:
+    # Linear cost per slot-upgrade: BASE, BASE+STEP, BASE+2*STEP, ... `maxSlots`
+    # is the fairy's current slot count, before the upgrade being priced.
+    purchasesMade = (maxSlots - DEFAULT_MAX_OUTFIT_SLOTS) // OUTFIT_SLOTS_PER_PURCHASE
+    return OUTFIT_SLOT_COST_BASE + purchasesMade * OUTFIT_SLOT_COST_STEP
+
+# The eight equipment slots, in the order the client sends the invIds for
+# add/update and reads them back in a SavedOutfit struct (see setOutfitDB).
+OUTFIT_SLOT_ORDER = ("head", "necklace", "shirt", "belt", "skirt", "wrist", "ankle", "shoes")
+
+# An empty LiteInvItemExt2 (invId, itemId, color1, color2, howAcquired).
+EMPTY_LITE_INV_ITEM = [0, 0, 0, 0, 0]
+
+# Master switch for the pixie-power economy (cookies/cupcakes restoring power).
+# PixiePower is a fixed value in-game today, so the grant path (_grantPixiePower)
+# is fully wired but does not persist/broadcast while this is False. Flip to True
+# once PixiePower goes live — no other code change is needed to enable it.
+PIXIE_POWER_ENABLED = False
+
+# Pixie power the setPixiePower DC field is born with (see fairy.dc: default 100).
+DEFAULT_PIXIE_POWER = 100
 
 class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def __init__(self, air) -> None:
@@ -48,13 +83,22 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.gold: int = 0
         self.access: int = 0
         self.level: int = 0
-        self.dailyChancePlayed: int = 0
-        self.dailyChanceLastSpinDay: int = 0
-        self.amountGoldTradedToday: int = 0
-        self.goldTradeResetAt: int = 0
-        self.moreOptions: str = MORE_OPTIONS_EMPTY
+        self.pixiePower: int = DEFAULT_PIXIE_POWER
+
+        self.homeType: int = 0
+        self.homeSubType: int = 0
+
+        # Owner of the home realm this avatar is currently in (0 = not in a
+        # home). Tracked so the RealmGuardian can tear down empty realms.
+        self.currentHomeOwner: int = 0
+        
+        self.dailyChancePlayed: bool = False
+
+        self.goldTradedToday: int = 0
+        self.lastGoldTradeAt = None # date
 
         self._originalDNA = {}
+        self.lastPoseStatus = -1
 
     def announceGenerate(self):
         self.air.incrementPopulation()
@@ -62,15 +106,17 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         # Fill in the missing information from the database (i.e. gold)
         self.air.fillInFairyPlayer(self)
 
-        if not DAILY_CHANCE_ONCE_PER_DAY_ENABLED:
-            self._sync_daily_chance_not_played_for_client()
+        # setHomeType is ownrecv-only (not a required field), so the AI has to
+        # push it to the owner explicitly for the home to load.
+        self.b_setHomeType(self._defaultHomeType())
 
         self.air.inventoryManager.avatarOnline(self.doId)
 
-        self._sync_daily_gold_trade_cap()
+        self._sync_gold_trading_cap()
 
-        glblpurchase = MiscItem.unpackFromTuple((90003, 8006, 500, 200, 200))
-        self.sendUpdateToAvatarId(self.doId, "setGlobalPurchaseData", [[glblpurchase]])
+        self.sendUpdateToAvatarId(
+            self.doId, "setGlobalPurchaseData", [list(GLOBAL_PURCHASE_ITEMS.values())]
+        )
 
         NEW_LEVEL = 28
 
@@ -79,20 +125,18 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             self.b_setLevel(NEW_LEVEL)
 
     def delete(self):
-        from game.fairies.uberdog.leaderboard.leaderboard_panel import clear_panel_session
+        # TODO: Set a post-remove message in case of an AI crash.
 
-        clear_panel_session(self.doId)
+        # Leave any home realm we were in so it can be torn down if now empty.
+        if self.currentHomeOwner:
+            self.air.sendRealmOccupancyUpdate(self.doId, 0)
+            self.currentHomeOwner = 0
+
+        self.air.sendFriendManagerAccountOffline(self.DISLid)
 
         self.air.decrementPopulation()
 
         DistributedFairyBaseAI.delete(self)
-
-    def setLocation(self, parentId, zoneId):
-        old_zone = self.zoneId
-        super().setLocation(parentId, zoneId)
-        if zoneId and zoneId != old_zone:
-            self._clear_peer_level_pushed_for_viewer(self.doId)
-            self._sync_zone_peer_profile_state()
 
     def setDISLname(self, DISLname: str) -> None:
         self.DISLname = DISLname
@@ -102,6 +146,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
     def setDISLid(self, DISLid: int) -> None:
         self.air.sendFriendManagerAccountOnline(DISLid)
+
         self.DISLid = DISLid
 
     def getDISLid(self) -> int:
@@ -128,32 +173,73 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def d_setDailyChancePlayed(self, played: int) -> None:
         self.sendUpdate("setDailyChancePlayed", [played])
 
-    def setDailyChanceLastSpinDay(self, spin_day: int) -> None:
-        self.dailyChanceLastSpinDay = int(spin_day)
-        if DAILY_CHANCE_ONCE_PER_DAY_ENABLED:
-            self._sync_daily_chance_played_from_spin_day()
+    def b_setDailyChancePlayed(self, played: int) -> None:
+        self.dailyChancePlayed = played
+        self.sendUpdate("setDailyChancePlayed", [played])
 
-    def getDailyChanceLastSpinDay(self) -> int:
-        return self.dailyChanceLastSpinDay
+    def dailyChanceCanSpin(self) -> bool:
+        doc = self.air.mongoInterface.mongodb.fairies.find_one({"_id": self.doId})
+        last_spin = doc.get("dailyChanceLastSpin")
 
-    def _sync_daily_chance_played_from_spin_day(self) -> None:
-        played = played_flag_for_client(self.getDailyChanceLastSpinDay())
-        self.setDailyChancePlayed(played)
-        self.d_setDailyChancePlayed(played)
+        if last_spin is None:
+            return True
 
-    def _record_daily_chance_spin(self) -> None:
-        if not DAILY_CHANCE_ONCE_PER_DAY_ENABLED:
-            return
+        # DB storage is tz unaware - make it aware
+        last_spin_utc = last_spin.replace(tzinfo=timezone.utc)
 
-        spin_day = current_spin_day()
-        self.setDailyChanceLastSpinDay(spin_day)
+        return get_period_start(last_spin_utc, "daily") != get_period_start(datetime.now(timezone.utc), "daily") 
+
+    def _recordDailyChanceSpin(self) -> None:
+        # Store the timestamp in UTC
         self.air.mongoInterface.updateField(
-            "fairies", "dailyChanceLastSpinDay", self.doId, spin_day
+            "fairies", "dailyChanceLastSpin", self.doId, datetime.now(timezone.utc)
         )
+        self.b_setDailyChancePlayed(1)
 
-    def _sync_daily_chance_not_played_for_client(self) -> None:
-        self.setDailyChancePlayed(0)
-        self.d_setDailyChancePlayed(0)
+    def setActualZoneId(self, zoneId) -> None:
+        if zoneId == 50046: # Vidia's
+            if self.dailyChanceCanSpin():
+                self.b_setDailyChancePlayed(0)
+
+        # Track home-realm occupancy. Housing zones are ownerId + offset (well
+        # above any normal zone); anything else means we're not in a home.
+        homeOwner = zoneId - HOUSING_ZONE_OFFSET if zoneId >= HOUSING_ZONE_OFFSET else 0
+        if homeOwner != self.currentHomeOwner:
+            self.currentHomeOwner = homeOwner
+            self.air.sendRealmOccupancyUpdate(self.doId, homeOwner)
+
+        # Seasonal Meadow Explorer badges: standing in one of a season's meadows
+        # counts it toward that badge. The uberdog dedupes revisits, so just
+        # report every entry that lands in a counted meadow.
+        if badge_events.get_meadow_badge_for_zone(zoneId) is not None:
+            self.air.badgeManager.d_exploreMeadow(self.doId, zoneId)
+
+    def _dailyChanceExcludedBadges(self) -> set[int]:
+        # Never offer a badge the fairy already has. The client sends bits for
+        # two of the three, but has none for Mr. Twitches, who was added after
+        # it shipped -- so read the fairy's own badges rather than trust a mask
+        # that cannot describe all of them anyway.
+        return badge_state.get_earned_badge_ids(self.air, self.doId, SPIN_BADGE_ID_SET)
+
+    def _dailyChanceExcludedCategories(self, excludeMask: int) -> set[Category]:
+        # The wardrobe and storage bits say there is nowhere to put that kind of
+        # prize. Taking the client's word costs nothing -- the worst a lie can do
+        # is win someone a prize they have no room for -- and it is the only one
+        # who knows.
+        excluded = set()
+
+        if excludeMask & EXCLUDE_WARDROBE:
+            excluded.add(Category.WARDROBE)
+
+        if excludeMask & EXCLUDE_STORAGE:
+            excluded.add(Category.HOME)
+
+        # Every badge on Vidia's page is Member-only, so a free fairy drawing one
+        # would win a prize the badge manager then refuses to hand over.
+        if not self.isPaid():
+            excluded.add(Category.BADGE)
+
+        return excluded
 
     def requestDailyChance(self, excludeMask: int) -> None:
         avId = self.air.getAvatarIdFromSender()
@@ -163,96 +249,160 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             )
             return
 
-        if DAILY_CHANCE_ONCE_PER_DAY_ENABLED and not can_spin_today(
-            self.getDailyChanceLastSpinDay()
-        ):
-            self._sync_daily_chance_played_from_spin_day()
-            self.sendUpdateToAvatarId(avId, "setDailyChanceReward", [[]])
+        if not self.dailyChanceCanSpin():
             return
 
-        if not DAILY_CHANCE_GRANTS_ENABLED:
-            self.sendUpdateToAvatarId(avId, "setDailyChanceReward", [[]])
-            return
+        prizes = draw_daily_spin(
+            # A plain int off the DNA, which Gender is an IntEnum to match.
+            self.fairyDNA.gender,
+            self._dailyChanceExcludedBadges(),
+            self._dailyChanceExcludedCategories(excludeMask),
+            MEMBER_ACORNS if self.isPaid() else FREE_ACORNS,
+        )
 
-        avatar_gender = self.fairyDNA.gender
-        earned_spin_badges = get_earned_spin_badge_ids(self.air, avId)
-        effective_mask = excludeMask | owned_spin_badge_exclude_mask(earned_spin_badges)
-        prizes = roll_rewards(effective_mask, self.isPaid(), avatar_gender)
-        if not prizes:
-            prizes = [DEV_TEST_PRIZE]
+        granted: list[RewardExt] = []
+        rocksWon = 0
 
-        granted: list[tuple[int, int, int, int]] = []
-        granted_prizes = []
         for prize in prizes:
-            if grant_prize(self.air, avId, self, prize):
-                granted.append(prize.as_reward_ext())
-                granted_prizes.append(prize)
-            else:
-                self.notify.warning(
-                    f"requestDailyChance: failed to grant item {prize.item_id} to {avId}"
-                )
+            success, reward = grant_prize(self.air, avId, prize)
 
-        if not granted and prizes:
-            self.notify.warning(
-                f"requestDailyChance: no grants applied for {avId}, "
-                f"prizes={[p.item_id for p in prizes]}"
-            )
+            if not success:
+                self.notify.warning(f"requestDailyChance: failed to grant item {prize.id} to {avId}")
+                continue
+
+            granted.append(reward)
+
+            if prize.id in SPIN_ROCK_ITEM_IDS:
+                rocksWon += 1
 
         self.sendUpdateToAvatarId(avId, "setDailyChanceReward", [granted])
 
-        badge_manager = getattr(self.air, "badgeManager", None)
-        inventory_manager = getattr(self.air, "inventoryManager", None)
-        if badge_manager is not None and inventory_manager is not None:
-            apply_daily_spin(
-                badge_manager,
-                inventory_manager,
-                avId,
-                granted_prizes,
-            )
+        if not granted:
+            return
 
-        if DAILY_CHANCE_ONCE_PER_DAY_ENABLED:
-            self._record_daily_chance_spin()
-        else:
-            self._sync_daily_chance_not_played_for_client()
+        self._recordDailyChanceSpin()
 
-    def requestDailyGoldTradeCapData(self) -> None:
-        self._sync_daily_gold_trade_cap()
+        # One spin, however many acorns it was worth. The rocks are counted per
+        # rock, so a member pulling three at once gets credit for three.
+        self.air.badgeManager.d_accumulate(avId, badge_events.EVENT_PLAYED_DAILY_SPIN)
 
-    def _refresh_gold_trade_window(self) -> None:
-        amount, reset_at = refresh_gold_trade_window(
-            self.amountGoldTradedToday,
-            self.goldTradeResetAt,
-        )
-        if amount != self.amountGoldTradedToday or reset_at != self.goldTradeResetAt:
-            self.amountGoldTradedToday = amount
-            self.goldTradeResetAt = reset_at
-            self._persist_gold_trade_state()
+        if rocksWon:
+            self.air.badgeManager.d_accumulate(avId, badge_events.EVENT_WON_ROCK, rocksWon)
 
-    def _persist_gold_trade_state(self) -> None:
-        self.air.mongoInterface.updateFields(
-            "fairies",
-            {
-                "amountGoldTradedToday": self.amountGoldTradedToday,
-                "goldTradeResetAt": self.goldTradeResetAt,
-            },
-            self.doId,
-        )
+    def _liteInvFromId(self, invId: int, itemsById: dict) -> list:
+        # Snapshot an equipped/wardrobe item into a LiteInvItemExt2 so a saved
+        # outfit keeps displaying even after the underlying item is dyed, traded
+        # or restyled. A zero invId (or one we no longer own) is an empty slot.
+        item = itemsById.get(invId)
+        if not invId or item is None:
+            return list(EMPTY_LITE_INV_ITEM)
 
-    def _sync_daily_gold_trade_cap(self) -> None:
-        self._refresh_gold_trade_window()
-        self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [DAILY_GOLD_TRADE_CAP])
-        self.sendUpdateToAvatarId(
-            self.doId, "setAmountGoldTradedForToday", [self.amountGoldTradedToday]
-        )
+        return [
+            invId,
+            item["item_id"],
+            item.get("color1", 0),
+            item.get("color2", 0),
+            item.get("howAcquired", 0),
+        ]
+
+    def _savedOutfitToStruct(self, outfit: dict) -> list:
+        # Turn a stored outfit into the SavedOutfit the dclass expects:
+        # (outfitId, headItem, necklaceItem, ... shoesItem).
+        items = outfit.get("items", {})
+        struct = [outfit["outfitId"]]
+        struct.extend(list(items.get(slot, EMPTY_LITE_INV_ITEM)) for slot in OUTFIT_SLOT_ORDER)
+        return struct
+
+    def _d_setSavedOutfits(self, outfits: list) -> None:
+        payload = [self._savedOutfitToStruct(outfit) for outfit in outfits]
+        self.sendUpdateToAvatarId(self.doId, "setSavedOutfits", [payload])
+
+    def requestGetMaxOutfitSlots(self) -> None:
+        fairy = self.air.mongoInterface.mongodb.fairies.find_one({"_id": self.doId})
+        maxSlots = (fairy or {}).get("maxOutfitSlots", DEFAULT_MAX_OUTFIT_SLOTS)
+        self.sendUpdateToAvatarId(self.doId, "setMaxOutfitSlots", [maxSlots])
 
     def requestGetSavedOutfits(self) -> None:
-        # TODO
-        self.sendUpdateToAvatarId(self.doId, "setMaxOutfitSlots", [1])
-        self.sendUpdateToAvatarId(self.doId, "setSavedOutfits", [[]])
+        fairy = self.air.mongoInterface.mongodb.fairies.find_one({"_id": self.doId})
+        self._d_setSavedOutfits((fairy or {}).get("savedOutfits", []))
 
     def requestAddSavedOutfit(self, headId: int, necklaceId: int, shirtId: int, beltId: int, skirtId: int, wristId: int, ankleId: int, shoesId: int) -> None:
-        # TODO
-        self.sendUpdateToAvatarId(self.doId, "setSavedOutfits", [[]])
+        fairy = self.air.mongoInterface.mongodb.fairies.find_one({"_id": self.doId})
+        if not fairy:
+            return
+
+        outfits = fairy.get("savedOutfits", [])
+        maxSlots = fairy.get("maxOutfitSlots", DEFAULT_MAX_OUTFIT_SLOTS)
+
+        # No free slot -- just resync so the client leaves its "waiting for save"
+        # state. The client is meant to buy a slot before it gets here.
+        if len(outfits) >= maxSlots:
+            self._d_setSavedOutfits(outfits)
+            return
+
+        invIds = (headId, necklaceId, shirtId, beltId, skirtId, wristId, ankleId, shoesId)
+        itemsById = {item["inv_id"]: item for item in fairy["avatar"]["items"]}
+        items = {
+            slot: self._liteInvFromId(invId, itemsById)
+            for slot, invId in zip(OUTFIT_SLOT_ORDER, invIds)
+        }
+
+        outfits.append({"outfitId": self.air.mongoInterface.getNextDoId(), "items": items})
+        self.air.mongoInterface.updateField("fairies", "savedOutfits", self.doId, outfits)
+        self._d_setSavedOutfits(outfits)
+
+    def requestUpdateSavedOutfit(self, outfitId: int, headId: int, necklaceId: int, shirtId: int, beltId: int, skirtId: int, wristId: int, ankleId: int, shoesId: int) -> None:
+        fairy = self.air.mongoInterface.mongodb.fairies.find_one({"_id": self.doId})
+        if not fairy:
+            return
+
+        outfits = fairy.get("savedOutfits", [])
+        outfit = next((o for o in outfits if o["outfitId"] == outfitId), None)
+        if outfit is None:
+            self._d_setSavedOutfits(outfits)
+            return
+
+        invIds = (headId, necklaceId, shirtId, beltId, skirtId, wristId, ankleId, shoesId)
+        itemsById = {item["inv_id"]: item for item in fairy["avatar"]["items"]}
+        outfit["items"] = {
+            slot: self._liteInvFromId(invId, itemsById)
+            for slot, invId in zip(OUTFIT_SLOT_ORDER, invIds)
+        }
+
+        self.air.mongoInterface.updateField("fairies", "savedOutfits", self.doId, outfits)
+        self._d_setSavedOutfits(outfits)
+
+    def requestRemoveSavedOutfits(self, outfitIds: list) -> None:
+        fairy = self.air.mongoInterface.mongodb.fairies.find_one({"_id": self.doId})
+        if not fairy:
+            return
+
+        # outfitIds is a LongType[]; each struct arrives as a one-tuple (longVal,).
+        toRemove = {longType[0] for longType in outfitIds}
+        outfits = [o for o in fairy.get("savedOutfits", []) if o["outfitId"] not in toRemove]
+
+        self.air.mongoInterface.updateField("fairies", "savedOutfits", self.doId, outfits)
+        self._d_setSavedOutfits(outfits)
+
+    def requestSendSavedOutfitSlotPurchaseRequest(self) -> None:
+        fairy = self.air.mongoInterface.mongodb.fairies.find_one({"_id": self.doId})
+        if not fairy:
+            return
+
+        maxSlots = fairy.get("maxOutfitSlots", DEFAULT_MAX_OUTFIT_SLOTS)
+        if maxSlots >= MAX_OUTFIT_SLOTS:
+            return
+
+        # takeGold is the diamond balance from the client's point of view; it
+        # fails (and charges nothing) if the fairy can't afford the upgrade. Note
+        # the client always *shows* OUTFIT_SLOT_COST_BASE regardless of the real
+        # scaled cost -- see outfitSlotCost().
+        if not self.takeGold(outfitSlotCost(maxSlots)):
+            return
+
+        maxSlots = min(maxSlots + OUTFIT_SLOTS_PER_PURCHASE, MAX_OUTFIT_SLOTS)
+        self.air.mongoInterface.updateField("fairies", "maxOutfitSlots", self.doId, maxSlots)
+        self.sendUpdateToAvatarId(self.doId, "setMaxOutfitSlots", [maxSlots])
 
     def setOutfitDB(self, headId: int, necklaceId: int, shirtId: int, beltId: int, skirtId: int, wristId: int, ankleId: int, shoesId: int) -> None:
         SLOT_METHODS = {
@@ -317,12 +467,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         if not (meadow := self.air.zoneToMeadow.get(self.zoneId)):
             return
 
-        if self.zoneId == 100 and hotspotId in (0, 10): # CBH TTT Reset
-            for id in range(hotspotId + 1, hotspotId + 10):
-                meadow.sendUpdate("setHotspotFrame", [id, CBH_TTT_RESET_FRAME])
-            hotspotFrame = CBH_TTT_RESET_FRAME
-
-        meadow.sendUpdate("setHotspotFrame", [hotspotId, hotspotFrame])
+        #meadow.sendUpdate("setHotspotFrame", [hotspotId, hotspotFrame])
 
     def setGold(self, gold: int) -> None:
         self.gold = gold
@@ -345,18 +490,6 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.setGold(gold)
         self.d_setGold(gold)
 
-    def setMoreOptions(self, options: str) -> None:
-        options = normalize_more_options(options)
-        self.moreOptions = options
-        persist_more_options(self.air, self.doId, options)
-        self.d_setMoreOptions(options)
-
-    def getMoreOptions(self) -> str:
-        return self.moreOptions
-
-    def d_setMoreOptions(self, options: str) -> None:
-        self.sendUpdate("setMoreOptions", [options])
-
     def addGold(self, deltaGold: int) -> None:
         self.b_setGold(deltaGold + self.getGold())
 
@@ -369,6 +502,39 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.b_setGold(self.gold - deltaGold)
 
         return True
+    
+    def requestDailyGoldTradeCapData(self) -> None:
+        self._sync_gold_trading_cap()
+
+    def _refresh_gold_trading(self) -> None:
+        doc = self.air.mongoInterface.mongodb.fairies.find_one({"_id": self.doId})
+        last_trade = doc.get("lastGoldTradeAt")
+        self.goldTradedToday = doc.get("goldTradedToday")
+
+        if last_trade is None:
+            return
+
+        # DB storage is tz unaware - make it aware
+        last_trade_utc = last_trade.replace(tzinfo=timezone.utc)
+
+        if get_period_start(last_trade_utc, "daily") != get_period_start(datetime.now(timezone.utc), "daily"):
+            self.goldTradedToday = 0
+            self._save_gold_trading()
+
+    def _save_gold_trading(self) -> None:
+        self.air.mongoInterface.updateFields(
+            "fairies",
+            {
+                "goldTradedToday": self.goldTradedToday,
+                "lastGoldTradeAt": self.lastGoldTradeAt,
+            },
+            self.doId,
+        )
+    
+    def _sync_gold_trading_cap(self) -> None:
+        self._refresh_gold_trading()
+        self.sendUpdateToAvatarId(self.doId, "setDailyGoldTradeCap", [200])
+        self.sendUpdateToAvatarId(self.doId, "setAmountGoldTradedForToday", [self.goldTradedToday])
 
     def tradeGoldForItem(self, amountToGive: int, invItemToGet: int, amountToGet: int) -> None:
         if self.takeGold(amountToGive):
@@ -383,11 +549,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             self.d_setPouch(pouch)
 
     def tradeItemForGold(self, invItemToGive: int, amountToGive: int, amountToGet: int) -> None:
-        self._refresh_gold_trade_window()
+        self._refresh_gold_trading()
 
-        remaining = DAILY_GOLD_TRADE_CAP - self.amountGoldTradedToday
-        if remaining <= 0 or amountToGet <= 0 or amountToGet > remaining:
-            self._sync_daily_gold_trade_cap()
+        gold_remaining = 200 - self.goldTradedToday
+        if gold_remaining <= 0 or amountToGet <= 0 or amountToGet > gold_remaining:
+            self._sync_gold_trading_cap()
             return
 
         if not self.air.inventoryManager.removeIngredientsFromPouch(self.doId, invItemToGive, amountToGive):
@@ -395,9 +561,10 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             return
 
         self.addGold(amountToGet)
-        self.amountGoldTradedToday += amountToGet
-        self._persist_gold_trade_state()
-        self._sync_daily_gold_trade_cap()
+        self.goldTradedToday += amountToGet
+        self.lastGoldTradeAt = datetime.now(timezone.utc)
+        self._save_gold_trading()
+        self._sync_gold_trading_cap()
         # Apparently setPouch has to be sent back to the client twice here because `onCheckForGiveGetUpdates`
         # only fires if pouchUpdateCalls is greater than 1
         pouch = self.air.inventoryManager.getPouch(self.doId)
@@ -419,24 +586,12 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.d_setPouch(pouch)
         self.d_setPouch(pouch)
 
-    def donateItem(self, itemId: int, amount: int) -> None:
-        if amount <= 0:
-            return
-
-        if not self.air.inventoryManager.removeIngredientsFromPouch(self.doId, itemId, amount):
-            self.notify.debug(
-                f"donateItem failed avId={self.doId} itemId={itemId} amount={amount}"
-            )
-            return
-
-        self.d_syncPouchAfterChanges()
-
     def auraRemover(self, task):
-        self.sendUpdateToAvatarId(self.doId, "setAura", [0])
+        self.sendUpdate("setAura", [0])
 
     def invisRemover(self, task):
-        self.sendUpdateToAvatarId(self.doId, "setRenderEffects", [0])
-        self.sendUpdateToAvatarId(self.doId, "setRedraw", [1])
+        self.sendUpdate("setRenderEffects", [0])
+        self.sendUpdate("setRedraw", [1])
 
     def _getSweetType(self, itemId):
         """Determine which kind of silly sweet this item is."""
@@ -451,8 +606,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         return None
 
     def _handleAuraSweet(self, itemId):
-        aura_id = AURA_MAPPING[itemId]
-        self.sendUpdateToAvatarId(self.doId, "setAura", [aura_id])
+        aura = AURA_MAPPING[itemId]
+        # A list means the sweet randomly grants one of several auras
+        # (e.g. 22587/22588 grow or shrink, a nod to Alice in Wonderland).
+        aura_id = random.choice(aura) if isinstance(aura, list) else aura
+        self.sendUpdate("setAura", [aura_id])
 
         # Cancel any existing aura timer and start fresh
         taskMgr.remove(f"AuraRemover-{self.doId}")
@@ -467,7 +625,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self._applyDNAColor(color, slotIndex=13)
 
     def _handleInvisibleSweet(self, _):
-        self.sendUpdateToAvatarId(self.doId, "setRenderEffects", [1])
+        self.sendUpdate("setRenderEffects", [1])
         self.redrawFairy()
 
         taskMgr.remove(f"InvisRemover-{self.doId}")
@@ -563,7 +721,13 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             handler = getattr(self, f"_handle{sweet_type.capitalize()}Sweet")
             handler(itemId)
 
-        self.sendUpdateToAvatarId(self.doId, "setItemEvent", [itemId, amount, 0, 0])
+        elif baked["bakedType"] in ("cookie", "cupcake"):
+            # Cookies and cupcakes restore pixie power. Stubbed for now — see
+            # _grantPixiePower / PIXIE_POWER_ENABLED — since PixiePower is a
+            # fixed value in-game today.
+            self._grantPixiePower(baked["pixiePower"])
+
+        self.sendUpdate("setItemEvent", [itemId, amount, 0, 0])
         self.air.inventoryManager.removeIngredientsFromPouch(self.doId, itemId, amount)
 
         pouch = self.air.inventoryManager.getPouch(self.doId)
@@ -580,57 +744,68 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.sendUpdate("setLevel", [level])
 
     def b_setLevel(self, level: int) -> None:
-        old_level = self.getLevel()
         self.setLevel(level)
         self.d_setLevel(level)
-        if level != old_level:
-            self._invalidate_peer_level_pushed_for_avatar(self.doId, old_level)
-            if self.zoneId:
-                self._sync_zone_peer_profile_state()
-
-    def publish_loaded_level(self, level: int | None = None) -> None:
-        """Apply Mongo talent level to AI state, owner client, and meadow peers.
-
-        fillInFairyPlayer uses setLevel alone, which left _talentLevel at 0 on
-        clients until a peer push happened. Meadow profiles read talentLevel from
-        the distributed avatar (not profile XML), so we must publish here.
-        """
-        if level is None:
-            level = self.getLevel()
-        level = int(level or 0)
-        if level <= 0:
-            return
-
-        if self.getLevel() != level:
-            self.setLevel(level)
-
-        self.sendUpdateToAvatarId(self.doId, "setLevel", [level])
-        self._invalidate_peer_level_pushed_for_avatar(self.doId)
-        if self.zoneId:
-            self._sync_zone_peer_profile_state()
 
     def getLevel(self) -> int:
         return self.level
 
-    def _invalidate_peer_level_pushed_for_avatar(
-        self, avatar_id: int, level: int | None = None
-    ) -> None:
-        pushed = getattr(self.air, "peerLevelPushed", None)
-        if not pushed:
-            return
-        if level is None:
-            stale = [key for key in pushed if key[1] == avatar_id]
-        else:
-            stale = [key for key in pushed if key[1] == avatar_id and key[2] == level]
-        for key in stale:
-            pushed.discard(key)
+    def setPixiePower(self, pixiePower: int) -> None:
+        self.pixiePower = pixiePower
 
-    def _clear_peer_level_pushed_for_viewer(self, viewer_id: int) -> None:
-        pushed = getattr(self.air, "peerLevelPushed", None)
-        if not pushed:
+    def d_setPixiePower(self, pixiePower: int) -> None:
+        self.sendUpdate("setPixiePower", [pixiePower])
+
+    def b_setPixiePower(self, pixiePower: int) -> None:
+        self.setPixiePower(pixiePower)
+        self.d_setPixiePower(pixiePower)
+
+    def getPixiePower(self) -> int:
+        return self.pixiePower
+
+    def _grantPixiePower(self, amount: int) -> None:
+        """Restore pixie power from eating a cookie or cupcake.
+
+        Stubbed: while PIXIE_POWER_ENABLED is False this computes the intended
+        new total but does not persist or broadcast it, so behaviour is
+        unchanged. The dispatch and plumbing are in place so enabling the
+        economy later is just flipping the flag.
+        """
+        # TODO: clamp to the real in-game maximum once PixiePower rules are
+        # confirmed (the DC default is 100, but cookies grant well past that).
+        newPower = self.getPixiePower() + amount
+
+        if not PIXIE_POWER_ENABLED:
             return
-        for key in [entry for entry in pushed if entry[0] == viewer_id]:
-            pushed.discard(key)
+
+        self.b_setPixiePower(newPower)
+
+    def setHomeType(self, homeType: int, homeSubType: int = 0) -> None:
+        self.homeType = homeType
+        self.homeSubType = homeSubType
+
+    def getHomeType(self) -> int:
+        return self.homeType
+
+    def d_setHomeType(self, homeType: int, homeSubType: int = 0) -> None:
+        self.sendUpdateToAvatarId(self.doId, "setHomeType", [homeType, homeSubType])
+
+    def b_setHomeType(self, homeType: int, homeSubType: int = 0) -> None:
+        self.setHomeType(homeType, homeSubType)
+        self.d_setHomeType(homeType, homeSubType)
+
+    def _defaultHomeType(self) -> int:
+        # home_type_id defaults to the fairy's talent until they change it.
+        # A stored homeType (once the player changes it) takes precedence.
+        doc = self.air.mongoInterface.mongodb.fairies.find_one({"_id": self.doId})
+        if doc:
+            stored = doc.get("homeType")
+            if stored is not None:
+                return stored
+            talent = doc.get("talent")
+            if talent is not None:
+                return talent
+        return self.fairyDNA.talent
 
     def requestFairyInfo(self, fairyId: int, unk: int) -> None:
         from game.fairies.ai.DatabaseObject import DatabaseObject
@@ -668,20 +843,8 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         fairy = self.air.getDo(fairyId)
 
         if fairy:
-            if fairy.getLevel() <= 0:
-                docs = self.air.mongoInterface.retrieveDocs(
-                    "fairies", fairyId, queryField="_id"
-                )
-                doc = docs[0] if docs else {}
-                mongo_level = int(doc.get("level") or 0)
-                if mongo_level > 0:
-                    fairy.publish_loaded_level(mongo_level)
-
             # This fairy is present on this shard, no need to query location from OTP server.
             gotFairyLocation(fairyId, fairy.parentId, fairy.zoneId)
-            self._push_access_to_avatar(self.doId, fairy)
-            self._push_peer_more_options_to_avatar(self.doId, fairy)
-            self._push_level_to_avatar(self.doId, fairy)
             return
 
         def fieldsCallback(db: DatabaseObject, retCode: int) -> None:
@@ -707,15 +870,22 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         db.getFields(["setDISLid", "setName", "setDISLname", "setFairyDNA", "setAccess", "setLevel"])
 
     def teleportRequestTo(self, fairyId: int) -> None:
-        def gotFairyLocation(doId: int, parentId: int, zoneId: int) -> None:
-            if fairyId != doId:
-                self.notify.warning(f"Got unexpected location for doId {doId}, was expecting {fairyId}!")
-                return
+        from game.fairies.ai.DatabaseObject import DatabaseObject
 
-            # TODO: Implement these
-            available: bool = True
-            roomId: int = 0
+        from game.fairies.fairy.DistributedFairyPlayerAI import DistributedFairyPlayerAI
 
+        def sendResponse(parentId: int, zoneId: int, roomId: int) -> None:
+            # A fairy in an activity zone (talent/crafting minigame, multiplayer
+            # party game, quest/quiet meadow, or home preview) can't be flown to
+            # -- the client would set interest on a zone it can never load a peer
+            # into, hanging forever on the loading screen. Report them as
+            # unavailable so the client shows a graceful teleport-failed instead.
+            available: bool = not ZoneConstants.isUnflyableActivityZone(zoneId)
+
+            # roomId is the target's room type (ROOM_TYPE_HOME / ROOM_TYPE_GARDEN).
+            # A home and its garden share the same zone, so this is the only thing
+            # that tells the client to drop the arriving fairy in the garden rather
+            # than the house.
             self.sendUpdateToAvatarId(self.doId, "teleportResponse", [
                 fairyId,
                 available,
@@ -727,12 +897,37 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         fairy = self.air.getDo(fairyId)
 
         if fairy:
-            # This fairy is present on this shard, no need to query location from OTP server.
-            gotFairyLocation(fairyId, fairy.parentId, fairy.zoneId)
+            # Present on this shard: read location and room type straight off the
+            # live object, no need to query the OTP server or database.
+            sendResponse(fairy.parentId, fairy.zoneId, fairy.roomID)
             return
 
-        # Dispatch a request to the OTP server to find out where this fairy is.
-        self.air.getObjectLocation(fairyId, gotFairyLocation)
+        # Not on this shard. The room type lives on the object (not in the OTP
+        # location record), so pull the persisted setRoomID from the database
+        # first, then ask the OTP server where the fairy currently is.
+        def gotRoomID(db: DatabaseObject, retCode: int) -> None:
+            roomId: int = 0
+            if retCode == 0:
+                remoteFairy = DistributedFairyPlayerAI(self.air)
+                db.fillin(remoteFairy, db.dclass)
+                roomId = remoteFairy.roomID
+
+            def gotFairyLocation(doId: int, parentId: int, zoneId: int) -> None:
+                if fairyId != doId:
+                    self.notify.warning(f"Got unexpected location for doId {doId}, was expecting {fairyId}!")
+                    return
+
+                sendResponse(parentId, zoneId, roomId)
+
+            self.air.getObjectLocation(fairyId, gotFairyLocation)
+
+        gotRoomEvent = self.air.uniqueName(f"gotRoomID-{fairyId}")
+        self.acceptOnce(gotRoomEvent, gotRoomID)
+
+        db = DatabaseObject(self.air, fairyId)
+        db.doneEvent = gotRoomEvent
+        db.dclass = self.air.dclassesByName[self.__class__.__name__]
+        db.getFields(["setRoomID"])
 
     def setWhisperSCEmoteTo(self, toId: int, emoteId: int) -> None:
         channelId = self.GetPuppetConnectionChannel(toId)
@@ -742,139 +937,91 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.air.sendUpdateToChannelFrom(self, channelId, "setWhisperSCEmoteFrom", fromId, [fromId, emoteId])
 
     def removeFromInventory(self, invId, itemId):
-        fairy = self.air.mongoInterface.mongodb.fairies.find_one(
+        # Donating an item (StorageInventoryEntry.donate / WardrobeInventoryEntry.donate)
+        # both land here -- storage and wardrobe items share avatar.items. We must
+        # echo the removal on the matching client list: storageRemove for Storage
+        # items, wardrobeRemove for Wardrobe/Equipped. Sending the wrong one leaves
+        # a stale entry in the client's inventory model and skips its donate
+        # confirmation (clearDonate). Read the location before pulling.
+        item = self.air.mongoInterface.mongodb.fairies.find_one(
             {"_id": self.doId, "avatar.items.inv_id": invId},
-            {"avatar.items.$": 1},
+            {"avatar.items.$": 1}
         )
-        if not fairy or not fairy.get("avatar", {}).get("items"):
-            return
 
-        location = fairy["avatar"]["items"][0].get("location") or ""
-        track_key = None
-        if location in ("Wardrobe", "Equipped"):
-            track_key = "wardrobe"
-        elif location == "Storage":
-            track_key = "storage"
-        else:
-            return
-
-        result = self.air.mongoInterface.mongodb.fairies.update_one(
+        self.air.mongoInterface.mongodb.fairies.update_one(
             {"_id": self.doId},
-            {
-                "$pull": {
-                    "avatar.items": {
-                        "inv_id": invId
+                {
+                    "$pull": {
+                        "avatar.items": {
+                            "inv_id": invId
+                        }
                     }
                 }
-            },
         )
-        if result.modified_count == 0:
-            return
 
-        if track_key == "storage":
-            self.air.inventoryManager.sendUpdateToAvatarId(
-                self.doId, "storageRemove", [0, invId]
-            )
+        location = None
+        if item and item.get("avatar", {}).get("items"):
+            location = item["avatar"]["items"][0].get("location")
+
+        if location == "Storage":
+            field = "storageRemove"
+            donationEvent = badge_events.EVENT_DONATE_STORAGE_ITEM
         else:
-            self.air.inventoryManager.sendUpdateToAvatarId(
-                self.doId, "wardrobeRemove", [0, invId]
-            )
+            field = "wardrobeRemove"
+            donationEvent = badge_events.EVENT_DONATE_WARDROBE_ITEM
 
-        badge_manager = getattr(self.air, "badgeManager", None)
-        if badge_manager is not None:
-            badge_manager.applyLeafJournalDonation(self.doId, track_key, 1)
+        self.air.inventoryManager.sendUpdateToAvatarId(self.doId, field, [0, invId])
+
+        # Donating is the only thing that reaches removeFromInventory (both
+        # StorageInventoryEntry.donate and WardrobeInventoryEntry.donate), so each
+        # call is one item given to the community -- advance the donation ladder.
+        self.air.badgeManager.d_accumulate(self.doId, donationEvent)
 
     def requestGlobalPurchase(self, item):
-        glblpId, qty = item[0]
+        avId = self.air.getAvatarIdFromSender()
+        if avId != self.doId:
+            self.notify.warning(
+                f"requestGlobalPurchase from {avId} but sender DO is {self.doId}"
+            )
+            return
 
-        if not self.takeGold(qty):
+        # GlobalPurchaseItem is {itemId, amount}; the client hardcodes amount to 1
+        # and never sends a price -- we look the price up ourselves.
+        itemId, amount = item[0]
+
+        purchase = GLOBAL_PURCHASE_ITEMS.get(itemId)
+        if purchase is None or amount < 1:
+            self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [0])
+            return
+
+        # The client always displays goldPrice, so charge that to stay in sync.
+        cost = purchase.goldPrice * amount
+        if not self.takeGold(cost):
             self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [0])
             return
 
         self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [1])
 
     def requestSendUpdateFairyName(self, name):
+        # setName is `broadcast db ownrecv`, so this updates every client in the
+        # zone live and persists to Mongo via the DBSS bridge.
+        #
+        # Known limitation (client-side, not fixable from here): the name on the
+        # pre-game loading screen stays stale until the next login. That art is
+        # rendered by the login/container shell (login.swf / container.swf), a
+        # separate SWF that caches the fairy list from web-api at login and never
+        # subscribes to this DO -- so it never hears setName. It self-heals on
+        # reload once web-api returns the persisted name. Refreshing it live would
+        # require a client edit (e.g. mmo.swf pushing the name to the shell).
         self.b_setName(name)
         self.sendUpdateToAvatarId(self.doId, "setRedraw", [1])
 
-    def setTeleportComplete(self) -> None:
-        av_id = self.air.getAvatarIdFromSender()
-        if av_id != self.doId:
-            self.notify.warning(
-                f"setTeleportComplete from {av_id} but sender DO is {self.doId}"
-            )
-            return
-
-        badge_manager = getattr(self.air, "badgeManager", None)
-        if badge_manager is not None:
-            badge_manager.applyMeadowVisit(self.doId, self.zoneId)
-
-        if self.zoneId in ALL_EXPLORER_ZONE_IDS:
-            self.sendUpdate("setLastMeadow", [self.zoneId])
-
-        self._sync_zone_peer_profile_state()
-
-    def _push_access_to_avatar(self, viewer_id: int, peer) -> None:
-        if viewer_id <= 0 or not isinstance(peer, DistributedFairyPlayerAI):
-            return
-        peer.sendUpdateToAvatarId(viewer_id, "setAccess", [peer.getAccess()])
-
-    def _push_level_to_avatar(self, viewer_id: int, peer) -> None:
-        if viewer_id <= 0 or not isinstance(peer, DistributedFairyPlayerAI):
-            return
-
-        level = peer.getLevel()
-        if level <= 0:
-            return
-
-        pushed = getattr(self.air, "peerLevelPushed", None)
-        if pushed is None:
-            pushed = set()
-            self.air.peerLevelPushed = pushed
-
-        key = (viewer_id, peer.doId, level)
-        if key in pushed:
-            return
-
-        peer.sendUpdateToAvatarId(viewer_id, "setLevel", [level])
-        pushed.add(key)
-
-    def _push_peer_more_options_to_avatar(self, viewer_id: int, peer) -> None:
-        if viewer_id <= 0 or not isinstance(peer, DistributedFairyPlayerAI):
-            return
-        options = peer.getMoreOptions() or MORE_OPTIONS_EMPTY
-        peer.sendUpdateToAvatarId(viewer_id, "setMoreOptions", [options])
-
-    def _zone_fairy_peers(self) -> list:
-        peers = []
-        zone_map = getattr(self.air, "zoneToMeadow", None)
-        my_meadow = zone_map.get(self.zoneId) if zone_map else None
-        for do in self.air.doId2do.values():
-            if do is self or not isinstance(do, DistributedFairyPlayerAI):
-                continue
-            if do.zoneId == self.zoneId:
-                peers.append(do)
-                continue
-            if my_meadow is not None and zone_map.get(do.zoneId) is my_meadow:
-                peers.append(do)
-        return peers
-
-    def _sync_zone_peer_profile_state(self) -> None:
-        """Push meadow profile fields to peers (setAccess, setMoreOptions, setLevel).
-
-        Client DC fields are ownrecv-only; targeted updates let other players
-        open profiles with correct badge tab visibility (velvetRope) and level.
-        setLevel is only pushed when level > 0 and deduped to avoid repeat FX.
-        """
-        if not self.zoneId:
-            return
-
-        options = self.getMoreOptions() or MORE_OPTIONS_EMPTY
-        viewer_id = self.doId
-        for peer in self._zone_fairy_peers():
-            self._push_peer_more_options_to_avatar(viewer_id, peer)
-            peer.sendUpdateToAvatarId(viewer_id, "setMoreOptions", [options])
-            self._push_access_to_avatar(self.doId, peer)
-            self._push_access_to_avatar(peer.doId, self)
-            self._push_level_to_avatar(self.doId, peer)
-            self._push_level_to_avatar(peer.doId, self)
+    def setStatus(self, location_status, pose_status, holding_status, afk_status):
+        if pose_status == 8:
+            if self.lastPoseStatus not in (8,10):
+                pose_status = random.choice([8, 10])
+            else:
+                pose_status = self.lastPoseStatus
+        
+        self.lastPoseStatus = pose_status
+        self.sendUpdate("setStatus", [location_status, pose_status, holding_status, afk_status])

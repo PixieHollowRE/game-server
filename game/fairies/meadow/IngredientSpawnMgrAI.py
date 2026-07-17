@@ -1,23 +1,40 @@
 """
-Runtime ingredient spawner — creates and manages DistributedSpawnStackAI objects.
+Runtime ingredient spawner — creates and manages spawn stack objects.
 
-Reads configuration from IngredientSpawnData.build_active_spawn_pools() and creates
-one SpawnPool per active (zone_id, item_id) pair. Each pool:
-  - spawns max_stacks items at random positions within the zone's map bounds
+Reads configuration from IngredientSpawnData.makeIngredientSpawn() and
+makeBunchSpawn(), and creates one SpawnPool per active pool config. Each pool:
+  - spawns spawn_limit items at random positions within the zone's map bounds
   - respawns one item at a new random position after collection (rarity timing)
   - rejects spawn points inside ZONE_EXCLUSIONS (when populated)
   - keeps MIN_DISTANCE between all stacks in the same zone (cross-pool)
 
+A pool marked multiplayer spawns DistributedMultiplayerSpawnStackAI (a shared
+bunch collected by everyone who joins its countdown) instead of a plain
+DistributedSpawnStackAI, drawing its item at random from config.items instead
+of a fixed item_id. Both kinds share this file's placement and respawn rules,
+and are spaced against each other, since every stack registers in
+_zoneStacks regardless of which pool spawned it.
+
 Started once by FairiesAIRepository.createObjects().
 """
+
+# Rewrite by Saturn and Em - Multiplayer Bunches by Jessi
+
 import random
 
 from direct.directnotify import DirectNotifyGlobal
 from direct.task import Task
 from direct.task.TaskManagerGlobal import taskMgr
 
+from game.fairies.meadow.DistributedMultiplayerSpawnStackAI import DistributedMultiplayerSpawnStackAI
 from game.fairies.meadow.DistributedSpawnStackAI import DistributedSpawnStackAI
-from game.fairies.meadow.IngredientSpawnData import ActiveSpawnPool, SpawnExclusionZone, build_active_spawn_pools
+from game.fairies.meadow.IngredientSpawnData import (
+    MP_BUNCHES_ENABLED,
+    ActiveSpawnPool,
+    SpawnExclusionZone,
+    makeBunchSpawn,
+    makeIngredientSpawn,
+)
 
 MIN_DISTANCE = 100
 MAX_POSITION_ATTEMPTS = 100
@@ -35,16 +52,22 @@ class SpawnPool:
         self.activeStacks: set[DistributedSpawnStackAI] = set()
 
     def start(self) -> None:
-        for _ in range(self.config.max_stacks):
+        for _ in range(self.config.spawn_limit):
             self.spawn()
 
+        detail = (
+            "rarity=%s" % self.config.rarity.name.lower()
+            if self.config.rarity is not None
+            else "%d candidate ingredients" % len(self.config.items)
+        )
+
         self.notify.info(
-            "Started %s spawning with %d stacks in zone %d (rarity=%s)"
+            "Started %s spawning with %d stacks in zone %d (%s)"
             % (
                 self.config.display_name,
                 len(self.activeStacks),
                 self.config.zone_id,
-                self.config.rarity.name.lower(),
+                detail,
             )
         )
 
@@ -60,7 +83,7 @@ class SpawnPool:
         deleteTaskName = "ingredient-delete-%d" % taskSerial
         taskMgr.doMethodLater(
             COLLECT_DELETE_DELAY_SEC,
-            self._deleteStackTask,
+            self.deleteStackTask,
             deleteTaskName,
             extraArgs=[stack],
         )
@@ -68,7 +91,7 @@ class SpawnPool:
         delay = random.uniform(self.config.respawn_min_sec, self.config.respawn_max_sec)
         taskSerial = self.mgr.nextTaskSerial()
         taskName = "ingredient-respawn-%d-%d-%d" % (taskSerial, self.config.zone_id, self.config.item_id)
-        taskMgr.doMethodLater(delay, self._respawnTask, taskName)
+        taskMgr.doMethodLater(delay, self.respawnTask, taskName)
 
         self.notify.debug(
             "%s collected in zone %d; respawning in %.1fs (%d active)"
@@ -76,10 +99,10 @@ class SpawnPool:
         )
 
     def spawn(self) -> DistributedSpawnStackAI | None:
-        if len(self.activeStacks) >= self.config.max_stacks:
+        if len(self.activeStacks) >= self.config.spawn_limit:
             return None
 
-        position = self._randomPosition()
+        position = self.randomPosition()
         if position is None:
             self.notify.warning(
                 "Failed to find valid spawn point for %s in zone %d"
@@ -88,10 +111,23 @@ class SpawnPool:
             return None
 
         x, y = position
-        stack = DistributedSpawnStackAI(self.air)
+        stackClass = (
+            DistributedMultiplayerSpawnStackAI
+            if self.config.multiplayer
+            else DistributedSpawnStackAI
+        )
+        # Ingredient pools hold a single item; bunch pools draw from everything
+        # their zone grows, so each bunch is a fresh roll.
+        if self.config.items:
+            item = random.choice(self.config.items)
+            item_id, display_name = item.item_id, item.display_name
+        else:
+            item_id, display_name = self.config.item_id, self.config.display_name
+
+        stack = stackClass(self.air)
         stack.spawnMgr = self
-        stack.setItemID(self.config.item_id)
-        stack.setName(self.config.display_name)
+        stack.setItemID(item_id)
+        stack.setName(display_name)
         stack.setPosition(x, y)
         stack.setColorIDs([])
         stack.setItemCount(1)
@@ -102,7 +138,7 @@ class SpawnPool:
         self.mgr.registerStack(self.config.zone_id, stack)
         return stack
 
-    def _randomPosition(self) -> tuple[int, int] | None:
+    def randomPosition(self) -> tuple[int, int] | None:
         bounds = self.config.bounds
         exclusions = self.config.exclusions
         zone_id = self.config.zone_id
@@ -134,11 +170,11 @@ class SpawnPool:
 
         return best
 
-    def _deleteStackTask(self, stack: DistributedSpawnStackAI) -> int:
+    def deleteStackTask(self, stack: DistributedSpawnStackAI) -> int:
         stack.requestDelete()
         return Task.done
 
-    def _respawnTask(self, task: Task) -> int:
+    def respawnTask(self, task: Task) -> int:
         self.spawn()
         return Task.done
 
@@ -211,7 +247,12 @@ class IngredientSpawnMgrAI:
         return True
 
     def start(self) -> None:
-        poolConfigs = sorted(build_active_spawn_pools(), key=lambda config: config.zone_id)
+        poolConfigs = makeIngredientSpawn()
+
+        if MP_BUNCHES_ENABLED:
+            poolConfigs += makeBunchSpawn()
+
+        poolConfigs = sorted(poolConfigs, key=lambda config: config.zone_id)
 
         for poolConfig in poolConfigs:
             pool = SpawnPool(self.air, self, poolConfig)

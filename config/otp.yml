@@ -33,14 +33,14 @@ uberdogs:
     - class: PetMgr
       id: 4691
 
-    - class: LeaderBoardMgr
-      id: 4692
-
     - class: RealmGuardian
       id: 4755
 
     - class: FairyInventoryMgr
       id: 4677
+
+    - class: LeaderBoardMgr
+      id: 4692
 
 roles:
     - type: clientagent

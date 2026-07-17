@@ -21,15 +21,7 @@ class Recipe:
     dye_count: int
     ingredients: list[Ingredient] = field(default_factory=list)
     steps: list[Step] = field(default_factory=list)
-
-
-def _int_attr(el: ET.Element, name: str, default: int = 0) -> int:
-    value = el.get(name)
-    if value is None or value == "":
-        return default
-    return int(value)
-
-
+ 
 def parse_recipes(xml_source: str, item_id: int = None) -> list[Recipe]:
     """
     Parse recipeData XML from a string or file path.
@@ -48,26 +40,26 @@ def parse_recipes(xml_source: str, item_id: int = None) -> list[Recipe]:
  
     for recipe_el in root.findall(xpath):
         recipe = Recipe(
-            item_id=_int_attr(recipe_el, "itemId"),
-            number=_int_attr(recipe_el, "number"),
+            item_id=int(recipe_el.get("itemId")),
+            number=int(recipe_el.get("number")),
             item_colors=recipe_el.get("itemColors"),
-            level=_int_attr(recipe_el, "level"),
-            difficulty=_int_attr(recipe_el, "difficulty"),
-            dye_count=_int_attr(recipe_el, "dyecount"),
+            level=int(recipe_el.get("level")),
+            difficulty=int(recipe_el.get("difficulty")),
+            dye_count=int(recipe_el.get("dyecount", 0)),
         )
-
+ 
         for ing_el in recipe_el.findall(".//ingredient"):
             recipe.ingredients.append(
                 Ingredient(
-                    item_id=_int_attr(ing_el, "itemId"),
-                    amount=_int_attr(ing_el, "amount"),
+                    item_id=int(ing_el.get("itemId")),
+                    amount=int(ing_el.get("amount")),
                 )
             )
-
+ 
         for step_el in recipe_el.findall(".//step"):
             recipe.steps.append(
                 Step(
-                    game_id=_int_attr(step_el, "gameId"),
+                    game_id=int(step_el.get("gameId")),
                     level_ids=step_el.get("levelIds"),
                 )
             )

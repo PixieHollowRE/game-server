@@ -1,5 +1,7 @@
 from direct.distributed.DistributedObjectGlobalAI import DistributedObjectGlobalAI
 
+from game.fairies.badges import badge_events
+
 class FairyInventoryMgrAI(DistributedObjectGlobalAI):
     def __init__(self, air) -> None:
         super().__init__(air)
@@ -26,24 +28,42 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
 
         avatar.d_setPouch(self.getPouch(avId))
 
+    # Gold charged to make a temporary item permanent, keyed by the item's
+    # type. These mirror priceData.xml conversionPrices categories -- a type's
+    # index in FairiesConstants.ITEM_TYPES is the category id the client prices
+    # from. Wardrobe items are the clothing types; storage items are Furniture,
+    # Lamp and Decoration.
+    CONV_COSTS = {
+        "Shirt": 6,
+        "Belt": 4,
+        "Skirt": 7,
+        "WristItem": 3,
+        "HeadItem": 5,
+        "Necklace": 3,
+        "AnkleItem": 3,
+        "Shoes": 5,
+        "Furniture": 6,
+        "Lamp": 4,
+        "Decoration": 5,
+    }
+
     def wardrobeConversion(self, inv_id):
+        self._convertItem(inv_id)
+
+    def storageConversion(self, inv_id):
+        self._convertItem(inv_id)
+
+    def _convertItem(self, inv_id):
+        # Storage and wardrobe items both live in avatar.items and convert
+        # identically -- flip howAcquired to 0 (permanent) and charge gold for
+        # the item's type. The client sends the matching conversion for the
+        # entry it holds; we look the item up by inv_id either way.
         avId = self.air.getAvatarIdFromSender()
         avatar = self.air.doId2do.get(avId)
 
         if not avatar:
-            self.notify.warning(f"wardrobeConversion: no avatar on AI for avId={avId}")
+            self.notify.warning(f"convertItem: no avatar on AI for avId={avId}")
             return
-
-        CONV_COSTS = {
-            "Shirt": 6,
-            "Skirt": 7,
-            "Shoes": 5,
-            "Belt": 4,
-            "HeadItem": 5,
-            "Necklace": 3,
-            "WristItem": 3,
-            "AnkleItem": 3,
-        }
 
         result = self.air.mongoInterface.mongodb.fairies.find_one(
             {"_id": avId, "avatar.items.inv_id": inv_id},
@@ -52,7 +72,7 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
         if result:
             item_type = result["avatar"]["items"][0]["type"]
         else:
-            print("WARDROBECONVERSION PANIC")
+            self.notify.warning(f"convertItem: no item inv_id={inv_id} for avId={avId}")
             return
 
         self.air.mongoInterface.mongodb.fairies.update_one(
@@ -65,9 +85,23 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
             array_filters=[{"item.inv_id": inv_id}]
         )
 
-        avatar.takeGold(CONV_COSTS[item_type])
+        avatar.takeGold(self.CONV_COSTS[item_type])
 
     def addIngredientsToPouch(self, avId: int, itemID: int, itemCount: int, slot: int) -> bool:
+        if not self._addIngredientsToPouch(avId, itemID, itemCount, slot):
+            return False
+
+        # Every way of gaining an ingredient lands here -- meadow pickups, game
+        # rewards, shop purchases -- so the collection badges hang off this
+        # rather than off each of those paths.
+        eventId = badge_events.INGREDIENT_TO_EVENT.get(itemID)
+
+        if eventId is not None:
+            self.air.badgeManager.d_accumulate(avId, eventId, itemCount)
+
+        return True
+
+    def _addIngredientsToPouch(self, avId: int, itemID: int, itemCount: int, slot: int) -> bool:
         result = self.air.mongoInterface.mongodb.fairies.update_one(
             {"_id": avId, "pouch.item_id": itemID},
             {"$inc": {"pouch.$.amount": itemCount}}
@@ -92,30 +126,22 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
             }
         )
 
-        if result.modified_count > 0:
-            return True
+        return result.modified_count > 0
 
-        return False
-
-    def _applyIngredientBadgeProgress(self, avId: int, itemID: int, itemCount: int) -> None:
-        badge_manager = getattr(self.air, "badgeManager", None)
-        if badge_manager is not None:
-            badge_manager.applyIngredientCollection(avId, itemID, itemCount)
-
-    def hasIngredientsInPouch(self, avId: int, itemID: int, itemCount: int) -> bool:
+    def removeIngredientsFromPouch(self, avId: int, itemID: int, itemCount: int) -> bool:
+        # First, read the current pouch entry
         fairy = self.air.mongoInterface.mongodb.fairies.find_one(
             {"_id": avId, "pouch.item_id": itemID},
-            {"pouch.$": 1},
+            {"pouch.$": 1}  # Only return the matching pouch element
         )
 
         if not fairy or not fairy.get("pouch"):
-            return False
+            return False  # Item doesn't exist in pouch
 
-        return fairy["pouch"][0]["amount"] >= itemCount
+        currentAmount = fairy["pouch"][0]["amount"]
 
-    def removeIngredientsFromPouch(self, avId: int, itemID: int, itemCount: int) -> bool:
-        if not self.hasIngredientsInPouch(avId, itemID, itemCount):
-            return False
+        if currentAmount < itemCount:
+            return False  # Not enough
 
         result = self.air.mongoInterface.mongodb.fairies.update_one(
             {"_id": avId, "pouch.item_id": itemID},
@@ -153,13 +179,12 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
         if not self.addIngredientsToPouch(avId, itemID, itemCount, slot):
             return False
 
-        self._applyIngredientBadgeProgress(avId, itemID, itemCount)
-
         avatar = self.air.doId2do.get(avId)
 
         if not avatar:
             return True
 
+        pouchSlot = self._getPouchSlotForItem(avId, itemID)
         avatar.sendUpdate("setItemEvent", [itemID, itemCount, 0, 0])
         avatar.d_syncPouchAfterChanges()
         return True

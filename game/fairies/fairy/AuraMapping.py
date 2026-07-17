@@ -43,7 +43,11 @@ AURA_MAPPING = {
     22583: 40, # Baby Chipmunk
     22584: 41, # Baby Owl
     22585: 42, # Baby Kitten
-    22585: 43, # Bunny Bubble
+    22586: 43, # Bunny Bubble
+    # Alice in Wonderland "Eat Me"/"Drink Me" nod: randomly grow or shrink.
+    # A list value means "pick one of these auras at random" (see _handleAuraSweet).
+    22587: [18, 19], # Growing or Shrinking
+    22588: [18, 19], # Growing or Shrinking
 }
 
 SKIN_COLOR_MAPPING = {

@@ -132,6 +132,54 @@ CRAFTING_ZONE_LIST: list[int] = [
     COPPERS_TINKERING,
 ]
 
+# Zone-ID range boundaries, mirroring the client's MMOConstants. These are
+# bounded ranges rather than open-ended thresholds so that social zones sitting
+# above them (e.g. Pixie Postings at 1200) are not misclassified.
+#   home-preview:    [HOME_PREVIEW_START, HOME_PREVIEW_END]
+#   quest / quiet:   [QUIET_MEADOW_START, QUIET_MEADOW_END]
+#   talent minigame: [GAME_ZONE_START, CRAFT_ZONE_START)
+#   crafting cave:   [CRAFT_ZONE_START, SHOP_ZONE_START)
+#   party game:      >= HOSTED_GAME_ZONE_START
+HOME_PREVIEW_START = 700
+HOME_PREVIEW_END = 799
+QUIET_MEADOW_START = 800
+QUIET_MEADOW_END = 899
+GAME_ZONE_START = 50000
+CRAFT_ZONE_START = 100000
+SHOP_ZONE_START = 110000
+HOSTED_GAME_ZONE_START = 3000000000
+
+def isMinigameZone(zoneId: int) -> bool:
+    """True if zoneId is a single-player talent or crafting minigame zone."""
+    return GAME_ZONE_START <= zoneId < SHOP_ZONE_START
+
+def isPartyGameZone(zoneId: int) -> bool:
+    """True if zoneId is a hosted multiplayer party-game room."""
+    return zoneId >= HOSTED_GAME_ZONE_START
+
+def isHomePreviewZone(zoneId: int) -> bool:
+    """True if zoneId is a home-preview zone."""
+    return HOME_PREVIEW_START <= zoneId <= HOME_PREVIEW_END
+
+def isQuestZone(zoneId: int) -> bool:
+    """True if zoneId is a quest / quiet-meadow zone."""
+    return QUIET_MEADOW_START <= zoneId <= QUIET_MEADOW_END
+
+def isUnflyableActivityZone(zoneId: int) -> bool:
+    """True if a fairy in this zone cannot be flown to.
+
+    Covers single-player minigames (talent/crafting), multiplayer party games,
+    quest / quiet-meadow zones, and home-preview zones. The client has no way
+    to load a peer into any of these, so a fly-to attempt would spin on the
+    loading screen forever. See DistributedFairyPlayerAI.teleportRequestTo.
+    """
+    return (
+        isMinigameZone(zoneId)
+        or isPartyGameZone(zoneId)
+        or isQuestZone(zoneId)
+        or isHomePreviewZone(zoneId)
+    )
+
 # SHOPS
 BELLAS_BAUBLES = 110000
 GARDEN_SUPPLY = 110001
