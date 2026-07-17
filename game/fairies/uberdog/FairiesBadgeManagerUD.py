@@ -18,7 +18,9 @@ from game.fairies.badges.badge_state import STATUS_ACTIVE, STATUS_EARNED
 # Chapter 18 - Baking     (practice + personal ladders; tier-1 Helper is in ch.1)
 # Chapter 19 - Tinkering  (practice + personal ladders; tier-1 Helper is in ch.1)
 # Chapter 20 - Tailoring  (practice + personal ladders; tier-1 Helper is in ch.1)
-TRACKED_CHAPTER_IDS = (1, 2, 3, 7, 10, 18, 19, 20)
+# Chapter 21 - Donations  (wardrobe + storage ladders; the Royal honor that tops
+#                          both out is 10821, tracked via INCLUDED_BADGES)
+TRACKED_CHAPTER_IDS = (1, 2, 3, 7, 10, 18, 19, 20, 21)
 
 # Badges inside a tracked chapter to leave off the page entirely, for content
 # that is unused.
@@ -47,6 +49,11 @@ NEW_FAIRY = 10574
 INCLUDED_BADGES: dict[int, str] = {
     FOUNDING_FAIRY: STATUS_EARNED,
     NEW_FAIRY: STATUS_EARNED,
+    # Royal Wardrobe and Storage Donation -- an Honors badge (chapter 0, page
+    # 12042) rather than part of the tracked Donations chapter. Given a row and
+    # its page so it can be earned after the fact, then granted outright by
+    # _maybeAwardRoyalDonation once both Flitterific tiers are.
+    badge_events.ROYAL_DONATION_BADGE: STATUS_ACTIVE,
 }
 
 def _badgeIdsIn(chapterIds) -> tuple[int, ...]:
@@ -338,6 +345,38 @@ class FairiesBadgeManagerUD(DistributedObjectGlobalUD):
         self.sendUpdateToAvatarId(
             avatarId, "badgeAcquired", [[badgeId, self._formatDateEarned(dateEarned)]]
         )
+
+        # Completing either donation ladder's top tier may complete the combined
+        # Royal honor. Only the two Flitterific tiers can, so nothing else pays
+        # the read.
+        if badgeId in badge_events.DONATION_TOP_TIERS:
+            self._maybeAwardRoyalDonation(avatarId)
+
+    def _maybeAwardRoyalDonation(self, avatarId: int) -> None:
+        """
+        Grant the Royal Wardrobe and Storage Donation honor once both the
+        Flitterific Wardrobe and Flitterific Storage tiers are earned.
+
+        The honor has no goal of its own (goal 0), so it is not accumulated --
+        it is handed over outright the moment both prerequisites are met.
+        _awardBadge only touches a tracked ACTIVE row, so a fairy who already
+        has it no-ops here.
+        """
+        fairy = self.air.mongoInterface.mongodb.fairies.find_one(
+            {"_id": avatarId}, {"badgeData.badges": 1}
+        )
+
+        if fairy is None:
+            return
+
+        earned = {
+            row["badgeId"]
+            for row in fairy["badgeData"]["badges"]
+            if row.get("status") == STATUS_EARNED
+        }
+
+        if all(tier in earned for tier in badge_events.DONATION_TOP_TIERS):
+            self._awardBadge(avatarId, badge_events.ROYAL_DONATION_BADGE, 0)
 
     def _ensureTrackedBadges(self, avatarId: int):
         """
