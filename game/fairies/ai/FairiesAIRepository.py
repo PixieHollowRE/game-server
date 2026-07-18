@@ -160,11 +160,11 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         # getMeadowGameByHotSpotId(tagId)), which maps to the game's hotspotId
         # field, so we spawn one independent instance per table with its
         # hotspotId set to that tagId. Positions mirror the hotspot x/y.
-        for tagId, x, y in ((7, 196, 375), (8, 364, 363), (9, 818, 361), (10, 975, 375)):
-            table = DistributedMatchGameAI(self)
-            table.setGameInfo(13072, 2, 2, 0, tagId)
-            table.setPosition(x, y)
-            table.generateWithRequired(ZoneConstants.THE_TEAROOM)
+        # for tagId, x, y in ((7, 196, 375), (8, 364, 363), (9, 818, 361), (10, 975, 375)):
+            # table = DistributedMatchGameAI(self)
+            # table.setGameInfo(13072, 2, 2, 0, tagId)
+            # table.setPosition(x, y)
+            # table.generateWithRequired(ZoneConstants.THE_TEAROOM)
 
         for zoneId in ZoneConstants.GAMES_ZONE_LIST:
             minigame = DistributedTalentMinigameAI(self)
