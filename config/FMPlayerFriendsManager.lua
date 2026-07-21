@@ -40,6 +40,16 @@ invitesByInviteeId = {} -- inviteeId: invite
 -- the cache stays authoritative for online accounts.
 friendsByAccountId = {} -- accountId: { friendAccountId, ... }
 
+-- Accounts we currently treat as online (and have already told friends about).
+-- A fairy re-fires FRIENDMANAGER_ACCOUNT_ONLINE/OFFLINE every time its avatar is
+-- torn down on one district AI and re-generated on another -- which happens on
+-- every district/house transfer, not just at login/logout (a house is a separate
+-- realm AI). Those transfers must NOT surface to friends as a login or logout.
+-- We collapse the churn here: ONLINE is only a real login the first time we see
+-- an account, and OFFLINE is only a real logout once the avatar's stateserver
+-- object has actually deactivated (see handleOffline).
+onlineAccounts = {} -- accountId: true
+
 -- Drop friendId from accountId's cached friends list, if accountId is online.
 function removeCachedFriend(accountId, friendId)
     local cached = friendsByAccountId[accountId]
@@ -237,9 +247,24 @@ end
 
 function handleOnline(participant, accountId)
     participant:debug(string.format("handleOnline - %d", accountId))
+
+    -- Already online? Then this is an avatar re-generating on a new district AI
+    -- (a shard/house transfer), not a fresh login. The client's connection --
+    -- and with it its friend panel and object declarations -- persists across the
+    -- transfer, so there is nothing to resend and, crucially, no "coming online"
+    -- alert to fire at friends.
+    if onlineAccounts[accountId] then
+        participant:debug(string.format("handleOnline - %d already online; ignoring transfer re-generate", accountId))
+        return
+    end
+
     local json = require("json")
 
     local account = json.decode(retrieveFairy(string.format("identifier=%d", accountId)))
+
+    -- Mark online only once the fetch succeeded, so a failed retrieveFairy does
+    -- not leave the account stuck "online" and suppress a later real login.
+    onlineAccounts[accountId] = true
 
     -- Cache this account's friends list for group whispers while it's online.
     friendsByAccountId[accountId] = account.friends or {}
@@ -307,28 +332,47 @@ function handleOffline(participant, accountId)
     local json = require("json")
 
     local account = json.decode(retrieveFairy(string.format("identifier=%d", accountId)))
-    -- Tell this account's friends that it went offline.
-    local friendInfo = {
-        account.name, -- avatarName
-        account._id, -- avatarId
-        account.ownerAccount, -- playerName
-        0, -- onlineYesNo
-        -- Most of these values appears to be unused.
-        0, -- openChatEnabledYesNo
-        0, -- openChatFriendshipYesNo
-        0, -- wlChatEnabledYesNo
-        "Fairies", -- location
-        "", -- sublocation
-        0  -- timestamp
-    }
 
-    for _, friendId in ipairs(account.friends) do
-        participant:sendUpdateToAccountId(friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-            "FMPlayerFriendsManager", "updatePlayerFriend", {accountId, friendInfo, 0})
-    end
+    -- A fairy fires OFFLINE every time its avatar is torn down on an AI, which
+    -- includes every district/house transfer -- not just logout. Tell the two
+    -- apart by asking the stateserver whether the avatar object is still
+    -- activated: during a transfer it has already migrated to the new AI and is
+    -- still activated, whereas a real logout deactivates it. Only the latter is a
+    -- genuine "went offline" that friends should be told about.
+    queryDBSS(participant, account._id, function (doId, activated)
+        if activated then
+            participant:debug(string.format(
+                "handleOffline - %d avatar %d still activated; treating as transfer, not logout",
+                accountId, doId))
+            return
+        end
 
-    -- Drop the cached friends list now that this account is offline.
-    friendsByAccountId[accountId] = nil
+        participant:debug(string.format("handleOffline - %d confirmed logout", accountId))
+        onlineAccounts[accountId] = nil
+
+        -- Tell this account's friends that it went offline.
+        local friendInfo = {
+            account.name, -- avatarName
+            account._id, -- avatarId
+            account.ownerAccount, -- playerName
+            0, -- onlineYesNo
+            -- Most of these values appears to be unused.
+            0, -- openChatEnabledYesNo
+            0, -- openChatFriendshipYesNo
+            0, -- wlChatEnabledYesNo
+            "Fairies", -- location
+            "", -- sublocation
+            0  -- timestamp
+        }
+
+        for _, friendId in ipairs(account.friends) do
+            participant:sendUpdateToAccountId(friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+                "FMPlayerFriendsManager", "updatePlayerFriend", {accountId, friendInfo, 0})
+        end
+
+        -- Drop the cached friends list now that this account is offline.
+        friendsByAccountId[accountId] = nil
+    end)
 end
 
 function handleFMPlayerFriendsManager_requestInvite(participant, fieldId, data)
@@ -516,12 +560,28 @@ function handleFMPlayerFriendsManager_setTalkAccountGroup(participant, fieldId, 
     participant:sendUpdateToAccountId(senderId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
             "FMPlayerFriendsManager", "setTalkAccount", {senderDislId, senderDislId, fromName, cleanMessage, modifications, GROUP_WHISPER_MASK})
 
-    -- Broadcast to every friend. Offline friends have no client subscribed to
-    -- their account channel, so those updates are simply dropped.
+    -- Broadcast to every ONLINE friend. An offline friend has no client
+    -- subscribed to its account channel, so an update aimed at it is built,
+    -- packed, and routed to the message director only to be dropped for want of
+    -- a subscriber. That wasted work scales with a player's TOTAL friend count,
+    -- not with how many friends are actually online -- so players near the
+    -- MAX_FRIENDS cap paid the full cost on every group whisper even when almost
+    -- all of those friends were offline. (Caching the friends list removed the
+    -- per-whisper retrieveFairy round-trip, but not this fan-out cost.)
+    --
+    -- onlineAccounts is this role's authoritative global view of who is logged
+    -- in -- it's a singleton uberdog that sees every ACCOUNT_ONLINE/OFFLINE --
+    -- so skipping friends absent from it drops only messages that would have
+    -- been discarded anyway.
+    local sent = 0
     for _, friendId in ipairs(friends) do
-        participant:sendUpdateToAccountId(friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
-                "FMPlayerFriendsManager", "setTalkAccount", {friendId, senderId, fromName, cleanMessage, modifications, GROUP_WHISPER_MASK})
+        if onlineAccounts[friendId] then
+            participant:sendUpdateToAccountId(friendId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
+                    "FMPlayerFriendsManager", "setTalkAccount", {friendId, senderId, fromName, cleanMessage, modifications, GROUP_WHISPER_MASK})
+            sent = sent + 1
+        end
     end
+    participant:debug(string.format("setTalkAccountGroup - %d fanned out to %d/%d friends online", senderId, sent, #friends))
 end
 
 function handleFMPlayerFriendsManager_requestRemove(participant, fieldId, data)
