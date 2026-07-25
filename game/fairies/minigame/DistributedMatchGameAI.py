@@ -1,7 +1,10 @@
 from game.fairies.minigame.DistributedMeadowGameAI import (
     DistributedMeadowGameAI,
+    MEADOW_GAME_JOIN_RESPONSE_ACCEPTED,
     MEADOW_GAME_STATE_GROUPING,
     MEADOW_GAME_STATE_PLAY,
+    MEADOW_GAME_STATE_RESET,
+    MEADOW_GAME_STATE_REWARD,
 )
 import game.fairies.ai.FairiesConstants as fc
 from game.fairies.daily.TimeUtils import get_season
@@ -26,8 +29,18 @@ REWARD_FIRST_PLACE = 30
 REWARD_SECOND_PLACE = 15
 
 # Seconds to leave the finished game standing before wiping it back to grouping.
-# Should outlast the client results panel (panel.config.multiplayerResultsDelay).
 RESET_DELAY = 5.0
+
+# A game that ends on a spinner match resets on a longer delay than a normal
+# finish. The client's game-end there is deferred until the wheel animation
+# settles (several seconds), and resetGame's empty setPlayers must not reach the
+# client before its end-game show is built -- an empty roster would collapse it
+# to the "below minimum players" screen. This outlasts the animation plus a
+# results-viewing window.
+SPINNER_END_RESET_DELAY = 12.0
+
+MEADOW_GAME_MEMORY_REQUEST_NO_MOVE = 0
+MEADOW_GAME_MEMORY_REQUEST_FLIP = 1
 
 MEADOW_GAME_MEMORY_PLAYTYPE_NONE = 0
 MEADOW_GAME_MEMORY_PLAYTYPE_FLIP_FIRST = 2
@@ -103,13 +116,18 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
     def joinRequest(self) -> None:
         avatarId = self.air.getAvatarIdFromSender()
 
+        responseCode = super().joinRequest(avatarId)
+
+        if responseCode != MEADOW_GAME_JOIN_RESPONSE_ACCEPTED:
+            return
+
+        # First accepted player takes the first turn.
         if self.whoseTurn == 0:
             self.whoseTurn = avatarId
 
         self.d_setGameData()
 
-        super().joinRequest(avatarId)
-
+        # The pair just filled the table — deal a fresh game.
         if len(self.players) == 2:
             self.init_game()
 
@@ -121,10 +139,35 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
 
         self.players.remove(avatarId)
 
+        # A mid-game departure is a forfeit: nobody is rewarded, and the table
+        # comes down immediately instead of sitting live for RESET_DELAY. That
+        # delay only exists to outlast the end-of-game results panel, and a
+        # forfeit shows no panel; leaving the board standing was also what let
+        # the lone remaining player keep sending turns (the get_other_player
+        # crash)
+
+        # whoseTurn == 0 means the round already ended naturally and results are
+        # showing, so that case falls through to the normal delayed reset rather
+        # than yanking the results panel away from the other player.
+        if self.state == MEADOW_GAME_STATE_PLAY and self.whoseTurn != 0:
+            self.cancelReset()
+
+            # Broadcast the empty roster *while still in PLAY*: the remaining
+            # client's onRemovedPlayer only fires in that state, and it cancels
+            # the board (-> endMeadowGame) when it sees the local player gone. A
+            # [remaining]-only roster wouldn't remove them, leaving a live-looking
+            # board with no opponent.
+            self.players = []
+            self.d_setPlayers()
+
+            # Now wipe back to a clean grouping state for the next pair. No
+            # d_setRewards is sent on this path, so neither player is rewarded.
+            self.resetGame()
+            return
+
         # Broadcast the new roster. The leaving client sees itself drop out of
         # the list and closes its game view (DistributedMeadowGame clears its
-        # pendingLeave flag, then onRemovedPlayer -> cancelled()); the remaining
-        # client ends the match because the player count falls below minPlayers.
+        # pendingLeave flag, then onRemovedPlayer -> cancelled()).
         self.d_setPlayers()
 
         # With fewer than two players the game can't continue, so return the
@@ -137,9 +180,9 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
     def resetTaskName(self) -> str:
         return f"MatchGameReset-{self.doId}"
 
-    def scheduleReset(self) -> None:
+    def scheduleReset(self, delay=RESET_DELAY) -> None:
         taskMgr.remove(self.resetTaskName)
-        taskMgr.doMethodLater(RESET_DELAY, self._resetTask, self.resetTaskName)
+        taskMgr.doMethodLater(delay, self._resetTask, self.resetTaskName)
 
     def cancelReset(self) -> None:
         taskMgr.remove(self.resetTaskName)
@@ -166,14 +209,25 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
         self.lastPlayer = 0
         self.whoseTurn = 0
 
-        # Set the state first: with the game back in GROUPING the clients won't
-        # treat the empty roster as a mid-game player removal.
+        self.setGameState(MEADOW_GAME_STATE_RESET, 0)
+        self.d_setGameState()
+
+        # Then return to GROUPING so the hotspot is joinable again. RESET is not a
+        # stable joinable state (the launcher treats it as "clear and close"), so
+        # it must be followed by GROUPING. The two are distinct, so the client's
+        # setGameState dedup won't swallow either. Ordering GROUPING before the
+        # empty setPlayers keeps clients from reading the empty roster as a
+        # mid-game player removal.
         self.setGameState(MEADOW_GAME_STATE_GROUPING, 0)
         self.d_setGameState()
         self.d_setPlayers()
 
-    def turnRequest(self, unkn, card_index):
+    def turnRequest(self, playType, card_index):
         player_id = self.air.getAvatarIdFromSender()
+
+        if playType == MEADOW_GAME_MEMORY_REQUEST_NO_MOVE:
+            self.handleNoMove(player_id)
+            return
 
         if not self.validateTurn(player_id, card_index):
             return
@@ -247,15 +301,45 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
             self.lastPlayType = MEADOW_GAME_MEMORY_PLAYTYPE_NONE
             self.lastFlipOffset = -1
 
-    def validateTurn(self, player_id, card_index) -> bool:
-        # turnRequest is clsend, and card_index is a uint8 on the wire (0-255),
-        # so nothing here can be trusted (ugh). A client whose board has outlived the
-        # server's game -- it left, the hotspot reset, the round ended -- will
+    def handleNoMove(self, player_id) -> None:
+        # The active player's turn timer ran out and their client submitted a
+        # no-move. Nothing is revealed, nothing is scored, the turn simply passes.
+        #
+        # This is handled differently from a flip: the client takes itself out of play
+        # as soon as the timer expires, and then waits for a setGameData to drive the
+        # next turn.
+        if not self.validatePlayer(player_id):
+            return
+
+        if self.lastFlipOffset != -1 and self.cardStates[self.lastFlipOffset] != 0:
+            self.cardStates[self.lastFlipOffset] = -1
+
+        self.lastFlipOffset = -1
+
+        self.lastPlayType = MEADOW_GAME_MEMORY_PLAYTYPE_NONE
+        self.lastPlayer = player_id
+        self.whoseTurn = self.get_other_player(self.whoseTurn)
+
+        self.d_setGameData()
+
+    def validatePlayer(self, player_id) -> bool:
+        # A client whose board has outlived the server's game
+        # it left, the hotspot reset, the round ended, etc. will
         # still happily send flips at an empty table. yay
         if self.state != MEADOW_GAME_STATE_PLAY or len(self.card_ids) != CARD_COUNT:
             self.notify.warning(
                 f"turnRequest from {player_id} with no game in play "
                 f"(state={self.state}, cards={len(self.card_ids)})")
+            return False
+
+        # A player can leave mid-game: the roster shrinks to one immediately but
+        # the board isn't wiped until scheduleReset() fires RESET_DELAY later, so
+        # state/card_ids still look live. Processing a turn now would leave
+        # get_other_player with nobody to switch to (StopIteration -> reader loop
+        # crash). Nothing should proceed once we're below two players.
+        if len(self.players) != 2:
+            self.notify.warning(
+                f"turnRequest from {player_id} with {len(self.players)} player(s)")
             return False
 
         # Log errors instead of throwing a tantrum - we'll see if this fixes the issue.
@@ -265,6 +349,12 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
 
         if player_id != self.whoseTurn:
             self.notify.warning(f"turnRequest from {player_id} out of turn")
+            return False
+
+        return True
+
+    def validateTurn(self, player_id, card_index) -> bool:
+        if not self.validatePlayer(player_id):
             return False
 
         if not 0 <= card_index < CARD_COUNT:
@@ -279,8 +369,11 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
         return True
 
     def get_other_player(self, current_doid):
-        print(next(p for p in self.players if p != current_doid))
-        return next(p for p in self.players if p != current_doid) # Grab it from DMG
+        # Defensive default: never raise StopIteration into the reader loop if
+        # the roster has already dropped below two players. validateTurn should
+        # keep us from getting here, but a bad StopIteration crashes the whole
+        # district, so fall back to the current player rather than blow up.
+        return next((p for p in self.players if p != current_doid), current_doid)
 
     def handleSpinner(self, first_index, second_index):
         # The matched spinner pair is consumed and removed from the board.
@@ -296,26 +389,39 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
         other_index = 1 - player_index
         self.lastPlayer = self.whoseTurn
 
-        # The power spinner wheel on the client has exactly four slots
-        # (PowerSpinner.onPick only maps frames 1-4). One slot is either SHUFFLE
-        # or GOLDEN depending on whether the current player is dominating, which
-        # the client decides with setPlayerDominating(score > otherScore + 2):
-        #   dominating -> SHUFFLE (knock the leader back)
-        #   underdog   -> GOLDEN  (help the trailing player)
-        # We must pick the same one the wheel is showing or the pointer lands on
-        # the wrong result. REVEAL and LOSETURN are NOT real wheel slots — the
-        # client leaves stuck cards / a desynced turn for those — so never send
-        # them.
-        dominating = self.matchCounts[player_index] > self.matchCounts[other_index] + 2
-        third_slot = (MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_SHUFFLE if dominating
-                      else MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_GOLDEN)
+        # Did consuming this spinner pair clear the last cards off the board?
+        # (The pair's states were zeroed above, so an empty board now means this
+        # was the final pair.) If so the game is over, and we must decide that
+        # *before* picking a wheel result.
+        game_over = all(state == 0 for state in self.cardStates)
 
-        result = random.choice([
-            MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_BONUS,     # +2 points
-            MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_BONUS_X2,  # +3 points
-            MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_BADNEWS,   # lose a turn
-            third_slot,                                 # shuffle or golden pair
-        ])
+        if game_over:
+            result = random.choice([
+                MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_BONUS,     # +2 points
+                MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_BONUS_X2,  # +3 points
+            ])
+        else:
+            # The power spinner wheel on the client has exactly four slots
+            # (PowerSpinner.onPick only maps frames 1-4). One slot is either
+            # SHUFFLE or GOLDEN depending on whether the current player is
+            # dominating, which the client decides with
+            # setPlayerDominating(score > otherScore + 2):
+            #   dominating -> SHUFFLE (knock the leader back)
+            #   underdog   -> GOLDEN  (help the trailing player)
+            # We must pick the same one the wheel is showing or the pointer lands
+            # on the wrong result. REVEAL and LOSETURN are NOT real wheel slots —
+            # the client leaves stuck cards / a desynced turn for those — so never
+            # send them.
+            dominating = self.matchCounts[player_index] > self.matchCounts[other_index] + 2
+            third_slot = (MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_SHUFFLE if dominating
+                          else MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_GOLDEN)
+
+            result = random.choice([
+                MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_BONUS,     # +2 points
+                MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_BONUS_X2,  # +3 points
+                MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_BADNEWS,   # lose a turn
+                third_slot,                                 # shuffle or golden pair
+            ])
         self.lastPlayType = result
 
         if result == MEADOW_GAME_MEMORY_PLAYTYPE_SPIN_BONUS:
@@ -361,6 +467,9 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
         self.d_setGameData()
         self.lastFlipOffset = -1
 
+        if game_over:
+            self.handleSpinnerEndGame()
+
     def reshuffle_in_play(self):
         ids = [self.card_ids[i] for i, s in enumerate(self.cardStates) if s != 0]
         random.shuffle(ids)
@@ -403,6 +512,29 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
         # clean grouping state for the next pair of players.
         self.scheduleReset()
 
+    def handleSpinnerEndGame(self):
+        # End-of-game when a matched spinner pair clears the board. A normal last
+        # match ends instantly by setting whoseTurn == 0, but the client checks
+        # whoseTurn == 0 *before* it plays the wheel animation (turnStart), so
+        # doing that here would skip the spinner entirely. Instead leave whoseTurn
+        # on the current player and switch to the REWARD state: the client's
+        # onGameStateUpdatedCalled sets its deferred _endGameNow flag (the spin
+        # result is a non-NONE lastPlayType, so it defers rather than ending now)
+        # and runs gameEnd() the moment the wheel settles.
+        #
+        # Rewards must reach the client before that gameEnd() opens the results
+        # panel; since the panel only opens after the animation, sending them now
+        # is safely ahead of it.
+        self.d_setRewards()
+
+        self.setGameState(MEADOW_GAME_STATE_REWARD, 0)
+        self.d_setGameState()
+
+        # Longer reset delay than a normal finish: the deferred end doesn't fire
+        # until the wheel animation completes, and resetGame's empty setPlayers
+        # must not land before the client builds its end-game show.
+        self.scheduleReset(SPINNER_END_RESET_DELAY)
+
     def grantReward(self, avId, itemId, amount):
         avatar = self.air.doId2do.get(avId)
         if avatar is None:
@@ -425,6 +557,8 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
             amount = REWARD_FIRST_PLACE if rank == 0 else REWARD_SECOND_PLACE
             self.grantReward(avId, itemId, amount)
 
+            #TODO: Disable leaderboard for now - Re-enable it later.
+
             # Record the finished game on the fairy's profile, read back by
             # FairiesInventoryRequest (type "games"). For the multiplayer meadow
             # games the client reads the stat's `total` as the running WINS count
@@ -433,8 +567,8 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
             # as games played and makes `total` accumulate wins, which is what the
             # client displays. A tie ranks both first, so both are credited,
             # matching the first-place reward above.
-            won = 1 if rank == 0 else 0
-            self.air.mongoInterface.recordStat(avId, "game", self.gameId, won)
+            # won = 1 if rank == 0 else 0
+            # self.air.mongoInterface.recordStat(avId, "game", self.gameId, won)
 
             #if rank == 0:
                # self.air.leaderBoardManager.d_addToLeaderBoard(avId, self.gameId, 1)

@@ -4,6 +4,7 @@ from game.otp.distributed.DistributedDistrictAI import DistributedDistrictAI
 
 from game.fairies.housing.HouseConstants import HOUSING_ZONE_OFFSET
 from game.fairies.housing.DistributedHomeItemAI import DistributedHomeItemAI
+from game.fairies.housing.DistributedHomeAI import DistributedHomeAI
 from game.fairies.housing.HomeItems import returnPlacedItemsToStorage
 
 
@@ -31,6 +32,8 @@ class FairiesHomeRealmAI(DistributedDistrictAI):
         self.ownerZone = ownerId + HOUSING_ZONE_OFFSET
         # inv_id -> DistributedHomeItemAI currently generated in this realm.
         self.homeItems = {}
+        # The single DistributedHome object for this realm (the house itself).
+        self.home = None
 
     def _fairies(self):
         return self.air.mongoInterface.mongodb.fairies
@@ -47,6 +50,20 @@ class FairiesHomeRealmAI(DistributedDistrictAI):
             # "Storage" so the client keeps its return-to-storage flow.
             if item.get("home"):
                 self._generateHomeItem(item)
+
+    def generateHome(self):
+        # Generate the realm's DistributedHome
+        if self.home is not None:
+            return
+
+        fairy = self._fairies().find_one({"_id": self.ownerId}, {"address": 1})
+        address = (fairy or {}).get("address") or "1234CatepillerCorral"
+
+        home = DistributedHomeAI(self.air, address=address)
+        # Parent to the realm in the owner's housing zone, exactly like the
+        # furniture, so everyone who enters the realm generates it.
+        self.air.generateWithRequired(home, self.getDoId(), self.ownerZone)
+        self.home = home
 
     def _generateHomeItem(self, item):
         home = item["home"]
@@ -118,10 +135,13 @@ class FairiesHomeRealmAI(DistributedDistrictAI):
         self.homeItems.clear()
 
     def delete(self):
-        # Clean up our generated furniture with the realm.
+        # Clean up our generated furniture and the house object with the realm.
         for homeItem in list(self.homeItems.values()):
             homeItem.requestDelete()
         self.homeItems.clear()
+        if self.home is not None:
+            self.home.requestDelete()
+            self.home = None
         DistributedDistrictAI.delete(self)
 
     def setParentingRules(self, style, rule):

@@ -19,7 +19,13 @@ class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
         return self.gameID
     
     def startGame(self, unknown: int):
-        pass
+        if self.gameID == MINIGAME_DAILY_CHANCE:
+            return
+        
+        # Clear scores before we start just incase we left in a stale state.
+        avId = self.air.getAvatarIdFromSender()
+        self._scores[avId] = 0
+        self._pendingRewards.pop(avId, None)
 
     def reportScore(self, score: int) -> None:
         if self.gameID == MINIGAME_DAILY_CHANCE:
@@ -57,9 +63,7 @@ class DistributedTalentMinigameAI(DistributedInstanceBaseAI):
 
         # Submit the run to the weekly/seasonal high-score boards. The uberdog
         # drops it if it falls short of the game's leaderboards.xml threshold, so
-        # the only gate here is whether the game has a board at all. The three
-        # Meadow "wins" games use d_addToLeaderBoard instead and are scored by
-        # their own AIs, not here.
+        # the only gate here is whether the game has a board at all.
         if leaderboard_xml.is_leaderboard_game(self.gameID):
             self.air.leaderBoardManager.d_putToLeaderBoard(avatarId, self.gameID, totalScore)
 

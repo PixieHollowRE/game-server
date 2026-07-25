@@ -9,6 +9,10 @@ MEADOW_GAME_STATE_GROUPING = 0
 MEADOW_GAME_STATE_INIT = 1
 MEADOW_GAME_STATE_PLAY = 2
 MEADOW_GAME_STATE_RESET = 3
+# Matches the client's MMOConstants.MEADOW_GAME_STATE_REWARD (7). Sending it
+# sets the client's deferred _endGameNow flag so the game ends once the current
+# animation finishes, instead of the instant whoseTurn == 0 end.
+MEADOW_GAME_STATE_REWARD = 7
 
 class DistributedMeadowGameAI(DistributedInstanceBaseAI):
     def __init__(self, air) -> None:
@@ -80,7 +84,20 @@ class DistributedMeadowGameAI(DistributedInstanceBaseAI):
 
         if avatar is None:
             self.notify.warning(f"No avatar present on AI for joinRequest: {avatarId}")
-            return
+            return None
+
+        # A client can send joinRequest more than once for the same avatar. It
+        # doesn't take a hacked client: a laggy client that hasn't yet seen its
+        # first joinResponse/setPlayers can resend, and we've seen this happen in
+        # the wild. Appending again would seat the same fairy twice ([A, A]),
+        # which for the two-player games starts a "match" against yourself and
+        # desyncs turn order. Acknowledge it (the client is already rostered) but
+        # don't add or start anything. The client's joinResponse handler treats
+        # DUPLICATE as a harmless no-op.
+        if avatarId in self.players:
+            self.notify.warning(f"duplicate joinRequest from {avatarId}")
+            self.sendUpdateToAvatarId(avatarId, "joinResponse", [MEADOW_GAME_JOIN_RESPONSE_DUPLICATE])
+            return MEADOW_GAME_JOIN_RESPONSE_DUPLICATE
 
         addedPlayer = False
 
@@ -102,3 +119,8 @@ class DistributedMeadowGameAI(DistributedInstanceBaseAI):
             self.d_setGameState()
             self.setGameState(MEADOW_GAME_STATE_PLAY, 0)
             self.d_setGameState()
+
+        # Return the outcome so subclasses can react to *accepted* joins only
+        # (e.g. DistributedMatchGameAI deals a fresh board on the 1->2 transition
+        # and must not do so for a rejected or duplicate join).
+        return responseCode
