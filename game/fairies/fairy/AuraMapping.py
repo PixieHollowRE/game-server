@@ -63,7 +63,6 @@ SKIN_COLOR_MAPPING = {
     22522: c_id["Marigold Yellow"],
     22523: [c_id["Snow White"], c_id["Silvermist Blue"], c_id["Squirrel Gray"], c_id["Mulberry Purple"]],
     22524: [c_id["Cupcake Pink"], c_id["Tinker Bell Green"], c_id["Strawberry Red"], c_id["Marigold Yellow"]],
-    22581: c_id["Electric Green"],
 }
 
 WING_COLOR_MAPPING = {
@@ -77,4 +76,5 @@ WING_COLOR_MAPPING = {
     22578: c_id["Electric Purple"],
     22579: c_id["Lemon Yellow"],
     22580: c_id["Rosetta Red"],
+    22581: c_id["Electric Green"],
 }

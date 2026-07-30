@@ -1,7 +1,6 @@
-cd ../../config
+#!/bin/sh
+screen -dmS OTP ./start_otp_server.sh
 
-screen -dmS OTP "../../OtpGo/otpgo" otp.yml
-
-cd ..
+cd ../..
 screen -dmS UberDOG python3 -m game.fairies.uberdog.Start config/config.prc
 screen -dmS Districts python3 -m DistrictStarter
