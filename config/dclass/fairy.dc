@@ -23,6 +23,7 @@ from game.fairies.ai import FairiesMagicWordManagerAI
 from game.fairies.housing import DistributedHomeAI
 from game.fairies.housing import FairiesHomeRealmAI
 from game.fairies.housing import DistributedHomeItemAI
+from game.fairies.housing import DistributedSurpriseAI
 from game.fairies.uberdog import RealmGuardianUD
 from game.fairies.uberdog import FairyInventoryMgrUD
 from game.fairies.ai import FairyInventoryMgrAI
