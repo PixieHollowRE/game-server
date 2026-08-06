@@ -7,9 +7,13 @@ class MongoInterface:
         client = MongoClient(config.GetString("mongodb-host"))
         self.mongodb = client[config.GetString("mongodb-name")]
 
-    def retrieveDocs(self, dclass: str, doId: int, queryField: str = "ownerDoId") -> list:
+    def retrieveDocs(self, dclass: str, doId: int, queryField: str = "ownerDoId", fields: dict = None) -> list:
+        # `fields` is a plain Mongo projection. A fairy document is mostly its
+        # avatar.items array -- several hundred KB for a long-time player -- so
+        # callers that want one small field should say so rather than drag the
+        # whole wardrobe across the socket and through BSON decoding.
         cursor = getattr(self.mongodb, dclass)
-        return list(cursor.find({queryField: doId})) or []
+        return list(cursor.find({queryField: doId}, fields)) or []
 
     def updateField(self, dclass: str, fieldName: str, doId: int, value, queryField: str = "_id"):
         queryData = {queryField: doId}

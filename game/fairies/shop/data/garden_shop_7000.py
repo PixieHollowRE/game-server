@@ -5,6 +5,7 @@ from game.fairies.fairy.structs.ShopCollection import ShopCollection
 from game.fairies.fairy.structs.ShopItem import ShopItem
 from game.fairies.fairy.structs.ShopOutfit import ShopOutfit
 from game.fairies.fairy.structs.OutfitItem import OutfitItem
+from game.fairies.fairy.structs.PurchaseType import PurchaseType
 from game.fairies.shop.ShopHelpers import NPCShop, Shopkeeper
 
 SHOP = NPCShop(
@@ -18,6 +19,7 @@ SHOP = NPCShop(
     collections=[
         ShopCollection(
             collectionId=119, # Basic Seeds
+            purchaseType=PurchaseType.POUCH,
             items=[
                 ShopItem(itemId=89002, goldPrice=1), # Dulcie's Cookie Seeds
                 ShopItem(itemId=89017, goldPrice=1), # Dulcie's Truffle Seeds
@@ -29,6 +31,7 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=118, # Special Edition Seeds
+            purchaseType=PurchaseType.POUCH,
             items=[
                 ShopItem(itemId=89009, goldPrice=1), # Garden Premier Seeds
                 ShopItem(itemId=89022, goldPrice=1), # Autumn Breeze Seeds
@@ -39,6 +42,7 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=132, # Summer 2012 Seeds
+            purchaseType=PurchaseType.POUCH,
             items=[
                 ShopItem(itemId=89004, goldPrice=1), # Fancy Flower Seeds
                 ShopItem(itemId=89000, goldPrice=1), # Rainbow Dye Seeds
@@ -51,6 +55,7 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=131, # Fall 2012 Seeds
+            purchaseType=PurchaseType.POUCH,
             items=[
                 ShopItem(itemId=89014, goldPrice=1), # Autumn Masquerade Dye Seeds
                 ShopItem(itemId=89019, goldPrice=1), # Autumn Harvest Seeds
@@ -58,6 +63,7 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=130, # Winter 2012 Seeds
+            purchaseType=PurchaseType.POUCH,
             items=[
                 ShopItem(itemId=89012, goldPrice=1), # Chilly Plants Seeds
                 ShopItem(itemId=89013, goldPrice=1), # Winter Wonderland Dye Seeds
@@ -70,6 +76,7 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=129, # Spring 2013 Seeds
+            purchaseType=PurchaseType.POUCH,
             items=[
                 ShopItem(itemId=89029, goldPrice=1), # Springtime Flower Seeds
                 ShopItem(itemId=89028, goldPrice=1), # Never Dove Egg Dye Seeds
@@ -81,6 +88,7 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=120, # Summer 2013 Seeds
+            purchaseType=PurchaseType.POUCH,
             items=[
                 ShopItem(itemId=89033, goldPrice=1), # Sprightly Sprouts Seeds
                 ShopItem(itemId=89032, goldPrice=1), # Midsummer Dye Seeds

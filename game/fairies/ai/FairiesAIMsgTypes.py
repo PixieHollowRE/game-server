@@ -18,7 +18,17 @@ FairiesAIMsgName2Id = {
     # realm (for occupancy-based teardown).
     'REALM_OCCUPANCY_UPDATE': 20013,
     # The RealmGuardian asks a district AI to delete an empty home realm.
-    'REALM_DELETE_REQUEST': 20014}
+    'REALM_DELETE_REQUEST': 20014,
+    # A district AI tells the RealmGuardian that Post Office mail was just
+    # written for an avatar, so the mailbox can be put out in that avatar's home
+    # realm even if the realm is hosted by a different district AI.
+    'REALM_MAIL_ARRIVED': 20015,
+    # The RealmGuardian passes that on to the district AI hosting the realm.
+    'REALM_MAIL_DELIVERED': 20016,
+    # A district AI announces its current headcount to the whole cluster, so
+    # other district AIs and the RealmGuardian can make capacity decisions
+    # about a district they do not host. See RealmPopulation.py.
+    'REALM_POPULATION_UPDATE': 20017}
 FairiesAIMsgId2Names = invertDictLossless(FairiesAIMsgName2Id)
 for name, value in list(FairiesAIMsgName2Id.items()):
     exec('%s = %s' % (name, value))

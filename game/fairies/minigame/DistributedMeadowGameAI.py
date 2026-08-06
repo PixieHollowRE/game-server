@@ -1,3 +1,4 @@
+from game.fairies.badges import badge_events
 from game.fairies.instance.DistributedInstanceBaseAI import DistributedInstanceBaseAI
 
 MEADOW_GAME_JOIN_RESPONSE_ACCEPTED = 0
@@ -15,6 +16,13 @@ MEADOW_GAME_STATE_RESET = 3
 MEADOW_GAME_STATE_REWARD = 7
 
 class DistributedMeadowGameAI(DistributedInstanceBaseAI):
+    # A table whose minPlayers == maxPlayers has nothing to wait for: the last seat
+    # being taken *is* the start signal, so the base fires INIT -> PLAY itself.
+    # A table that can start short-handed (minPlayers < maxPlayers) instead holds a
+    # lobby countdown and owns its own INIT -> PLAY transition; it sets this False so
+    # a full table doesn't get started out from under the countdown.
+    autoStartWhenFull: bool = True
+
     def __init__(self, air) -> None:
         super().__init__(air)
 
@@ -79,6 +87,24 @@ class DistributedMeadowGameAI(DistributedInstanceBaseAI):
     def getIsSpawnedGame(self):
         return self.isSpawnedGame
 
+    def creditGamePlayed(self, avatarId) -> None:
+        """
+        Count one finished game toward this table's Fan/Super Fan/Devotee ladder.
+
+        Subclasses call this from d_setRewards rather than from the state change,
+        so a badge counts exactly what a reward counts: a game that ran to a
+        finish. A table that breaks up early -- someone walks off, or Crazy Cakes
+        exhausts the deck with nobody out -- rewards nobody and scores nobody.
+        Both players count either way; the badges are for playing, not winning.
+        """
+        eventId = badge_events.MEADOW_GAME_TO_EVENT.get(self.gameId)
+
+        if eventId is None:
+            # A meadow game with no badge ladder of its own. Most of them.
+            return
+
+        self.air.badgeManager.d_accumulate(avatarId, eventId)
+
     def joinRequest(self, avatarId):
         avatar = self.air.doId2do.get(avatarId)
 
@@ -114,7 +140,9 @@ class DistributedMeadowGameAI(DistributedInstanceBaseAI):
 
         self.sendUpdateToAvatarId(avatarId, "joinResponse", [responseCode])
 
-        if addedPlayer and len(self.players) >= self.maxPlayers and self.state != MEADOW_GAME_STATE_PLAY:
+        if (addedPlayer and self.autoStartWhenFull
+                and len(self.players) >= self.maxPlayers
+                and self.state != MEADOW_GAME_STATE_PLAY):
             self.setGameState(MEADOW_GAME_STATE_INIT, 0)
             self.d_setGameState()
             self.setGameState(MEADOW_GAME_STATE_PLAY, 0)

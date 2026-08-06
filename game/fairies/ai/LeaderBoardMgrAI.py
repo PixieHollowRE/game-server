@@ -26,3 +26,13 @@ class LeaderBoardMgrAI(DistributedObjectGlobalAI):
             return
 
         self.sendUpdate("addToLeaderBoard", [avatarId, gameId, min(amount, MAX_AMOUNT)])
+
+    def d_forceRollover(self, boardType: int) -> None:
+        """
+        End the running period of a board early, emptying it.
+
+        Admin only -- the `lb-rollover` magic word. Nothing in play ever needs
+        this: the periods are derived from the date, so a board rolls over on its
+        own (see leaderboard_period).
+        """
+        self.sendUpdate("forceRollover", [boardType])

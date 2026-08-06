@@ -7,7 +7,9 @@ class FairyInventoryMgrAI(DistributedObjectGlobalAI):
         super().__init__(air)
 
     def getPouch(self, avId: int) -> list:
-        pouchData = self.air.mongoInterface.retrieveDocs("fairies", avId, "_id")[0]["pouch"]
+        pouchData = self.air.mongoInterface.retrieveDocs(
+            "fairies", avId, "_id", {"pouch": 1}
+        )[0]["pouch"]
         pouch = []
 
         for index, item in enumerate(pouchData):

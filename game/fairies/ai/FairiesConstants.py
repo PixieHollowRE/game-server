@@ -392,6 +392,70 @@ FACE_TO_EYE_OFFSET = -500
 # TYPE_HOME_PREVIEW_ID (58) * IDS_PER_TYPE (500).
 HOME_ITEM_ID_OFFSET = 29000
 
+# Type ids past the end of ITEM_TYPES that we still need to recognise -- a
+# giveaway can reward any of these, and get_item_type has no name for them
+# because they never become an avatar.items row. Numbers are the client's
+# FairiesConstants.as TYPE_*_ID, which is also what Util.getCategory buckets.
+TYPE_INGREDIENT_ID = 16
+TYPE_PERMANENT_BADGE_ID = 19
+TYPE_SPRING_BADGE_ID = 20
+TYPE_SUMMER_BADGE_ID = 21
+TYPE_AUTUMN_BADGE_ID = 22
+TYPE_WINTER_BADGE_ID = 23
+TYPE_MINIGAME_ID = 26
+TYPE_DYEBOTTLE_ID = 28
+TYPE_PARTY_DECORATION_ID = 34
+TYPE_COOKIE_ID = 45
+
+# The four categories Util.getCategory sorts an item into, as sets of type id.
+# Wardrobe and storage together are exactly ITEM_TYPES, so they double as the
+# test for "get_item_type can name this".
+WARDROBE_TYPE_IDS = frozenset(range(0, 13))
+STORAGE_TYPE_IDS = frozenset({13, 14, 15})
+BADGE_TYPE_IDS = frozenset({
+    TYPE_PERMANENT_BADGE_ID,
+    TYPE_SPRING_BADGE_ID,
+    TYPE_SUMMER_BADGE_ID,
+    TYPE_AUTUMN_BADGE_ID,
+    TYPE_WINTER_BADGE_ID,
+})
+POUCH_TYPE_IDS = frozenset({
+    TYPE_INGREDIENT_ID,
+    TYPE_MINIGAME_ID,
+    TYPE_DYEBOTTLE_ID,
+    TYPE_PARTY_DECORATION_ID,
+    TYPE_COOKIE_ID,
+})
+
+# Where the client stops treating an id as a plain bucket and starts reading it
+# as a prefixed one (Util.getItemType against FairiesConstants.MAX_TYPES).
+MAX_TYPE_ID = 2000
+
+def get_type_id(itemId: int) -> int:
+    """
+    The raw type bucket of an item id, exactly as the client's Util.getItemType
+    computes it: id // 500, with a leading prefix digit stripped off the ids
+    large enough to carry one (avatar assets run 1000100 and up).
+
+    Distinct from get_item_type, which answers with an avatar.items type *name*
+    and so only knows the first 16 buckets. Note the two do not agree outside
+    that range -- get_item_type strips a prefix as soon as the bucket passes 16,
+    so it reads badge id 11243 as bucket 2 ("Skirt") where this returns 22.
+    Anything that might be handed an id beyond ITEM_TYPES has to route on this
+    one first, and only call get_item_type once it knows the id is wardrobe or
+    storage.
+    """
+    if itemId <= 0:
+        raise ValueError(f"Invalid item_id: {itemId}")
+
+    bucket = itemId // 500
+
+    if bucket >= MAX_TYPE_ID:
+        itemId = int(str(itemId)[1:])
+        bucket = itemId // 500
+
+    return bucket
+
 def get_item_type(itemId: int) -> str:
     if itemId <= 0:
         raise ValueError(f"Invalid item_id: {itemId}")

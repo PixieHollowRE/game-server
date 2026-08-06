@@ -12,11 +12,12 @@ from game.otp.ai.AIDistrict import AIDistrict
 from game.otp.uberdog.UberDog import UberDog
 
 from game.fairies.distributed.MongoInterface import MongoInterface
+from game.fairies.distributed.RealmPopulation import RealmPopulationRegistry
 
 from game.fairies.uberdog.HolidayManagerUD import HolidayManagerUD
 
 
-class FairiesUberDog(UberDog):
+class FairiesUberDog(UberDog, RealmPopulationRegistry):
     notify = directNotify.newCategory("UberDog")
 
     def __init__(
@@ -27,6 +28,8 @@ class FairiesUberDog(UberDog):
         UberDog.__init__(
             self, mdip, mdport, esip, esport, dcFilenames,
             serverId, minChannel, maxChannel)
+
+        RealmPopulationRegistry.__init__(self)
 
         self.mongoInterface = MongoInterface(self)
 
@@ -68,6 +71,16 @@ class FairiesUberDog(UberDog):
         # case they started before us and their startup registration was lost.
         self.requestDistrictRegistrations()
 
+    def handleConnect(self, msgType, di):
+        # Districts broadcast their headcount on their own schedule, so if we
+        # restarted one can arrive before we reach playGame. Record it rather
+        # than let the base class log it as an unexpected message type.
+        if msgType == REALM_POPULATION_UPDATE:
+            self.handleRealmPopulationUpdate(di)
+            return
+
+        UberDog.handleConnect(self, msgType, di)
+
     def handlePlayGame(self, msgType, di):
         # Handle Fairies specific message types before
         # calling the base class
@@ -80,6 +93,14 @@ class FairiesUberDog(UberDog):
         elif msgType == REALM_OCCUPANCY_UPDATE:
             self._handleRealmOccupancyUpdate(di)
             return
+        elif msgType == REALM_MAIL_ARRIVED:
+            self._handleRealmMailArrived(di)
+            return
+        elif msgType == REALM_POPULATION_UPDATE:
+            # A district reporting its headcount, so the RealmGuardian can see
+            # which shards still have room.
+            self.handleRealmPopulationUpdate(di)
+            return
         elif msgType == REALM_REGISTER_REQUEST:
             # Our own broadcast echoing back to us; only districts act on it.
             return
@@ -89,8 +110,17 @@ class FairiesUberDog(UberDog):
     def _handleRealmOccupancyUpdate(self, di):
         avatarId = di.getUint32()
         ownerId = di.getUint32()
+        # The home the reporting district AI believed the avatar was in. The
+        # guardian checks it rather than trusting it -- see handleOccupancyUpdate.
+        fromOwnerId = di.getUint32()
         if getattr(self, 'realmGuardian', None):
-            self.realmGuardian.handleOccupancyUpdate(avatarId, ownerId)
+            self.realmGuardian.handleOccupancyUpdate(avatarId, ownerId, fromOwnerId)
+
+    def _handleRealmMailArrived(self, di):
+        recipientId = di.getUint32()
+        typeId = di.getUint32()
+        if getattr(self, 'realmGuardian', None):
+            self.realmGuardian.handleMailArrived(recipientId, typeId)
 
     def requestDistrictRegistrations(self):
         # Broadcast to every district AI asking it to announce its channel.

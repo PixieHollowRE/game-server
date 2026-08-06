@@ -40,3 +40,19 @@ class FairiesBadgeManagerAI(DistributedObjectGlobalAI):
         so the comparison happens on the AI and only the verdict is sent here.
         """
         self.sendUpdate("giveBadge", [avatarId, badgeId])
+
+    def d_unlockBadge(self, avatarId: int, badgeId: int) -> None:
+        """
+        Make sure a badge has a row on this fairy, and that the row is unearned
+        and at zero.
+
+        Only the magic words use this: `get-badge` sends it ahead of giveBadge so
+        a badge outside the tracked chapters can still be handed out, and
+        `clear-visited-meadows` uses it on its own to take an earned Meadow
+        Explorer badge back to the start.
+        """
+        self.sendUpdate("unlockBadge", [avatarId, badgeId])
+
+    def d_unlockPage(self, avatarId: int, pageId: int) -> None:
+        """Show a fairy a page of the badge book they can't see yet."""
+        self.sendUpdate("unlockPage", [avatarId, pageId])

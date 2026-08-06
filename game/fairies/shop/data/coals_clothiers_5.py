@@ -7,6 +7,8 @@ from game.fairies.fairy.structs.ShopOutfit import ShopOutfit
 from game.fairies.fairy.structs.OutfitItem import OutfitItem
 from game.fairies.shop.ShopHelpers import NPCShop, Shopkeeper
 
+# Coal's Clothiers - OutfitId 5000 - 5999
+
 SHOP = NPCShop(
     zone=ZoneConstants.COALS_CLOTHIERS,
     shopId=5,
@@ -266,7 +268,7 @@ SHOP = NPCShop(
             ShopItem(itemId=2279, price=25, goldPrice=6, color1=166, color2=81, itemType="HeadItem"), # Snow White Peppermint Swirl Glasses
             ShopItem(itemId=2230, price=25, goldPrice=6, color1=168, color2=166, itemType="HeadItem"), # Never Gold Merry Monocle
 
-            ShopItem(itemId=2552, price=15, goldPrice=4, color1=175, color2=159, itemType="Necklace"), # Creek Green Striped Scarf
+            ShopItem(itemId=2555, price=15, goldPrice=4, color1=175, color2=159, itemType="Necklace"), # Creek Green Striped Scarf
             ShopItem(itemId=2558, price=15, goldPrice=4, color1=230, color2=48, itemType="Necklace"), # Scarlet Red Fringed Scarf
             ShopItem(itemId=2542, price=15, goldPrice=4, color1=126, color2=126, itemType="Necklace"), # Raindrop Blue Meadowland Neck Band
             ShopItem(itemId=2596, price=15, goldPrice=4, color1=206, color2=253, itemType="Necklace"), # Raven Black Sunburst Necklace with Yellow Trim
@@ -307,7 +309,7 @@ SHOP = NPCShop(
             ShopItem(itemId=1538, price=15, goldPrice=4, color1=175, color2=175, itemType="WristItem"), # Creek Green Triple Tie Wrist Wrap
             ShopItem(itemId=1534, price=15, goldPrice=4, color1=220, color2=220, itemType="WristItem"), # Dusty Pink Triple Cuff
             ShopItem(itemId=1532, price=15, goldPrice=4, color1=183, color2=183, itemType="WristItem"), # Vidia Purple Pinfeather Brace
-            ShopItem(itemId=1584, price=15, goldPrice=4, color1=221, color2=221, itemType="WristItem"), # Jade Green Trinity Leaf Bracelet
+            ShopItem(itemId=1585, price=15, goldPrice=4, color1=221, color2=221, itemType="WristItem"), # Jade Green Trinity Leaf Bracelet
 
             ShopItem(itemId=3044, price=15, goldPrice=4, color1=221, color2=221, itemType="AnkleItem"), # Jade Green Trinity Leaf Anklet
             ShopItem(itemId=3029, price=15, goldPrice=4, color1=208, color2=208, itemType="AnkleItem"), # Cerulean Blue Vine Duo Anklet

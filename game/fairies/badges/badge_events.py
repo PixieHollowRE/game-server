@@ -73,13 +73,6 @@ EVENT_WON_SNEAKY_MR_TWITCHES_BADGE = 30033
 EVENT_DONATE_WARDROBE_ITEM = 30300
 EVENT_DONATE_STORAGE_ITEM = 30301
 
-# The Honors badge that tops out both ladders at once ("Royal Wardrobe and Storage
-# Donation"). It has no goal of its own (goal 0 in badges.xml), so it is not
-# accumulated and is left out of EVENT_TO_BADGES; the badge manager grants it
-# outright once both Flitterific tiers below are earned.
-ROYAL_DONATION_BADGE = 10821
-DONATION_TOP_TIERS = (10813, 10816)  # Flitterific Wardrobe, Flitterific Storage
-
 # ──────────────────────────────────── INGREDIENTS ─────────────────────────────────── #
 COLLECTION_EVENT_BASE = 30100
 

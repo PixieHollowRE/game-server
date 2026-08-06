@@ -1,3 +1,4 @@
+import datetime
 from collections.abc import Sequence
 
 from game.fairies.fairy.structs.ShopTriedOnItems import ShopTriedOnItems
@@ -18,16 +19,20 @@ from game.fairies.ai import FairiesConstants as fc
 PURCHASE_FAIL = 0
 PURCHASE_SUCCESS = 1
 
-EQUIP_SLOTS = {
-    1: "setHeadItem",
-    2: "setNecklace",
-    3: "setChestItem",
-    4: "setBelt",
-    5: "setSkirt",
-    6: "setWrist",
-    7: "setAnkle",
-    8: "setShoes",
-}
+# Post Office message types, mirroring the client's DistributedSurprise constants
+# (TYPE_POST_OFFICE_POSTCARDS / TYPE_POST_OFFICE_GIFT_SETS). Stored on each message
+# record so the archive request and the home surprise can filter by type.
+MESSAGE_TYPE_POSTCARD = 4
+MESSAGE_TYPE_GIFTSET = 5
+
+# Collections the client renders as postcards rather than gift sets, from
+# postOfficeAssets.xml <postCardCollections collectionsIds="7001,7002">. Kept in
+# sync with the shop data (pixie_post_office_8.py). Postcards deliver no wearable.
+POSTCARD_COLLECTION_IDS = frozenset({7001, 7002})
+
+# howAcquired for a diamond (gold) purchase, matching handleItemPurchase's gold
+# path. Post Office gifting is always paid in diamonds.
+GIFT_HOW_ACQUIRED = 1
 
 class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
     def __init__(self, air) -> None:
@@ -123,39 +128,12 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
             )
 
             if result.modified_count > 0 and avatar:
-                self._refreshAfterDye(avatar, invId)
+                avatar.d_refreshEquippedItem(invId)
 
             self.d_setPurchaseResponse(avId, result.modified_count > 0)
         else:
             # Send failure purchase response back to the client.
             self.d_setPurchaseResponse(avId, success)
-
-    def _refreshAfterDye(self, avatar, invId) -> None:
-        fairy = self.air.mongoInterface.mongodb.fairies.find_one(
-            {
-                "_id": avatar.doId,
-                "avatar.items": {
-                    "$elemMatch": {"inv_id": invId, "location": "Equipped"}
-                },
-            },
-            {"avatar.items.$": 1},
-        )
-        if not fairy:
-            return
-
-        items = fairy.get("avatar", {}).get("items")
-        if not items:
-            return
-
-        item = items[0]
-        slot = item.get("slot")
-        method = EQUIP_SLOTS.get(slot)
-        if not method:
-            return
-
-        payload = [invId, item["item_id"], item["color1"], item["color2"]]
-        avatar.sendUpdate(method, [payload])
-        avatar.redrawFairy()
 
     def setRequestPurchase(self, items, usingGold) -> None:
         avId = self.air.getAvatarIdFromSender()
@@ -326,3 +304,183 @@ class DistributedFairyShopkeeperNPCAI(DistributedFairyNPCAI):
 
         if self.air.inventoryManager.addIngredientsToPouch(avId, itemId, itemCount, itemSlot):
             avatar.d_setPouch(self.air.inventoryManager.getPouch(avId))
+
+    def setRequestGiftSet(self, items, userId, recipientFairyId, messageId, currency) -> None:
+        # The client's PostCardConfirmation and GiftSetConfirmation both call this
+        # (dispatchSetRequestGiftSet). There's no type flag on the wire, so we infer
+        # postcard-vs-giftset from the item's collection (POSTCARD_COLLECTION_IDS).
+        #
+        # Behaviour differs by type:
+        #   - Gift set: the purchased items go to BOTH the sender (a plain copy) and
+        #     the recipient (a copy stamped with the sender as giftedBy). One charge.
+        #   - Postcard: nothing is delivered; only a message record is written so the
+        #     card shows up in the recipient's home Post Office.
+        avId = self.air.getAvatarIdFromSender()
+        avatar = self.air.doId2do.get(avId)
+
+        if not avatar:
+            self.notify.warning(f"No avatar present on AI for setRequestGiftSet: {avId}")
+            return
+
+        shop = getShopByZone(self.zoneId)
+        if not shop:
+            self.notify.warning(f"setRequestGiftSet: no shop for zone {self.zoneId}")
+            self.d_setPurchaseResponse(avId, False)
+            return
+
+        resolvedItems: list[ShopItem] = []
+        isPostcard = False
+        priceTotal = 0
+
+        for itemData in items:
+            itemIndex, amount, collectionId = itemData
+
+            if collectionId in POSTCARD_COLLECTION_IDS:
+                isPostcard = True
+
+            shopItem = getShopItemByIndex(shop, collectionId, itemIndex)
+            if not shopItem:
+                # Same fallback as setRequestPurchase: some items live under a
+                # collection's outfits rather than its flat item list. Guard the
+                # index so a mismatched collection fails cleanly instead of raising.
+                collection = shop.collectionsById.get(collectionId)
+                outfitItems = (
+                    [it for outfit in collection.outfits for it in outfit.items]
+                    if collection else []
+                )
+                if 0 <= itemIndex < len(outfitItems):
+                    shopItem = outfitItems[itemIndex]
+
+            if not shopItem:
+                self.notify.warning(
+                    f"setRequestGiftSet: bad item {collectionId}/{itemIndex} from {avId}")
+                self.d_setPurchaseResponse(avId, False)
+                return
+
+            resolvedItems.append(shopItem)
+            # Post Office gifting is billed in diamonds (gold); the member price
+            # collapses to goldPrice for these collections (see ShopItem defaults).
+            priceTotal += shopItem.goldPrice
+
+        # Post Office gifting always pays in diamonds -- SelectFriendAndMessage
+        # forces currency to MTX_ITEM_ID, so charge gold regardless of `currency`.
+        if not avatar.takeGold(priceTotal):
+            self.d_setPurchaseResponse(avId, False)
+            return
+
+        # Sender identity, for the gift ribbon and the postcard's "from" fairy.
+        senderDoc = self.air.mongoInterface.mongodb.fairies.find_one(
+            {"_id": avId},
+            {"name": 1, "address": 1, "talent": 1, "icon": 1}
+        ) or {}
+        senderName = senderDoc.get("name", "")
+
+        if isPostcard:
+            # The postcard design id (88501-88521) rides along as the "background".
+            background = resolvedItems[0].itemId
+            wordIds: list[int] = []
+            messageType = MESSAGE_TYPE_POSTCARD
+        else:
+            background = 0
+            wordIds = []
+            messageType = MESSAGE_TYPE_GIFTSET
+            for shopItem in resolvedItems:
+                # Sender keeps a plain copy; recipient gets the gifted copy.
+                self._deliverGiftItem(avId, shopItem, giftedById=0, giftedByName="")
+                self._deliverGiftItem(
+                    recipientFairyId, shopItem, giftedById=avId, giftedByName=senderName)
+                wordIds.append(shopItem.itemId)
+
+        self._writePostOfficeMessage(
+            recipientId=recipientFairyId,
+            senderId=avId,
+            senderDoc=senderDoc,
+            senderName=senderName,
+            messageType=messageType,
+            background=background,
+            phrase=messageId,
+            wordIds=wordIds,
+        )
+
+        # If the recipient's home realm is up (they may be standing in it right
+        # now), get the mailbox put out for this kind of mail. The realm only
+        # counts messages at generate time, so without this the mailbox would
+        # not appear until they left home and came back. Routed via the
+        # RealmGuardian because the realm can be hosted by any district AI.
+        self.air.sendMailArrivedToRealmGuardian(recipientFairyId, messageType)
+
+        # Light the recipient's HUD gift-box right away. The recipient is very
+        # often on a different realm (district AI process) than the sender, so we
+        # can't go through doId2do -- that only ever holds objects owned by this
+        # process. statusUpdateFromFairy lives on DistributedFairyPlayer, so
+        # address the update at the recipient's own object and route it straight
+        # to their client connection channel, which the message director resolves
+        # no matter which district they're on (same trick as
+        # FairiesHomeRealmAI.bootRequest). Harmless no-op if they're offline --
+        # nobody is subscribed to that channel, and _pushPendingMailStatus lights
+        # the gift-box on their next generate.
+        self.air.sendUpdateToDoId(
+            "DistributedFairyPlayer", "statusUpdateFromFairy", recipientFairyId,
+            [avId, messageType],
+            channelId=self.GetPuppetConnectionChannel(recipientFairyId))
+
+        self.d_setPurchaseResponse(avId, True)
+
+    def _deliverGiftItem(self, fairyId: int, item: ShopItem, giftedById: int, giftedByName: str) -> None:
+        # Push one wardrobe item onto `fairyId` and live-notify their client. The
+        # Mongo write is what an offline recipient picks up on next login (see
+        # FairyInventoryMgrUD.avatarOnline re-syncing wardrobe items); the
+        # sendUpdateToAvatarId is harmless if nobody is listening on that channel.
+        invId = self.air.mongoInterface.getNextDoId()
+        itemType = item.itemType or fc.get_item_type(item.itemId)
+
+        self.air.mongoInterface.mongodb.fairies.update_one(
+            {"_id": fairyId},
+            {
+                "$push": {
+                    "avatar.items": {
+                        "inv_id": invId,
+                        "type": itemType,
+                        "item_id": item.itemId,
+                        "slot": -1,
+                        "createdById": 0,
+                        "createdByName": "",
+                        "giftedById": giftedById,
+                        "giftedByName": giftedByName,
+                        "quality": 0,
+                        "color1": item.color1,
+                        "color2": item.color2,
+                        "howAcquired": GIFT_HOW_ACQUIRED,
+                        "location": "Wardrobe"
+                    }
+                }
+            }
+        )
+
+        self.air.inventoryManager.sendUpdateToAvatarId(fairyId, "wardrobeItem", [
+            item.itemId,
+            [invId, item.itemId, -1, 0, "", giftedById, giftedByName, 0,
+             item.color1, item.color2, GIFT_HOW_ACQUIRED]
+        ])
+
+    def _writePostOfficeMessage(self, recipientId: int, senderId: int, senderDoc: dict,
+                                senderName: str, messageType: int, background: int,
+                                phrase: int, wordIds: Sequence[int]) -> None:
+        # One row per received postcard/gift set. Read back by web-api's
+        # FairiesMessageArchiveRequest and counted by the home Post Office surprise.
+        self.air.mongoInterface.mongodb.messages.insert_one({
+            "_id": self.air.mongoInterface.getNextDoId(),
+            "recipient_id": recipientId,
+            "type": messageType,
+            "sender": {
+                "fairy_id": senderId,
+                "name": senderName,
+                "address": senderDoc.get("address", ""),
+                "talent": senderDoc.get("talent", 0),
+                "icon": senderDoc.get("icon", 0),
+            },
+            "background": background,
+            "phrase": phrase,
+            "words": list(wordIds),
+            "created": datetime.datetime.utcnow(),
+        })

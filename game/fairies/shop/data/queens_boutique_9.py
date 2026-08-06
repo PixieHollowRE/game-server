@@ -1,11 +1,11 @@
 from game.fairies.ai import ZoneConstants
-from game.fairies.ai.FairiesConstants import INGREDIENTS
 from game.fairies.fairy import FamousFairyData
 from game.fairies.fairy.structs.ShopCollection import ShopCollection
-from game.fairies.fairy.structs.ShopItem import ShopItem
 from game.fairies.fairy.structs.ShopOutfit import ShopOutfit
 from game.fairies.fairy.structs.OutfitItem import OutfitItem
 from game.fairies.shop.ShopHelpers import NPCShop, Shopkeeper
+
+# Queens Boutique - OutfitId 1000 - 1999
 
 SHOP = NPCShop(
     zone=ZoneConstants.QUEENS_BOUTIQUE,

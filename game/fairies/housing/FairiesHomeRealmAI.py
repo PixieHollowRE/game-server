@@ -5,8 +5,14 @@ from game.otp.distributed.DistributedDistrictAI import DistributedDistrictAI
 from game.fairies.housing.HouseConstants import HOUSING_ZONE_OFFSET
 from game.fairies.housing.DistributedHomeItemAI import DistributedHomeItemAI
 from game.fairies.housing.DistributedHomeAI import DistributedHomeAI
+from game.fairies.housing.DistributedSurpriseAI import (
+    DistributedSurpriseAI,
+    TYPE_POST_OFFICE_POSTCARDS,
+    TYPE_POST_OFFICE_GIFT_SETS,
+)
 from game.fairies.housing.HomeItems import returnPlacedItemsToStorage
 
+POST_OFFICE_SURPRISE_POS = (0, 0) # Dummy, client doesn't seem to need
 
 class FairiesHomeRealmAI(DistributedDistrictAI):
     """
@@ -34,6 +40,8 @@ class FairiesHomeRealmAI(DistributedDistrictAI):
         self.homeItems = {}
         # The single DistributedHome object for this realm (the house itself).
         self.home = None
+        # DistributedSurpriseAI objects for the owner's waiting Post Office mail.
+        self.postOfficeSurprises = []
 
     def _fairies(self):
         return self.air.mongoInterface.mongodb.fairies
@@ -50,6 +58,24 @@ class FairiesHomeRealmAI(DistributedDistrictAI):
             # "Storage" so the client keeps its return-to-storage flow.
             if item.get("home"):
                 self._generateHomeItem(item)
+
+    def loadPostOfficeSurprises(self):
+        # Generate a mailbox surprise for each kind of Post Office mail the owner
+        # has waiting (postcards / gift sets). Triggering it opens the archive
+        # panel, which pulls the actual mail over HTTP. Only the owner can trigger
+        # it (the client gates on isMyHome), but it's parented into the realm like
+        # the furniture, so visitors see the closed mailbox too.
+        messages = self.air.mongoInterface.mongodb.messages
+
+        for typeId in (TYPE_POST_OFFICE_POSTCARDS, TYPE_POST_OFFICE_GIFT_SETS):
+            if messages.count_documents({"recipient_id": self.ownerId, "type": typeId}) == 0:
+                continue
+
+            surprise = DistributedSurpriseAI(
+                self.air, typeId=typeId,
+                x=POST_OFFICE_SURPRISE_POS[0], y=POST_OFFICE_SURPRISE_POS[1])
+            self.air.generateWithRequired(surprise, self.getDoId(), self.ownerZone)
+            self.postOfficeSurprises.append(surprise)
 
     def generateHome(self):
         # Generate the realm's DistributedHome
@@ -139,6 +165,9 @@ class FairiesHomeRealmAI(DistributedDistrictAI):
         for homeItem in list(self.homeItems.values()):
             homeItem.requestDelete()
         self.homeItems.clear()
+        for surprise in self.postOfficeSurprises:
+            surprise.requestDelete()
+        self.postOfficeSurprises.clear()
         if self.home is not None:
             self.home.requestDelete()
             self.home = None

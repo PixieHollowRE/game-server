@@ -176,7 +176,7 @@ SHOP = NPCShop(
                 ShopItem(itemId=2579, price=10, goldPrice=1, color1=162, color2=162, itemType="Necklace"), # Sunglow Yellow Harvest Moon Necklace
                 ShopItem(itemId=2551, price=10, goldPrice=1, color1=129, color2=129, itemType="Necklace"), # Fig Purple Fringed Scarf
                 ShopItem(itemId=2552, price=10, goldPrice=1, color1=175, color2=175, itemType="Necklace"), # Creek Green Striped Scarf
-                ShopItem(itemId=2626, price=10, goldPrice=1, color1=840, color2=84,  itemType="Necklace"), # Copper Brown Golden Acorn Necklace
+                ShopItem(itemId=2626, price=10, goldPrice=1, color1=84,  color2=84,  itemType="Necklace"), # Copper Brown Golden Acorn Necklace
                 ShopItem(itemId=2611, price=10, goldPrice=1, color1=267, color2=267, itemType="Necklace"), # Celestial Blue Silky Scarf
                 ShopItem(itemId=2601, price=10, goldPrice=1, color1=121, color2=121, itemType="Necklace"), # Daisy Pink Casual Scarf
                 ShopItem(itemId=2600, price=10, goldPrice=1, color1=265, color2=265, itemType="Necklace"), # Bright Sky Blue Puffball Necklace
@@ -217,7 +217,6 @@ SHOP = NPCShop(
                 ShopItem(itemId=576, price=10, goldPrice=1, color1=183, color2=183, itemType="Belt"), # Vidia Purple Fast-Flying Feather
                 ShopItem(itemId=565, price=10, goldPrice=1, color1=139, color2=139, itemType="Belt"), # Seedling Green Artsy Floral Belt
                 ShopItem(itemId=545, price=10, goldPrice=1, color1=208, color2=208, itemType="Belt"), # Cerulean Blue Pinecone Belt
-                ShopItem(itemId=544, price=10, goldPrice=1, color1=161, color2=161, itemType="Belt"), # Buried Treasure Brown Artists Clothing Belt
                 ShopItem(itemId=531, price=10, goldPrice=1, color1=121, color2=121, itemType="Belt"), # Daisy Pink Ruffled Myrtle Leaf Belt
                 ShopItem(itemId=521, price=10, goldPrice=1, color1=27,  color2=27,  itemType="Belt"), # Corn Cob Yellow Pleated Petal Sash
                 ShopItem(itemId=520, price=10, goldPrice=1, color1=69,  color2=69,  itemType="Belt"), # Powder Blue Spider Silk Tie Belt
