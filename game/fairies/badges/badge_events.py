@@ -64,6 +64,17 @@ EVENT_WON_SOUR_PLUM_BADGE = 30031
 EVENT_WON_LUCKY_PURPLE_FEATHERS_BADGE = 30032
 EVENT_WON_SNEAKY_MR_TWITCHES_BADGE = 30033
 
+# ─────────────────────────────────── MEADOW GAMES ─────────────────────────────────── #
+# The Tearoom's two multiplayer tables each have a Fan/Super Fan/Devotee ladder
+# (goals 5/10/25, read from badges.xml). Unlike the talent minigames above, which
+# are single-player and score-based, these count *finished games* -- the badge
+# text is "playing ... at least #GOAL# times" -- so they are raised from
+# d_setRewards for every seated player, winner or not (see
+# DistributedMeadowGameAI.creditGamePlayed).
+
+EVENT_PLAYED_CRAZY_CAKES = 30040
+EVENT_PLAYED_TWO_FOR_TEA = 30041
+
 # ───────────────────────────────────── DONATIONS ──────────────────────────────────── #
 # Donating an inventory item (DistributedFairyPlayerAI.removeFromInventory, which
 # is where both StorageInventoryEntry.donate and WardrobeInventoryEntry.donate
@@ -161,6 +172,9 @@ EVENT_TO_BADGES: dict[int, tuple[int, ...]] = {
     EVENT_WON_LUCKY_PURPLE_FEATHERS_BADGE: (10902,),  # Lucky Purple Feathers
     EVENT_WON_SNEAKY_MR_TWITCHES_BADGE:    (11130,),  # Sneaky Mr. Twitches
 
+    EVENT_PLAYED_CRAZY_CAKES:         (10896, 10897, 10898),  # Crazy Cakes Fan / Super Fan / Devotee
+    EVENT_PLAYED_TWO_FOR_TEA:         (11001, 11002, 11003),  # Two for Tea Fan / Super Fan / Devotee
+
     EVENT_DONATE_WARDROBE_ITEM:       (10811, 10812, 10813),  # Wardrobe / Super / Flitterific Donation
     EVENT_DONATE_STORAGE_ITEM:        (10814, 10815, 10816),  # Storage / Super / Flitterific Donation
 }
@@ -193,6 +207,11 @@ GAME_TO_EVENT: dict[int, int] = {
     mc.MINIGAME_FAIRY_FIREWORKS:  EVENT_PLAYED_FAIRY_FIREWORKS,
     mc.MINIGAME_SNOWFLAKE_SWEEP:  EVENT_PLAYED_SNOWFLAKE_SWEEP,
     mc.MINIGAME_FIRST_FLIGHT:     EVENT_PLAYED_FIRST_FLIGHT,
+}
+
+MEADOW_GAME_TO_EVENT: dict[int, int] = {
+    13070: EVENT_PLAYED_CRAZY_CAKES,  # Crazy Cakes (MEADOW_GAME_CRAZY_EIGHTS)
+    13072: EVENT_PLAYED_TWO_FOR_TEA,  # Two for Tea (MEADOW_GAME_TWO_FOR_TEA)
 }
 
 # High Score badges (chapter 7) are not accumulated like the Helper badges: a

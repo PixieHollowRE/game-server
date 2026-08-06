@@ -19,7 +19,8 @@ from game.fairies.badges.badge_state import STATUS_ACTIVE, STATUS_EARNED
 # Chapter 19 - Tinkering  (practice + personal ladders; tier-1 Helper is in ch.1)
 # Chapter 20 - Tailoring  (practice + personal ladders; tier-1 Helper is in ch.1)
 # Chapter 21 - Donations  (wardrobe + storage ladders)
-TRACKED_CHAPTER_IDS = (1, 2, 3, 7, 10, 18, 19, 20, 21)
+# Chapter 24 - Tearoom Games (Crazy Cakes + Two for Tea Fan ladders)
+TRACKED_CHAPTER_IDS = (1, 2, 3, 7, 10, 18, 19, 20, 21, 24)
 
 # Badges to leave off the page entirely, for content that is unused. Usually a
 # badge inside a tracked chapter, but a badge dropped from INCLUDED_BADGES
