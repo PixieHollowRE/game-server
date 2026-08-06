@@ -97,7 +97,7 @@ class DistributedMeadowGameAI(DistributedInstanceBaseAI):
         exhausts the deck with nobody out -- rewards nobody and scores nobody.
         Both players count either way; the badges are for playing, not winning.
         """
-        eventId = badge_events.MEADOW_GAME_TO_EVENT.get(self.gameId)
+        eventId = badge_events.GAME_TO_EVENT.get(self.gameId)
 
         if eventId is None:
             # A meadow game with no badge ladder of its own. Most of them.

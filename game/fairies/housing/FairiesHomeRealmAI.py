@@ -71,11 +71,37 @@ class FairiesHomeRealmAI(DistributedDistrictAI):
             if messages.count_documents({"recipient_id": self.ownerId, "type": typeId}) == 0:
                 continue
 
-            surprise = DistributedSurpriseAI(
-                self.air, typeId=typeId,
-                x=POST_OFFICE_SURPRISE_POS[0], y=POST_OFFICE_SURPRISE_POS[1])
-            self.air.generateWithRequired(surprise, self.getDoId(), self.ownerZone)
-            self.postOfficeSurprises.append(surprise)
+            self.ensurePostOfficeSurprise(typeId)
+
+    def ensurePostOfficeSurprise(self, typeId):
+        # Mail of this kind just landed for the owner while their realm was
+        # already up (RealmGuardian -> FairiesAIRepository._handleMailDelivered).
+        # loadPostOfficeSurprises only runs at generate, so put the mailbox out
+        # now -- the owner may be standing in the room watching.
+        self._pruneDeletedSurprises()
+
+        for surprise in self.postOfficeSurprises:
+            if surprise.getTypeId() == typeId:
+                # Mailbox for this kind of mail is already out; opening it pulls
+                # everything waiting over HTTP, so one is enough.
+                return surprise
+
+        surprise = DistributedSurpriseAI(
+            self.air, typeId=typeId,
+            x=POST_OFFICE_SURPRISE_POS[0], y=POST_OFFICE_SURPRISE_POS[1])
+        self.air.generateWithRequired(surprise, self.getDoId(), self.ownerZone)
+        self.postOfficeSurprises.append(surprise)
+        return surprise
+
+    def _pruneDeletedSurprises(self):
+        # A mailbox deletes itself once the owner has viewed and cleared its mail
+        # (DistributedSurpriseAI.openComplete) without telling us, so drop the
+        # dead entries. Otherwise the next delivery of that kind would find a
+        # stale match here and never put a fresh mailbox out.
+        self.postOfficeSurprises = [
+            surprise for surprise in self.postOfficeSurprises
+            if not surprise.isDeleted()
+            and not getattr(surprise, "_DOAI_requestedDelete", False)]
 
     def generateHome(self):
         # Generate the realm's DistributedHome
@@ -165,7 +191,8 @@ class FairiesHomeRealmAI(DistributedDistrictAI):
         for homeItem in list(self.homeItems.values()):
             homeItem.requestDelete()
         self.homeItems.clear()
-        for surprise in self.postOfficeSurprises:
+        self._pruneDeletedSurprises()
+        for surprise in list(self.postOfficeSurprises):
             surprise.requestDelete()
         self.postOfficeSurprises.clear()
         if self.home is not None:
