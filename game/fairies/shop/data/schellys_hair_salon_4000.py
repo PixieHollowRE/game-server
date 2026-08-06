@@ -1,7 +1,6 @@
 from game.fairies.ai import ZoneConstants
-from game.fairies.ai.FairiesConstants import DYE_ITEM_ID_OFFSET, INGREDIENTS
+from game.fairies.ai.FairiesConstants import INGREDIENTS
 from game.fairies.fairy import FamousFairyData
-from game.fairies.fairy.structs.PurchaseType import PurchaseType
 from game.fairies.fairy.structs.ShopCollection import ShopCollection
 from game.fairies.fairy.structs.ShopItem import ShopItem
 from game.fairies.fairy.structs.ShopOutfit import ShopOutfit
@@ -19,8 +18,6 @@ SHOP = NPCShop(
     collections=[
         ShopCollection(
             collectionId=4001, # Classic Hair Fronts (Fairies)
-            purchaseType=PurchaseType.DNA,
-            dnaFields=(("hair_front", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5001, price=10, goldPrice=2), # Simple Style
@@ -46,8 +43,6 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=4003, # Classic Hair Backs (Fairies)
-            purchaseType=PurchaseType.DNA,
-            dnaFields=(("hair_back", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5521, price=10, goldPrice=2), # No Back
@@ -76,8 +71,6 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=4004, # Stylish Hair Fronts (Fairies)
-            purchaseType=PurchaseType.DNA,
-            dnaFields=(("hair_front", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5106, price=10, goldPrice=2),
@@ -147,8 +140,6 @@ SHOP = NPCShop(
         ),
                 ShopCollection(
             collectionId=4010, # Classic Hair Fronts (Sparrowmen)
-            purchaseType=PurchaseType.DNA,
-            dnaFields=(("hair_front", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5044, price=10, goldPrice=2), # Side Swept Layers
@@ -168,8 +159,6 @@ SHOP = NPCShop(
                 
             ShopCollection(
             collectionId=4011, # Classic Hair Backs (Sparrowmen)
-            purchaseType=PurchaseType.DNA,
-            dnaFields=(("hair_back", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5560, price=10, goldPrice=2), # No Back
@@ -191,8 +180,6 @@ SHOP = NPCShop(
 
         ShopCollection(
             collectionId=4012, # Stylish Hair Fronts (Sparrowmen)
-            purchaseType=PurchaseType.DNA,
-            dnaFields=(("hair_front", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5061, price=10, goldPrice=2), # Fly Backwards
@@ -207,8 +194,6 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=4013, # Stylish Hair Backs (Sparrowmen)
-            purchaseType=PurchaseType.DNA,
-            dnaFields=(("hair_back", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5562, price=10, goldPrice=2), # Fly Backwards Back
@@ -224,8 +209,6 @@ SHOP = NPCShop(
 
         ShopCollection(
             collectionId=4005, # Stylish Hair Backs (Fairies)
-            purchaseType=PurchaseType.DNA,
-            dnaFields=(("hair_back", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5521, price=10, goldPrice=2), # No Back
@@ -285,8 +268,6 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=4014, # Hair Colors
-            purchaseType=PurchaseType.DNA,
-            dnaFields=(("hair_color", -DYE_ITEM_ID_OFFSET),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=14055, price=10, goldPrice=1), # Pepper Black
@@ -354,12 +335,11 @@ SHOP = NPCShop(
                 ShopItem(itemId=14109, price=10, goldPrice=1), # Soft Orange
                 ShopItem(itemId=14111, price=10, goldPrice=1), # Sparkling Yellow
                 ShopItem(itemId=14166, price=10, goldPrice=1), # Snow White
+                ShopItem(itemId=14227, price=10, goldPrice=1) # Moonlight Gray
             ]
         ),
         ShopCollection(
             collectionId=4015, # Highlights 
-            purchaseType=PurchaseType.DNA,
-            dnaFields=(("hair_color2", -DYE_ITEM_ID_OFFSET),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=14055, price=10, goldPrice=1, specialType=2), # Pepper Black
@@ -427,6 +407,7 @@ SHOP = NPCShop(
                 ShopItem(itemId=14109, price=10, goldPrice=1, specialType=2), # Soft Orange
                 ShopItem(itemId=14111, price=10, goldPrice=1, specialType=2), # Sparkling Yellow
                 ShopItem(itemId=14166, price=10, goldPrice=1, specialType=2), # Snow White
+                ShopItem(itemId=14227, price=10, goldPrice=1, specialType=2), # Moonlight Gray
             ]
         )
     ],

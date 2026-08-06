@@ -11,12 +11,14 @@ from game.fairies.minigame import DistributedTalentMinigameAI
 from game.fairies.minigame import DistributedCraftingMinigameAI
 from game.fairies.minigame import DistributedMeadowGameAI
 from game.fairies.minigame import DistributedMatchGameAI
+from game.fairies.minigame import DistributedCrazyEightsAI
 from game.fairies.gateway import DistributedGatewayAI
 from game.fairies.uberdog import FairiesBadgeManagerUD
 from game.fairies.ai import FairiesBadgeManagerAI
 from game.fairies.meadow import DistributedMeadowAI
 from game.fairies.meadow import DistributedSpawnStackAI
 from game.fairies.meadow import DistributedMultiplayerSpawnStackAI
+from game.fairies.meadow import DistributedGiveawayAI
 from game.fairies.ai import FairiesMagicWordManagerAI
 from game.fairies.housing import DistributedHomeAI
 from game.fairies.housing import FairiesHomeRealmAI
@@ -437,14 +439,14 @@ dclass DistributedHomeHotspot { // 73
 };
 
 dclass DistributedSurprise { // 74
-    setItemId(uint32) required; // 357
-    setTypeId(int8) required; // 358
-    setTypeData(int8[]) required; // 359
-    setPosition(uint32, uint32) required; // 360
-    setRestricted(int8) required; // 361
-    setState(int8) required; // 362
-    openRequest(int8); // 363
-    openComplete(int8); // 364
+    setItemId(uint32) required broadcast; // 357
+    setTypeId(int8) required broadcast; // 358
+    setTypeData(int8[]) required broadcast; // 359
+    setPosition(uint32, uint32) required broadcast; // 360
+    setRestricted(int8) required broadcast; // 361
+    setState(int8) required broadcast; // 362
+    openRequest(int8) clsend airecv; // 363
+    openComplete(int8) clsend airecv; // 364
 };
 
 dclass DistributedGardenPlot { // 75
@@ -587,7 +589,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     setHasTagalong(int16) required ownrequired broadcast db ownrecv; // 486
     setTagalongExpire(int32) ownrequired broadcast db ownrecv; // 487
     setOutfitDB(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64) ownsend airecv; // 488
-    setStatus(uint8, uint8, uint8, uint8) broadcast ownsend ownrecv airecv; // 489
+    setStatus(uint8, uint8, uint8, uint8) ram broadcast ownsend ownrecv airecv; // 489
     setSCEmote(uint32, uint16) broadcast ownsend airecv; // 490
     setChatMessage(string) ownsend broadcast; // 491
     setWhisperSCEmoteTo(uint32 toId, uint16 emoteId) ownsend ownrecv airecv; // 492
@@ -792,16 +794,16 @@ dclass DistributedFairyShopkeeperNPC : DistributedFairyNPC { // 91
     setRequestPurchasePet(PurchaseItem, int16, int16, int8) clsend airecv; // 658
     setRequestDyeItem(uint64, int16, int16, int8, int8) clsend airecv; // 659
     setDyePrice(int32 dyeCostItemId, int16 dye1Price, int16 dye2Price, int16 dye1Gold, int16 dye2Gold) required broadcast ram; // 660
-    setRequestGiftSet(PurchaseItem[], uint32, uint32, int16, int32); // 661
+    setRequestGiftSet(PurchaseItem[], uint32, uint32, int16, int32) clsend airecv; // 661
     setStockLimits(StockUpdate[]); // 662
 };
 
 dclass DistributedGiveaway : DistributedSpawnStack { // 92
-    setEventID(uint32) required; // 663
-    setGiveawayID(uint32) required; // 664
-    setHolidayBit(int32) required; // 665
-    setItemEventId(int32) required; // 666
-    acquisitionRequest(); // 667
+    setEventID(uint32) required broadcast; // 663
+    setGiveawayID(uint32) required broadcast; // 664
+    setHolidayBit(int32) required broadcast; // 665
+    setItemEventId(int32) required broadcast; // 666
+    acquisitionRequest() clsend airecv; // 667
     acquisitionResponse(uint8); // 668
 };
 
@@ -936,10 +938,10 @@ struct Card {
 };
 
 dclass DistributedCrazyEights : DistributedMeadowGame { // 107
-    setGameData(int8, Card, uint8, uint8[], uint32, uint32, uint8); // 757
+    setGameData(int8, Card, uint8, uint8[], uint32, uint32, uint8) broadcast; // 757
     setPlayerData(Card[]); // 758
-    turnRequest(int8, Card[]); // 759
-    turnResponse(uint8); // 760
+    turnRequest(int8, Card[]) clsend airecv; // 759
+    turnResponse(uint8) broadcast; // 760
 };
 
 dclass DistributedDerbyCartRacing : DistributedMeadowGame { // 108

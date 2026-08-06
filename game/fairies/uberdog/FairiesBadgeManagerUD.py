@@ -18,13 +18,15 @@ from game.fairies.badges.badge_state import STATUS_ACTIVE, STATUS_EARNED
 # Chapter 18 - Baking     (practice + personal ladders; tier-1 Helper is in ch.1)
 # Chapter 19 - Tinkering  (practice + personal ladders; tier-1 Helper is in ch.1)
 # Chapter 20 - Tailoring  (practice + personal ladders; tier-1 Helper is in ch.1)
-# Chapter 21 - Donations  (wardrobe + storage ladders; the Royal honor that tops
-#                          both out is 10821, tracked via INCLUDED_BADGES)
+# Chapter 21 - Donations  (wardrobe + storage ladders)
 TRACKED_CHAPTER_IDS = (1, 2, 3, 7, 10, 18, 19, 20, 21)
 
-# Badges inside a tracked chapter to leave off the page entirely, for content
-# that is unused.
+# Badges to leave off the page entirely, for content that is unused. Usually a
+# badge inside a tracked chapter, but a badge dropped from INCLUDED_BADGES
+# belongs here too: fairies who logged in while it was included still carry its
+# row, and this is what keeps that row from being sent.
 EXCLUDED_BADGE_IDS = frozenset({
+    10821,  # Royal Wardrobe and Storage Donation
     10822,  # Mainland Sorter
     10823,  # Super Mainland Sorter
     10824,  # Flitterific Mainland Sorter
@@ -49,11 +51,6 @@ NEW_FAIRY = 10574
 INCLUDED_BADGES: dict[int, str] = {
     FOUNDING_FAIRY: STATUS_EARNED,
     NEW_FAIRY: STATUS_EARNED,
-    # Royal Wardrobe and Storage Donation -- an Honors badge (chapter 0, page
-    # 12042) rather than part of the tracked Donations chapter. Given a row and
-    # its page so it can be earned after the fact, then granted outright by
-    # _maybeAwardRoyalDonation once both Flitterific tiers are.
-    badge_events.ROYAL_DONATION_BADGE: STATUS_ACTIVE,
 }
 
 def _badgeIdsIn(chapterIds) -> tuple[int, ...]:
@@ -192,6 +189,94 @@ class FairiesBadgeManagerUD(DistributedObjectGlobalUD):
         # never shows; fall back to 0 if the badge somehow has no goal.
         goal = badge_xml.get_goal(badgeId) or 0
         self._awardBadge(avatarId, badgeId, goal)
+
+    def unlockBadge(self, avatarId: int, badgeId: int) -> None:
+        """
+        Give a fairy a fresh, unearned row for a badge -- creating it if they
+        have never had one, resetting it if they have.
+
+        Only the magic words send this (see FairiesBadgeManagerAI.d_unlockBadge).
+        It is deliberately blunt: `get-badge` needs a row to exist before
+        giveBadge can award it, and `clear-visited-meadows` needs an earned
+        Meadow Explorer badge taken back to zero, and both are the same write.
+        Anything earned this way is lost, which is what a GM asking for it wants.
+        """
+        if badgeId in EXCLUDED_BADGE_IDS:
+            self.notify.warning(f"unlockBadge: badgeId={badgeId} is excluded")
+            return
+
+        if badge_lookup.get_badge(badgeId) is None:
+            self.notify.warning(f"unlockBadge: no such badgeId={badgeId}")
+            return
+
+        row = self._newRow(badgeId, STATUS_ACTIVE)
+        fairies = self.air.mongoInterface.mongodb.fairies
+
+        # `zones` is only carried by the Meadow Explorer rows; unsetting it on a
+        # row that never had one is a no-op, so one write covers both kinds.
+        updated = fairies.update_one(
+            {"_id": avatarId, "badgeData.badges.badgeId": badgeId},
+            {
+                "$set": {
+                    "badgeData.badges.$.status": STATUS_ACTIVE,
+                    "badgeData.badges.$.progress": 0,
+                    "badgeData.badges.$.dateEarned": None,
+                },
+                "$unset": {"badgeData.badges.$.zones": ""},
+            },
+        )
+
+        if updated.matched_count == 0:
+            fairies.update_one(
+                {"_id": avatarId}, {"$push": {"badgeData.badges": row}}
+            )
+
+        # The client keeps earned badges and in-progress badges in separate maps
+        # and never moves one back, so a reset row has to arrive as a fresh
+        # badgeUnlocked for the book to show it as unearned again.
+        self.sendUpdateToAvatarId(avatarId, "badgeUnlocked", [[badgeId, 0]])
+
+    def unlockPage(self, avatarId: int, pageId: int) -> None:
+        """
+        Show a fairy a page of the badge book they can't see yet, along with the
+        progress rows for whatever is on it.
+        """
+        badges = badge_lookup.get_badges_for_page(pageId)
+
+        if not badges:
+            self.notify.warning(f"unlockPage: no such pageId={pageId}")
+            return
+
+        result = self.air.mongoInterface.mongodb.fairies.update_one(
+            {"_id": avatarId}, {"$addToSet": {"badgeData.unlockedPages": pageId}}
+        )
+
+        if result.matched_count == 0:
+            self.notify.warning(f"unlockPage: no fairy document for avId={avatarId}")
+            return
+
+        # pageUnlocked carries the progress of everything on the page; a badge
+        # the fairy has no row for simply isn't listed, the same way avatarOnline
+        # leaves untracked badges out.
+        onPage = {badge["id"] for badge in badges}
+        rows = self._badgeRows(avatarId)
+        progress = [
+            [row["badgeId"], row.get("progress", 0)]
+            for row in rows
+            if row["badgeId"] in onPage and row.get("status") == STATUS_ACTIVE
+        ]
+
+        self.sendUpdateToAvatarId(avatarId, "pageUnlocked", [pageId, progress])
+
+    def _badgeRows(self, avatarId: int) -> list:
+        fairy = self.air.mongoInterface.mongodb.fairies.find_one(
+            {"_id": avatarId}, {"badgeData.badges": 1}
+        )
+
+        if fairy is None:
+            return []
+
+        return (fairy.get("badgeData") or {}).get("badges") or []
 
     def _accumulate(self, avatarId: int, eventId: int, amount: int) -> None:
         if amount <= 0:
@@ -345,38 +430,6 @@ class FairiesBadgeManagerUD(DistributedObjectGlobalUD):
         self.sendUpdateToAvatarId(
             avatarId, "badgeAcquired", [[badgeId, self._formatDateEarned(dateEarned)]]
         )
-
-        # Completing either donation ladder's top tier may complete the combined
-        # Royal honor. Only the two Flitterific tiers can, so nothing else pays
-        # the read.
-        if badgeId in badge_events.DONATION_TOP_TIERS:
-            self._maybeAwardRoyalDonation(avatarId)
-
-    def _maybeAwardRoyalDonation(self, avatarId: int) -> None:
-        """
-        Grant the Royal Wardrobe and Storage Donation honor once both the
-        Flitterific Wardrobe and Flitterific Storage tiers are earned.
-
-        The honor has no goal of its own (goal 0), so it is not accumulated --
-        it is handed over outright the moment both prerequisites are met.
-        _awardBadge only touches a tracked ACTIVE row, so a fairy who already
-        has it no-ops here.
-        """
-        fairy = self.air.mongoInterface.mongodb.fairies.find_one(
-            {"_id": avatarId}, {"badgeData.badges": 1}
-        )
-
-        if fairy is None:
-            return
-
-        earned = {
-            row["badgeId"]
-            for row in fairy["badgeData"]["badges"]
-            if row.get("status") == STATUS_EARNED
-        }
-
-        if all(tier in earned for tier in badge_events.DONATION_TOP_TIERS):
-            self._awardBadge(avatarId, badge_events.ROYAL_DONATION_BADGE, 0)
 
     def _ensureTrackedBadges(self, avatarId: int):
         """

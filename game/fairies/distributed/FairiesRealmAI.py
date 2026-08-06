@@ -7,15 +7,12 @@ from game.otp.distributed.DistributedDistrictAI import DistributedDistrictAI
 from . import RealmGlobals
 
 import time
-import json
 
 class FairiesRealmAI(DistributedDistrictAI):
     notify = directNotify.newCategory("FairiesRealmAI")
 
     def __init__(self, air, name="untitled"):
         DistributedDistrictAI.__init__(self, air, name)
-
-        self.realmPopulationLevels: list[int] = json.loads(config.GetString("realm-population-levels"))
 
     def generate(self):
         DistributedDistrictAI.generate(self)
@@ -27,16 +24,12 @@ class FairiesRealmAI(DistributedDistrictAI):
         self.sendUpdate("setPopulationLevel", [self.getPopulationLevel()])
 
     def getPopulationLevel(self):
-        realmPop = self.air.getPopulation()
-
-        if realmPop >= self.realmPopulationLevels[3]:
-            return RealmGlobals.FULL_LEVEL
-        elif realmPop >= self.realmPopulationLevels[2]:
-            return RealmGlobals.CROWDED_LEVEL
-        elif realmPop >= self.realmPopulationLevels[1]:
-            return RealmGlobals.IDEAL_LEVEL
-        else:
-            return RealmGlobals.QUIET_LEVEL
+        # Same thresholds the capacity checks use, so what the shard chooser
+        # shows as "full" is exactly what the server refuses to fly people into.
+        # Everyone this AI hosts counts, home realm visitors included -- they
+        # are load on the same process as the realm itself.
+        return RealmGlobals.getPopulationLevel(
+            self.air.getPopulation(), self.air.getRealmPopulationLevels())
 
     def setServerTime(self, refresh):
         if refresh:

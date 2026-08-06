@@ -1,5 +1,5 @@
-from game.fairies.ai.FairiesConstants import get_item_type
 from game.fairies.badges import badge_events
+from game.fairies.fairy.ItemGrant import STORAGE, WARDROBE, grant_item
 from game.fairies.fairy.structs.RewardExt import RewardExt
 from .DailyChancePool import PoolItem
 from .DailyChanceConstants import Category, INGR_RARITY_TO_PRIZE_AMOUNT, COOKIE_RARITY_TO_PRIZE_AMOUNT
@@ -37,63 +37,12 @@ def _grant_pouch(air, avId, prize: PoolItem) -> tuple[bool, RewardExt | None]:
 
     return False, None
 
-# Mirrored with edits from DistributedCraftingMinigameAI
-def _grant_item(air, avId, prizeId, color1, color2, location, update_name) -> bool:
-    inv_id = air.mongoInterface.getNextDoId()
-    itemType = get_item_type(prizeId)
-    how_acquired = 11
-
-    inv_item_ext = [
-        inv_id,
-        prizeId,
-        -1,
-        0,
-        "",
-        0,
-        "",
-        0,
-        color1,
-        color2,
-        how_acquired,
-    ]
-
-    result = air.mongoInterface.mongodb.fairies.update_one(
-        {"_id": avId},
-        {
-            "$push": {
-                "avatar.items": {
-                    "inv_id": inv_id,
-                    "type": itemType,
-                    "item_id": prizeId,
-                    "slot": -1,
-                    "createdById": 0,
-                    "createdByName": "",
-                    "giftedById": 0,
-                    "giftedByName": "",
-                    "quality": 0,
-                    "color1": color1,
-                    "color2": color2,
-                    "howAcquired": how_acquired,
-                    "location": location,
-                }
-            }
-        },
-    )
-
-    if result.modified_count == 0:
-        return False
-
-    air.inventoryManager.sendUpdateToAvatarId(
-        avId, update_name, [prizeId, inv_item_ext]
-    )
-    return True
-
 def _grant_wardrobe(air, avId, prize: PoolItem) -> tuple[bool, RewardExt | None]:
-    success = _grant_item(air, avId, prize.id, prize.c1, prize.c2, "Wardrobe", "wardrobeItem")
+    success = grant_item(air, avId, prize.id, prize.c1, prize.c2, WARDROBE)
     return (True, _prize_as_reward_ext(prize)) if success else (False, None)
 
 def _grant_home(air, avId, prize: PoolItem) -> tuple[bool, RewardExt | None]:
-    success = _grant_item(air, avId, prize.id, prize.c1, prize.c2, "Storage", "storageItem")
+    success = grant_item(air, avId, prize.id, prize.c1, prize.c2, STORAGE)
     return (True, _prize_as_reward_ext(prize)) if success else (False, None)
 
 def _grant_badge(air, avId, prize: PoolItem) -> tuple[bool, RewardExt | None]:

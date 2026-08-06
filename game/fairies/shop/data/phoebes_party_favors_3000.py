@@ -3,8 +3,7 @@ from game.fairies.ai.FairiesConstants import INGREDIENTS
 from game.fairies.fairy import FamousFairyData
 from game.fairies.fairy.structs.ShopCollection import ShopCollection
 from game.fairies.fairy.structs.ShopItem import ShopItem
-from game.fairies.fairy.structs.ShopOutfit import ShopOutfit
-from game.fairies.fairy.structs.OutfitItem import OutfitItem
+from game.fairies.fairy.structs.PurchaseType import PurchaseType
 from game.fairies.shop.ShopHelpers import NPCShop, Shopkeeper
 
 SHOP = NPCShop(
@@ -19,6 +18,7 @@ SHOP = NPCShop(
         ShopCollection(
             collectionId=3000, # Party Decorations
             currencyId=INGREDIENTS["ROSE_PETALS"].id,
+            purchaseType=PurchaseType.POUCH,
             items=[
                 ShopItem(itemId=17001, price=5, goldPrice=3), # Banner Party
                 ShopItem(itemId=17002, price=5, goldPrice=3), # Flower Party
@@ -32,6 +32,7 @@ SHOP = NPCShop(
         ShopCollection(
             collectionId=3001, # Party Games
             currencyId=INGREDIENTS["ROSE_PETALS"].id,
+            purchaseType=PurchaseType.POUCH,
             items=[
                 ShopItem(itemId=13012, price=10, goldPrice=5), # Pass The Popcorn
                 ShopItem(itemId=13013, price=10, goldPrice=5), # Simone Says

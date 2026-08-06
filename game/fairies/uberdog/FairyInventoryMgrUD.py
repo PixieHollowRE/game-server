@@ -11,7 +11,9 @@ class FairyInventoryMgrUD(DistributedObjectGlobalUD):
 
     def avatarOnline(self, avatarId, avatarType) -> None:
         # avatarType is unused, but it is sent over the messenger anyways.
-        fairy = self.air.mongoInterface.retrieveDocs("fairies", avatarId, "_id")[0]
+        fairy = self.air.mongoInterface.retrieveDocs(
+            "fairies", avatarId, "_id", {"avatar.items": 1}
+        )[0]
 
         for item in fairy["avatar"]["items"]:
             if item["location"] in ("Wardrobe", "Equipped"):
@@ -41,13 +43,19 @@ class FairyInventoryMgrUD(DistributedObjectGlobalUD):
             ])
 
     def setStorageSlot(self, invId, slot) -> None:
-        self.air.mongoInterface.mongodb.fairies.update_one(
-            {"avatar.items.inv_id": invId},
-            {"$set": {"avatar.items.$.slot": slot}}
-        )
+        self._setItemSlot(invId, slot)
 
     def setWardrobeSlot(self, invId, slot) -> None:
+        self._setItemSlot(invId, slot)
+
+    def _setItemSlot(self, invId, slot) -> None:
+        avId = self.air.getAvatarIdFromSender()
+
+        if not avId:
+            self.notify.warning(f"setItemSlot: no avatar for sender, invId={invId}")
+            return
+
         self.air.mongoInterface.mongodb.fairies.update_one(
-            {"avatar.items.inv_id": invId},
+            {"_id": avId, "avatar.items.inv_id": invId},
             {"$set": {"avatar.items.$.slot": slot}}
         )

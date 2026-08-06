@@ -1,8 +1,9 @@
 """
 Runtime ingredient spawner — creates and manages spawn stack objects.
 
-Reads configuration from IngredientSpawnData.makeIngredientSpawn() and
-makeBunchSpawn(), and creates one SpawnPool per active pool config. Each pool:
+Reads configuration from IngredientSpawnData.makeIngredientSpawn(),
+makeBunchSpawn() and makeFixedBunchSpawn(), and creates one SpawnPool per active
+pool config. Each pool:
   - spawns spawn_limit items at random positions within the zone's map bounds
   - respawns one item at a new random position after collection (rarity timing)
   - rejects spawn points inside ZONE_EXCLUSIONS (when populated)
@@ -14,6 +15,11 @@ DistributedSpawnStackAI, drawing its item at random from config.items instead
 of a fixed item_id. Both kinds share this file's placement and respawn rules,
 and are spaced against each other, since every stack registers in
 _zoneStacks regardless of which pool spawned it.
+
+A pool carrying a fixed_position (FIXED_BUNCH_SPAWNS) holds a single stack that
+always respawns at that one coordinate, skipping the placement rules above.
+These start before the random pools so the random ones space themselves around
+the hand-picked spots rather than the other way round.
 
 Started once by FairiesAIRepository.createObjects().
 """
@@ -33,6 +39,7 @@ from game.fairies.meadow.IngredientSpawnData import (
     ActiveSpawnPool,
     SpawnExclusionZone,
     makeBunchSpawn,
+    makeFixedBunchSpawn,
     makeIngredientSpawn,
 )
 
@@ -55,11 +62,12 @@ class SpawnPool:
         for _ in range(self.config.spawn_limit):
             self.spawn()
 
-        detail = (
-            "rarity=%s" % self.config.rarity.name.lower()
-            if self.config.rarity is not None
-            else "%d candidate ingredients" % len(self.config.items)
-        )
+        if self.config.fixed_position is not None:
+            detail = "fixed at (%d, %d)" % self.config.fixed_position
+        elif self.config.rarity is not None:
+            detail = "rarity=%s" % self.config.rarity.name.lower()
+        else:
+            detail = "%d candidate ingredients" % len(self.config.items)
 
         self.notify.info(
             "Started %s spawning with %d stacks in zone %d (%s)"
@@ -102,7 +110,9 @@ class SpawnPool:
         if len(self.activeStacks) >= self.config.spawn_limit:
             return None
 
-        position = self.randomPosition()
+        # A fixed pool always comes back to its own coordinate; only pools that
+        # place at random have to hunt for a spot.
+        position = self.config.fixed_position or self.randomPosition()
         if position is None:
             self.notify.warning(
                 "Failed to find valid spawn point for %s in zone %d"
@@ -248,11 +258,18 @@ class IngredientSpawnMgrAI:
 
     def start(self) -> None:
         poolConfigs = makeIngredientSpawn()
+        poolConfigs += makeFixedBunchSpawn()
 
         if MP_BUNCHES_ENABLED:
             poolConfigs += makeBunchSpawn()
 
-        poolConfigs = sorted(poolConfigs, key=lambda config: config.zone_id)
+        # Fixed pools first: they claim their coordinate unconditionally, so
+        # starting them ahead of the random ones is what makes the random ones
+        # keep MIN_DISTANCE away instead of landing on top of them.
+        poolConfigs = sorted(
+            poolConfigs,
+            key=lambda config: (config.fixed_position is None, config.zone_id),
+        )
 
         for poolConfig in poolConfigs:
             pool = SpawnPool(self.air, self, poolConfig)

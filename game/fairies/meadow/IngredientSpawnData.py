@@ -51,6 +51,23 @@ class MPBunchSpawnDef:
     zones: tuple[int, ...]
     enabled: bool = True
 
+# One bunch pinned to a hand-picked spot. Unlike MPBunchSpawnDef (which is a
+# zone-wide budget placed at random), each row here is exactly one stack at
+# exactly one coordinate, respawning in place after it is collected.
+@dataclass(frozen=True)
+class FixedBunchSpawnDef:
+    zone_id: int
+    item_id: int
+    display_name: str
+    x: int
+    y: int
+    # None means "use the FIXED_BUNCH_RESPAWN_*_SEC defaults below".
+    respawn_min_sec: int | None = None
+    respawn_max_sec: int | None = None
+    # False makes this a plain one-fairy pickup at the same fixed spot.
+    multiplayer: bool = True
+    enabled: bool = True
+
 class SpawnItem(NamedTuple):
     item_id: int
     display_name: str
@@ -68,6 +85,9 @@ class ActiveSpawnPool:
     exclusions: tuple[SpawnExclusionZone, ...] = ()
     items: tuple[SpawnItem, ...] = ()  # bunch pools only; spawn() draws one per stack
     multiplayer: bool = False
+    # Set means "always here": spawn() skips random placement, MIN_DISTANCE and
+    # the exclusion test, because the coordinate was picked deliberately.
+    fixed_position: tuple[int, int] | None = None
 
 # Meadows
 AUTUMN_MEADOWS = (
@@ -153,8 +173,8 @@ MP_BUNCHES_ENABLED = True
 MP_BUNCHES_PER_ZONE = 2
 
 # Jittered so a collected bunch doesn't reappear on a predictable beat.
-MP_BUNCH_RESPAWN_MIN_SEC = 300
-MP_BUNCH_RESPAWN_MAX_SEC = 480
+MP_BUNCH_RESPAWN_MIN_SEC = 600 # 10 minutes
+MP_BUNCH_RESPAWN_MAX_SEC = 780 # 13 Minutes
 
 MP_BUNCH_SPAWNS: tuple[MPBunchSpawnDef, ...] = (
     MPBunchSpawnDef(fc.ACORNS, "Acorn Bunch", AUTUMN_MEADOWS + WINTER_MEADOWS),
@@ -175,6 +195,47 @@ MP_BUNCH_SPAWNS: tuple[MPBunchSpawnDef, ...] = (
     MPBunchSpawnDef(fc.SPIDER_SILK, "Spider Silk Bunch", SPRING_MEADOWS + SUMMER_MEADOWS + HAVENDISH_SQUARE),
     MPBunchSpawnDef(fc.SUNFLOWER_SEEDS, "Sunflower Seed Bunch", SPRING_MEADOWS + SUMMER_MEADOWS + HAVENDISH_SQUARE),
     MPBunchSpawnDef(fc.TWIGS, "Twig Bunch", AUTUMN_MEADOWS + WINTER_MEADOWS),
+)
+
+# Bunches pinned to hand-picked coordinates. These are separate from the
+# per-zone random budget above: each row is one stack that always comes back at
+# the same spot, so a zone running two random bunches plus two rows here keeps
+# four bunches up. Coordinates are meadow map coordinates, same space as
+# SPAWN_BLOCK — read them off web-meadows/zone<id>/config.xml hotspots.
+#
+# Fixed spots ignore the exclusion zones and the MIN_DISTANCE spacing rule (the
+# coordinate is deliberate), but they still register with the manager, so random
+# ingredients keep their distance from them.
+#
+# Multiplayer rows obey MP_BUNCHES_ENABLED; rows with multiplayer=False are
+# plain single-fairy pickups and always run.
+FIXED_BUNCH_RESPAWN_MIN_SEC = MP_BUNCH_RESPAWN_MIN_SEC
+FIXED_BUNCH_RESPAWN_MAX_SEC = MP_BUNCH_RESPAWN_MAX_SEC
+
+FIXED_BUNCH_SPAWNS: tuple[FixedBunchSpawnDef, ...] = (
+    # Example — a Maple Leaf bunch that always sits at (640, 880) on Maple Tree Hill:
+    # FixedBunchSpawnDef(zc.MAPLE_TREE_HILL, fc.MAPLE_LEAVES, "Maple Leaf Bunch", 640, 880),
+    FixedBunchSpawnDef(zc.TROOP_OTTER_HIDEOUT, fc.YELLOW_GEMS, "Yellow Gem Bunch", 304, 315),
+    FixedBunchSpawnDef(zc.TROOP_OTTER_HIDEOUT, fc.YELLOW_GEMS, "Yellow Gem Bunch", 656, 285),
+    FixedBunchSpawnDef(zc.TROOP_OTTER_HIDEOUT, fc.YELLOW_GEMS, "Yellow Gem Bunch", 383, 100),
+
+    FixedBunchSpawnDef(zc.TROOP_RABBIT_HIDEOUT, fc.BLUE_GEMS, "Blue Gem Bunch", 700, 245),
+    FixedBunchSpawnDef(zc.TROOP_RABBIT_HIDEOUT, fc.BLUE_GEMS, "Blue Gem Bunch", 670, 160),
+    FixedBunchSpawnDef(zc.TROOP_RABBIT_HIDEOUT, fc.BLUE_GEMS, "Blue Gem Bunch", 380, 100),
+
+    FixedBunchSpawnDef(zc.TROOP_BUTTERFLY_HIDEOUT, fc.YELLOW_GEMS, "YELLOW Gem Bunch", 700, 245),
+    FixedBunchSpawnDef(zc.TROOP_BUTTERFLY_HIDEOUT, fc.YELLOW_GEMS, "YELLOW Gem Bunch", 670, 160),
+    FixedBunchSpawnDef(zc.TROOP_BUTTERFLY_HIDEOUT, fc.YELLOW_GEMS, "YELLOW Gem Bunch", 400, 95),
+
+    FixedBunchSpawnDef(zc.TROOP_GLOWWORM_HIDEOUT, fc.BLUE_GEMS, "Blue Gem Bunch", 304, 315),
+    FixedBunchSpawnDef(zc.TROOP_GLOWWORM_HIDEOUT, fc.BLUE_GEMS, "Blue Gem Bunch", 700, 245),
+    FixedBunchSpawnDef(zc.TROOP_GLOWWORM_HIDEOUT, fc.BLUE_GEMS, "Blue Gem Bunch", 400, 95),
+
+    FixedBunchSpawnDef(zc.TROOP_TURTLE_HIDEOUT, fc.BLUE_GEMS, "Blue Gem Bunch", 304, 315),
+    FixedBunchSpawnDef(zc.TROOP_TURTLE_HIDEOUT, fc.BLUE_GEMS, "Blue Gem Bunch", 700, 245),
+    FixedBunchSpawnDef(zc.TROOP_TURTLE_HIDEOUT, fc.BLUE_GEMS, "Blue Gem Bunch", 400, 95),
+
+
 )
 
 # Mirrors <spawnableIdRemaps> in spawnableAssets.xml: ingredient -> bunch asset
@@ -241,6 +302,13 @@ ZONE_MAP_BOUNDS: dict[int, SpawnBounds] = {
     zc.CHILLY_FALLS: mapArea(1255, 1781),
     # Havendish
     zc.HAVENDISH_SQUARE: mapArea(2166, 1509),
+    zc.THE_BALLROOM: mapArea(1464, 1000),
+    # Special Zones
+    zc.TROOP_RABBIT_HIDEOUT: mapArea(994, 650),
+    zc.TROOP_BUTTERFLY_HIDEOUT: mapArea(994, 650),
+    zc.TROOP_OTTER_HIDEOUT: mapArea(994, 650),
+    zc.TROOP_TURTLE_HIDEOUT: mapArea(994, 650),
+    zc.TROOP_GLOWWORM_HIDEOUT: mapArea(994, 650),
 }
 
 def zoneMapArea(zone_id: int) -> SpawnBounds:
@@ -457,6 +525,32 @@ def bunchAssetErrorHandler() -> None:
             % ", ".join(str(i) for i in unrenderable)
         )
 
+def fixedBunchErrorHandler() -> None:
+    problems: list[str] = []
+
+    for fixed in FIXED_BUNCH_SPAWNS:
+        if not fixed.enabled:
+            continue
+
+        label = "%s at (%d, %d) in zone %d" % (
+            fixed.display_name,
+            fixed.x,
+            fixed.y,
+            fixed.zone_id,
+        )
+
+        if fixed.zone_id not in ZONE_MAP_BOUNDS:
+            problems.append("%s: no ZONE_MAP_BOUNDS for that zone" % label)
+            continue
+
+        if fixed.multiplayer and fixed.item_id not in BUNCH_ASSET_IDS:
+            problems.append(
+                "%s: item %d has no bunch asset to remap to" % (label, fixed.item_id)
+            )
+
+    if problems:
+        raise ValueError("Invalid FIXED_BUNCH_SPAWNS entries: %s" % "; ".join(problems))
+
 def makeIngredientSpawn() -> list[ActiveSpawnPool]:
     ingredientErrorHandler()
     bunchAssetErrorHandler()
@@ -556,3 +650,56 @@ def makeBunchSpawn() -> list[ActiveSpawnPool]:
         )
         for zone_id, items in sorted(candidates.items())
     ]
+
+# Fixed-coordinate pools — one pool per row, holding exactly one stack that
+# respawns at its own coordinate rather than somewhere new.
+def makeFixedBunchSpawn() -> list[ActiveSpawnPool]:
+    fixedBunchErrorHandler()
+
+    pools: list[ActiveSpawnPool] = []
+
+    for fixed in FIXED_BUNCH_SPAWNS:
+        if not fixed.enabled:
+            continue
+
+        if fixed.multiplayer and not MP_BUNCHES_ENABLED:
+            continue
+
+        bounds = ZONE_MAP_BOUNDS[fixed.zone_id]
+
+        if not (
+            bounds.x_min <= fixed.x <= bounds.x_max
+            and bounds.y_min <= fixed.y <= bounds.y_max
+        ):
+            # Not fatal — the margin is a nicety for random placement, and a
+            # deliberate coordinate may sit closer to the edge on purpose.
+            notify.warning(
+                "FIXED_BUNCH_SPAWNS: %s at (%d, %d) is outside zone %d's spawn bounds %s"
+                % (fixed.display_name, fixed.x, fixed.y, fixed.zone_id, tuple(bounds))
+            )
+
+        pools.append(
+            ActiveSpawnPool(
+                zone_id=fixed.zone_id,
+                item_id=fixed.item_id,
+                display_name=fixed.display_name,
+                rarity=None,
+                bounds=bounds,
+                spawn_limit=1,
+                respawn_min_sec=(
+                    fixed.respawn_min_sec
+                    if fixed.respawn_min_sec is not None
+                    else FIXED_BUNCH_RESPAWN_MIN_SEC
+                ),
+                respawn_max_sec=(
+                    fixed.respawn_max_sec
+                    if fixed.respawn_max_sec is not None
+                    else FIXED_BUNCH_RESPAWN_MAX_SEC
+                ),
+                exclusions=ZONE_EXCLUSIONS.get(fixed.zone_id, ()),
+                multiplayer=fixed.multiplayer,
+                fixed_position=(fixed.x, fixed.y),
+            )
+        )
+
+    return pools

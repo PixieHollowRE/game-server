@@ -9,10 +9,12 @@ from game.fairies.fairy.DistributedFairyPlayerAI import DistributedFairyPlayerAI
 from game.fairies.distributed.FairiesRealmAI import FairiesRealmAI
 from game.fairies.distributed.FairiesGlobals import *
 from game.fairies.distributed.RealmGlobals import OBJECT_TYPE_REALM
+from game.fairies.distributed.RealmPopulation import RealmPopulationRegistry
 from game.fairies.housing.FairiesHomeRealmAI import FairiesHomeRealmAI
 from game.fairies.distributed.MongoInterface import MongoInterface
 from game.fairies.meadow.DistributedMeadowAI import DistributedMeadowAI
 from game.fairies.meadow.IngredientSpawnMgrAI import IngredientSpawnMgrAI
+from game.fairies.meadow.GiveawaySpawnMgrAI import GiveawaySpawnMgrAI
 from game.fairies.minigame import MinigameConstants
 from game.fairies.minigame.DistributedTalentMinigameAI import DistributedTalentMinigameAI
 from game.fairies.minigame.DistributedCraftingMinigameAI import DistributedCraftingMinigameAI
@@ -21,6 +23,7 @@ from game.fairies.gateway.GatewayConstants import GATEWAYS, get_gateway_name
 from game.fairies.fairy.npc.DistributedFairyQuestNPCAI import DistributedFairyQuestNPCAI
 from game.fairies.fairy.npc.DistributedFairyShopkeeperNPCAI import DistributedFairyShopkeeperNPCAI
 from game.fairies.minigame.DistributedMatchGameAI import DistributedMatchGameAI
+from game.fairies.minigame.DistributedCrazyEightsAI import DistributedCrazyEightsAI
 from game.fairies.fairy import FamousFairyData
 from game.fairies.ai import ZoneConstants
 from game.fairies.ai.FairiesMagicWordManagerAI import FairiesMagicWordManagerAI
@@ -32,12 +35,13 @@ from game.otp.server.ServerGlobals import PIXIE_HOLLOW
 from game.fairies.fairy.npc.QuestZoneData import QUEST_ZONES
 
 
-class FairiesAIRepository(AIDistrict, ServerBase):
+class FairiesAIRepository(AIDistrict, ServerBase, RealmPopulationRegistry):
     notify = DirectNotifyGlobal.directNotify.newCategory("FairiesAIRepository")
 
     def __init__(self, *args, **kw):
         AIDistrict.__init__(self, *args, **kw)
         ServerBase.__init__(self)
+        RealmPopulationRegistry.__init__(self)
 
         self.mongoInterface = MongoInterface(self)
 
@@ -67,6 +71,17 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         # which is our first allocated doId.
         return min(self.minChannel - self.districtId, DynamicZonesEnd) - 1
 
+    def handleConnect(self, msgType, di):
+        # We subscribe to BROADCAST_MESSAGE_TO_ALL_AI as soon as we connect, so
+        # another district's population report can land before we reach
+        # playGame. Record it here rather than let the base class log it as an
+        # unexpected message type.
+        if msgType == REALM_POPULATION_UPDATE:
+            self.handleRealmPopulationUpdate(di)
+            return
+
+        AIDistrict.handleConnect(self, msgType, di)
+
     def handlePlayGame(self, msgType, di):
         if msgType == REALM_GENERATE_REQUEST:
             self._handleRemoteGenerateRequest(di)
@@ -78,17 +93,59 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         elif msgType == REALM_DELETE_REQUEST:
             self._handleRealmDeleteRequest(di)
             return
+        elif msgType == REALM_MAIL_DELIVERED:
+            self._handleMailDelivered(di)
+            return
+        elif msgType == REALM_POPULATION_UPDATE:
+            # Another district (or our own echo) reporting its headcount.
+            self.handleRealmPopulationUpdate(di)
+            return
 
         AIDistrict.handlePlayGame(self, msgType, di)
 
-    def sendRealmOccupancyUpdate(self, avatarId, ownerId):
-        # Tell the RealmGuardian an avatar entered (ownerId != 0) or left
-        # (ownerId == 0) a home realm, so it can tear down empty ones.
+    def sendRealmOccupancyUpdate(self, avatarId, ownerId, fromOwnerId=0):
+        # Tell the RealmGuardian an avatar moved out of fromOwnerId's home realm
+        # and into ownerId's, where 0 on either side means "no home", so it can
+        # tear down empty ones.
+        #
+        # fromOwnerId is not just bookkeeping. Entering a home realm hosted by a
+        # different district AI process migrates the avatar object to it: this
+        # process deletes its copy and reports the departure while the other
+        # generates a fresh one and reports the arrival, and the two race. Saying
+        # which realm we believe is being left lets the guardian discard a
+        # departure that the arrival has already overtaken, instead of tearing
+        # down the realm the fairy just flew into.
         dg = PyDatagram()
         dg.addServerHeader(OTP_DO_ID_REALM_GUARDIAN, self.ourChannel, REALM_OCCUPANCY_UPDATE)
         dg.addUint32(avatarId)
         dg.addUint32(ownerId)
+        dg.addUint32(fromOwnerId)
         self.send(dg)
+
+    def sendMailArrivedToRealmGuardian(self, recipientId, typeId):
+        # Post Office mail was just written for `recipientId`. Only the
+        # RealmGuardian knows whether that fairy has a home realm up right now
+        # and which district AI is hosting it, so hand it off and let it route.
+        dg = PyDatagram()
+        dg.addServerHeader(OTP_DO_ID_REALM_GUARDIAN, self.ourChannel, REALM_MAIL_ARRIVED)
+        dg.addUint32(recipientId)
+        dg.addUint32(typeId)
+        self.send(dg)
+
+    def _handleMailDelivered(self, di):
+        # The RealmGuardian tells us mail landed for a home realm we host. Put
+        # the mailbox out now; the owner may be standing in the room, and
+        # loadPostOfficeSurprises only ever runs at realm generate.
+        realmId = di.getUint32()
+        typeId = di.getUint32()
+
+        realm = self.homeRealms.get(realmId)
+        if realm is None:
+            # Torn down between the guardian's lookup and this message; the next
+            # generate will load the mailbox from the message count anyway.
+            return
+
+        realm.ensurePostOfficeSurprise(typeId)
 
     def _handleRealmDeleteRequest(self, di):
         realmId = di.getUint32()
@@ -105,6 +162,10 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         dg.addUint32(self.districtId)
         dg.addChannel(self.ourChannel)
         self.send(dg)
+
+        # Registering means we (re)started, so our old headcount -- if anyone
+        # still remembers one -- is stale. Publish the real one straight away.
+        self.broadcastRealmPopulation()
 
     def _handleRemoteGenerateRequest(self, di):
         context = di.getUint32()
@@ -137,6 +198,9 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             # Populate the realm with the owner's saved furniture.
             realm.loadHomeItems()
 
+            # Show a Post Office mailbox for any postcards/gift sets waiting.
+            realm.loadPostOfficeSurprises()
+
             self.homeRealms[realm.getDoId()] = realm
             self.notify.info(
                 "Generated home realm %d for owner %d" % (realm.getDoId(), ownerId))
@@ -163,6 +227,14 @@ class FairiesAIRepository(AIDistrict, ServerBase):
         for tagId, x, y in ((7, 196, 375), (8, 364, 363), (9, 818, 361), (10, 975, 375)):
             table = DistributedMatchGameAI(self)
             table.setGameInfo(13072, 2, 2, 0, tagId)
+            table.setPosition(x, y)
+            table.generateWithRequired(ZoneConstants.THE_TEAROOM)
+
+        # Crazy Cakes (gameId 13070) — the Tearoom's two Crazy Eights tables, seating
+        # 2-4 each.
+        for tagId, x, y in ((11, 342, 486), (12, 206, 599)):
+            table = DistributedCrazyEightsAI(self)
+            table.setGameInfo(13070, 2, 4, 0, tagId)
             table.setPosition(x, y)
             table.generateWithRequired(ZoneConstants.THE_TEAROOM)
 
@@ -201,6 +273,12 @@ class FairiesAIRepository(AIDistrict, ServerBase):
 
         self.ingredientSpawnMgr = IngredientSpawnMgrAI(self)
         self.ingredientSpawnMgr.start()
+
+        # Giveaways stand at hand-picked coordinates and are never collected
+        # away, so they take no part in the ingredient spacing rules above and
+        # can go up in any order relative to them.
+        self.giveawaySpawnMgr = GiveawaySpawnMgrAI(self)
+        self.giveawaySpawnMgr.start()
 
         # DistributedFairyQuestNPC testing
         for qzone in QUEST_ZONES:
@@ -242,7 +320,18 @@ class FairiesAIRepository(AIDistrict, ServerBase):
             self.sendPopulation()
 
         # Update the population on the district (realm) as well.
+        #
+        # This deliberately counts home realm visitors too. A home realm is its
+        # own distributed object, but it is hosted by this district AI process,
+        # so a big party in one house is real strain on everyone else in the
+        # realm. Letting a district advertise itself as quiet while it carries
+        # that load would just push more fairies onto it and cause lag.
         self.district.updatePopulationLevel()
+
+        # ...and tell the rest of the cluster. Other district AIs need it to
+        # answer fly-to-fairy requests aimed at us, and the RealmGuardian needs
+        # it to decide where to put new home realms.
+        self.broadcastRealmPopulation()
 
     def sendFriendManagerAccountOnline(self, accountId):
         dg = PyDatagram()
