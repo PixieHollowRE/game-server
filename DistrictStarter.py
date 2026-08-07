@@ -20,7 +20,7 @@ cutDistrictNames = random.sample(districtNames, NUM_DISTRICTS)
 
 startingNum = 200000000
 minObjIdBase = 200100000
-maxObjIdBase = 200149999
+maxObjIdBase = 200999999
 
 isWindows = sys.platform == 'win32'
 
