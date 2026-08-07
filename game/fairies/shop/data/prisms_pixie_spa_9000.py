@@ -5,7 +5,21 @@ from game.fairies.fairy.structs.ShopCollection import ShopCollection
 from game.fairies.fairy.structs.ShopItem import ShopItem
 from game.fairies.fairy.structs.ShopOutfit import ShopOutfit
 from game.fairies.fairy.structs.OutfitItem import OutfitItem
+from game.fairies.fairy.structs.PurchaseType import PurchaseType
 from game.fairies.shop.ShopHelpers import NPCShop, Shopkeeper
+
+# Like Schelly's, nothing Prism sells is an item -- it all rewrites the fairy's
+# DNA. Wings write their itemId straight in (6001-6006).
+#
+# Colours are listed here as 14xxx item ids but the DNA stores them bare --
+# 14063 "Butterfly Blue" is eye_color 63.
+COLOR_ID_OFFSET = -14000
+
+# An expression is a face *and* the eyes drawn to match it, and the two halves
+# sit exactly 500 ids apart (face 4501 <-> eyes 4001, face 4535 <-> eyes 4035).
+# Every fairy in the live data holds that pairing, so buying one has to move
+# both fields or she ends up with someone else's eyes.
+EXPRESSION_EYE_OFFSET = -500
 
 SHOP = NPCShop(
     zone=ZoneConstants.PRISMS_PIXIE_SPA,
@@ -18,6 +32,8 @@ SHOP = NPCShop(
     collections=[
         ShopCollection(
             collectionId=4017, # Wings
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("wing", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=6001, price=25, goldPrice=5), # Gossamer Wings
@@ -30,6 +46,8 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=4018, # Expressions
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("face", 0), ("eye", EXPRESSION_EYE_OFFSET)),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 # Fairies
@@ -72,6 +90,8 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=4019, # Skin Colors
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("skin_color", COLOR_ID_OFFSET),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=14091, price=5, goldPrice=1), # Coconut Brown
@@ -103,6 +123,8 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=4020, # Eye Colors
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("eye_color", COLOR_ID_OFFSET),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=14055, price=5, goldPrice=1, specialType=4), # Pepper Black

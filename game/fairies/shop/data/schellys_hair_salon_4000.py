@@ -5,7 +5,16 @@ from game.fairies.fairy.structs.ShopCollection import ShopCollection
 from game.fairies.fairy.structs.ShopItem import ShopItem
 from game.fairies.fairy.structs.ShopOutfit import ShopOutfit
 from game.fairies.fairy.structs.OutfitItem import OutfitItem
+from game.fairies.fairy.structs.PurchaseType import PurchaseType
 from game.fairies.shop.ShopHelpers import NPCShop, Shopkeeper
+
+# Schelly sells nothing you can hold -- every collection here rewrites a field of
+# the fairy's DNA. The hairpiece collections write their itemId straight in
+# (hair_front is 5001-5133, hair_back 5501-5613, exactly as listed below).
+#
+# Colours are the exception: the shop lists them as 14xxx item ids, but the DNA
+# stores them bare -- 14077 "Sepia Brown" is hair_color 77. Hence the offset.
+COLOR_ID_OFFSET = -14000
 
 SHOP = NPCShop(
     zone=ZoneConstants.SCHELLYS_HAIR_SALON,
@@ -18,6 +27,8 @@ SHOP = NPCShop(
     collections=[
         ShopCollection(
             collectionId=4001, # Classic Hair Fronts (Fairies)
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("hair_front", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5001, price=10, goldPrice=2), # Simple Style
@@ -43,6 +54,8 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=4003, # Classic Hair Backs (Fairies)
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("hair_back", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5521, price=10, goldPrice=2), # No Back
@@ -71,6 +84,8 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=4004, # Stylish Hair Fronts (Fairies)
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("hair_front", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5106, price=10, goldPrice=2),
@@ -140,6 +155,8 @@ SHOP = NPCShop(
         ),
                 ShopCollection(
             collectionId=4010, # Classic Hair Fronts (Sparrowmen)
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("hair_front", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5044, price=10, goldPrice=2), # Side Swept Layers
@@ -159,6 +176,8 @@ SHOP = NPCShop(
                 
             ShopCollection(
             collectionId=4011, # Classic Hair Backs (Sparrowmen)
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("hair_back", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5560, price=10, goldPrice=2), # No Back
@@ -180,6 +199,8 @@ SHOP = NPCShop(
 
         ShopCollection(
             collectionId=4012, # Stylish Hair Fronts (Sparrowmen)
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("hair_front", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5061, price=10, goldPrice=2), # Fly Backwards
@@ -194,6 +215,8 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=4013, # Stylish Hair Backs (Sparrowmen)
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("hair_back", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5562, price=10, goldPrice=2), # Fly Backwards Back
@@ -209,6 +232,8 @@ SHOP = NPCShop(
 
         ShopCollection(
             collectionId=4005, # Stylish Hair Backs (Fairies)
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("hair_back", 0),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=5521, price=10, goldPrice=2), # No Back
@@ -268,6 +293,8 @@ SHOP = NPCShop(
         ),
         ShopCollection(
             collectionId=4014, # Hair Colors
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("hair_color", COLOR_ID_OFFSET),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=14055, price=10, goldPrice=1), # Pepper Black
@@ -339,7 +366,12 @@ SHOP = NPCShop(
             ]
         ),
         ShopCollection(
-            collectionId=4015, # Highlights 
+            collectionId=4015, # Highlights
+            # Highlights are the second hair colour, kept separate from 4014 so
+            # buying a new base colour doesn't wipe them (hair_color2 of 0 means
+            # "no highlights", which is what most fairies have).
+            purchaseType=PurchaseType.DNA,
+            dnaFields=(("hair_color2", COLOR_ID_OFFSET),),
             currencyId=INGREDIENTS["DAISY_PETALS"].id,
             items=[
                 ShopItem(itemId=14055, price=10, goldPrice=1, specialType=2), # Pepper Black
