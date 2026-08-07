@@ -1276,7 +1276,15 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         # GlobalPurchaseItem is {itemId, amount}; the client hardcodes amount to 1
         # and never sends a price -- we look the price up ourselves.
-        itemId, amount = item[0]
+        try:
+            itemId, amount = item[0]
+        except (IndexError, TypeError, ValueError):
+            self.air.writeServerEvent(
+                'suspicious', self.doId,
+                'malformed requestGlobalPurchase item: %r' % (item,)
+            )
+            self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [0])
+            return
 
         purchase = GLOBAL_PURCHASE_ITEMS.get(itemId)
         if purchase is None or amount < 1:
