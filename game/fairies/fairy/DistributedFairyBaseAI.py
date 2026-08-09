@@ -7,6 +7,8 @@ from game.fairies.fairy.structs.FairyPose import FairyPose
 
 from game.fairies.fairy.structs.LiteInvItemExt import LiteInvItemExt
 
+from game.fairies.housing.HouseConstants import ROOM_TYPE_HOME, isValidRoomType
+
 class DistributedFairyBaseAI(DistributedObjectAI):
     def __init__(self, air) -> None:
         super().__init__(air)
@@ -29,7 +31,14 @@ class DistributedFairyBaseAI(DistributedObjectAI):
         self.ankle: LiteInvItemExt = LiteInvItemExt()
         self.shoes: LiteInvItemExt = LiteInvItemExt()
 
-        self.roomID: int = 0
+        # Default to the house rather than 0. setRoomID is declared `db`, but
+        # nothing persists it (it is absent from APIDatabase.lua's Api2Field and
+        # from the web-api Fairy schema), so a fairy generates with the DC
+        # default and stays there until their client reports a room. 0 is not a
+        # room the client recognises, and teleportRequestTo hands this value
+        # straight to an arriving client, which adopts it as its own roomID making
+        # anything that fairy then places unreachable.
+        self.roomID: int = ROOM_TYPE_HOME
 
     def setName(self, name: str) -> None:
         self.name = name
@@ -124,6 +133,20 @@ class DistributedFairyBaseAI(DistributedObjectAI):
         return self.shoes.asTuple()
 
     def setRoomID(self, roomID: int) -> None:
+        # Now airecv, so this arrives from the owning client on every room
+        # change. Only the two real rooms are worth recording -- keep the last
+        # good value rather than let a bad one propagate to anyone who flies here.
+        if not isValidRoomType(roomID):
+            # 0 is the DC default and arrives on every generate, because nothing
+            # actually persists this field: it is declared `db`, but it is in
+            # neither APIDatabase.lua's Api2Field nor the web-api Fairy schema,
+            # so the stored value is always absent. Expected, not worth a warning.
+            if roomID:
+                self.notify.warning(
+                    "setRoomID(%r) for %s is not a room, ignoring"
+                    % (roomID, self.doId))
+            return
+
         self.roomID = roomID
 
     def getRoomID(self) -> int:

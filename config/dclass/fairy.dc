@@ -577,7 +577,7 @@ dclass DistributedFairyBase : TalkPath_owner, TalkPath_whisper { // 78
     setPetDNA(PetDNA) db broadcast; // 479
     setRenderEffects(int32) ram broadcast ownrecv; // 480
     setAura(int16) ram broadcast; // 481
-    setRoomID(int32) required ownrequired broadcast db ownrecv ownsend; // 482
+    setRoomID(int32) required ownrequired broadcast db ownrecv ownsend airecv; // 482
 };
 
 dclass DistributedFairyNPC : DistributedFairyBase { // 79

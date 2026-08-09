@@ -26,7 +26,8 @@ from game.fairies.daily.DailyChancePool import draw_daily_spin
 from game.fairies.daily.DailyChanceGrant import grant_prize
 from game.fairies.daily.TimeUtils import get_period_start
 
-from game.fairies.housing.HouseConstants import HOUSING_ZONE_OFFSET
+from game.fairies.housing.HouseConstants import (
+    HOUSING_ZONE_OFFSET, ROOM_TYPE_HOME, isValidRoomType)
 from game.fairies.meadow import meadow_xml
 from game.fairies.ai import ZoneConstants
 
@@ -1171,6 +1172,19 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             # A home and its garden share the same zone, so this is the only thing
             # that tells the client to drop the arriving fairy in the garden rather
             # than the house.
+            #
+            # Never report anything else. The arriving client does not just read
+            # this to pick a room -- teleportResponse feeds it into its own
+            # dispatchRoomID, so it becomes that fairy's roomID, and anything they
+            # place before their next teleport is stamped with it. A value that is
+            # neither room produces furniture that draws in the house but can never
+            # be selected or returned to storage.
+            if not isValidRoomType(roomId):
+                self.notify.warning(
+                    "teleportRequestTo: %s reported room %r, reporting the house"
+                    % (fairyId, roomId))
+                roomId = ROOM_TYPE_HOME
+
             self.sendUpdateToAvatarId(self.doId, "teleportResponse", [
                 fairyId,
                 available,
@@ -1191,7 +1205,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         # location record), so pull the persisted setRoomID from the database
         # first, then ask the OTP server where the fairy currently is.
         def gotRoomID(db: DatabaseObject, retCode: int) -> None:
-            roomId: int = 0
+            roomId: int = ROOM_TYPE_HOME
             if retCode == 0:
                 remoteFairy = DistributedFairyPlayerAI(self.air)
                 db.fillin(remoteFairy, db.dclass)

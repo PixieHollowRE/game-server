@@ -2,7 +2,7 @@ from direct.directnotify.DirectNotifyGlobal import directNotify
 
 from game.otp.distributed.DistributedDistrictAI import DistributedDistrictAI
 
-from game.fairies.housing.HouseConstants import HOUSING_ZONE_OFFSET
+from game.fairies.housing.HouseConstants import HOUSING_ZONE_OFFSET, isValidRoomType
 from game.fairies.housing.DistributedHomeItemAI import DistributedHomeItemAI
 from game.fairies.housing.DistributedHomeAI import DistributedHomeAI
 from game.fairies.housing.DistributedSurpriseAI import (
@@ -141,6 +141,20 @@ class FairiesHomeRealmAI(DistributedDistrictAI):
         # The client placed a storage item in the home. Record the placement on
         # the item via a `home` sub-doc, but keep it in "Storage" - the item
         # stays in the player's inventory so it can be returned to storage.
+
+        # A placement is only ever in the house or the garden. The client sends
+        # whatever its own roomID happens to be, and if that is not one of the
+        # two the item becomes unrecoverable: the client draws anything that
+        # isn't ROOM_TYPE_GARDEN in the house, but every select/remove path
+        # requires roomId to equal the room the fairy is standing in, so it
+        # can't be picked up, moved, or put back into storage -- only donated.
+        # Refuse to write it rather than strand the item.
+        if not isValidRoomType(roomId):
+            self.notify.warning(
+                "addHomeObject: refusing room %r for item %s in %s's home"
+                % (roomId, invId, self.ownerId))
+            return
+
         self._fairies().update_one(
             {"_id": self.ownerId, "avatar.items.inv_id": invId},
             {"$set": {
