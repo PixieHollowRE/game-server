@@ -769,6 +769,9 @@ function handleClientDistributedFairyPlayer_setTalkWhisper(client, doId, fieldId
 
     local cleanMessage, modifications = filterWhitelist(message)
 
+    -- Log it for moderation purposes.
+    client:writeServerEvent("whisper-chat-message", "FairyClient", string.format("%d|%d|%s|%s", accountId, avatarId, message, cleanMessage))
+
     local dg = datagram:new()
     -- We set the sender field to the doId instead of our channel to make sure
     -- we can receive the broadcast.
