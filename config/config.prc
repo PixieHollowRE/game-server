@@ -11,7 +11,7 @@ default-directnotify-level info
 # (QUIET, IDEAL, CROWDED, FULL)
 # The FULL threshold is the realm's hard capacity: the shard chooser greys the
 # realm out at that headcount, and the server stops flying fairies into it.
-realm-population-levels [0, 30, 60, 90]
+realm-population-levels [0, 30, 60, 180]
 
 # How many fairies may be inside one home realm (house + garden together)
 # before the RealmGuardian reports it population-locked. The owner and GMs are
