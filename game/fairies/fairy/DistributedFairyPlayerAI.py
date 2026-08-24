@@ -64,6 +64,14 @@ OUTFIT_SLOT_COST = 10
 # add/update and reads them back in a SavedOutfit struct (see setOutfitDB).
 OUTFIT_SLOT_ORDER = ("head", "necklace", "shirt", "belt", "skirt", "wrist", "ankle", "shoes")
 
+# The slots a fairy is always dressed in.
+MANDATORY_OUTFIT_SLOTS = frozenset({"shirt", "skirt", "shoes"})
+MANDATORY_SLOT_NUMBERS = frozenset(
+    index + 1
+    for index, slot in enumerate(OUTFIT_SLOT_ORDER)
+    if slot in MANDATORY_OUTFIT_SLOTS
+)
+
 # Stored slot number -> the DC field that redraws that slot on every client
 # watching. Anything that changes what is worn (equipping, dyeing) has to send
 # the matching one or the fairy keeps wearing the old thing.
@@ -354,11 +362,41 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             item.get("howAcquired", 0)
         ))
 
+    def _equippedInvIdsBySlot(self, fairy: dict) -> dict:
+        return {
+            OUTFIT_SLOT_ORDER[item["slot"] - 1]: item["inv_id"]
+            for item in fairy["avatar"]["items"]
+            if item.get("location") == "Equipped"
+            and 1 <= (item.get("slot") or 0) <= len(OUTFIT_SLOT_ORDER)
+        }
+
     def _buildOutfitItems(self, invIds: tuple, fairy: dict) -> dict:
         itemsById = {item["inv_id"]: item for item in fairy["avatar"]["items"]}
+        wanted = dict(zip(OUTFIT_SLOT_ORDER, invIds))
+
+        # The shop's save-outfit button (ShopPanel.saveOutfitToLookBook) fills in
+        # only the slots the player just bought and sends 0 for all the rest, so
+        # a Post Office trinket run saves an outfit of bare accessories -- and
+        # wearing it later undresses the fairy, since SavedOutfits.onWearOutfit
+        # hands those zeros straight to setOutfitDB. The shop's own "wear it now"
+        # path doesn't have the hole (getUpdatedInvIdForDB falls back to what the
+        # fairy has on for every slot it didn't buy), so do the same here: the
+        # saved outfit becomes the whole look, not just the receipt.
+        #
+        # A zero from the wardrobe *is* deliberate ("no necklace, thanks"), so
+        # only reach for the fallback when a slot the fairy can't go without came
+        # in empty while she is in fact wearing something there. That never
+        # happens on the wardrobe path, only on the shop's partial one.
+        equipped = self._equippedInvIdsBySlot(fairy)
+        if any(not wanted[slot] and equipped.get(slot) for slot in MANDATORY_OUTFIT_SLOTS):
+            wanted = {
+                slot: invId or equipped.get(slot, 0)
+                for slot, invId in wanted.items()
+            }
+
         return {
             slot: self._liteInvFromId(invId, itemsById).asTuple()
-            for slot, invId in zip(OUTFIT_SLOT_ORDER, invIds)
+            for slot, invId in wanted.items()
         }
 
     def _savedOutfitToStruct(self, outfit: dict) -> SavedOutfit:
@@ -556,6 +594,10 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         }
         equippedIds = {invId: slot for slot, invId in desiredOutfit.items() if invId != 0}
         filledSlots = set(equippedIds.values())
+        keepSlots = {
+            slot for slot, invId in desiredOutfit.items()
+            if not invId and slot in MANDATORY_SLOT_NUMBERS
+        }
 
         table = self.air.mongoInterface.mongodb.fairies
 
@@ -613,6 +655,10 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
             elif item["location"] == "Equipped":
                 oldSlot = item["slot"]
+
+                if oldSlot in keepSlots:
+                    continue
+
                 stage(invId, "Wardrobe", 0)
 
                 if oldSlot in SLOT_METHODS and oldSlot not in filledSlots:
