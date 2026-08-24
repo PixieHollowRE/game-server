@@ -69,8 +69,19 @@ SEASONAL_REWARD_ITEM = {
     "winter": fc.SNOWFLAKES,       # 8016
 }
 
-REWARD_FIRST_PLACE = 30
-REWARD_OTHER_PLACE = 15
+# Payout per finishing place (best first), keyed by how many players saw the round
+# out -- the table can finish with fewer than it started if somebody walks off and
+# the rest are still above minPlayers.
+#
+# First and last always pay 30 and 15, the two amounts this table has always paid,
+# so a two-player game is unchanged; a fuller table spreads the middle places
+# evenly between them. Only 2-4 are reachable (MIN_PLAYERS/MAX_PLAYERS), and
+# d_setRewards bails below minPlayers before it gets here.
+REWARD_BY_PLACE: dict[int, tuple[int, ...]] = {
+    2: (30, 15),
+    3: (30, 22, 15),
+    4: (30, 25, 20, 15),
+}
 
 # Seconds to leave the finished table standing before wiping it back to grouping.
 # Long enough to outlast the client's end-game show and results panel.
@@ -336,6 +347,18 @@ class DistributedCrazyEightsAI(DistributedMeadowGameAI):
 
     def advance_turn(self, step=1) -> None:
         self.whoseTurn = self.next_player(self.whoseTurn, step)
+
+    def reverseDirection(self) -> None:
+        """Flip the turn order, then hand off the turn.
+
+        Head-to-head there's nobody to reverse *towards*, so the standard rule is
+        that reverse acts as a skip -- flipping direction alone would just hand the
+        turn straight back to the player who played it.
+        """
+        self.direction = (DIRECTION_LEFT if self.direction == DIRECTION_RIGHT
+                          else DIRECTION_RIGHT)
+
+        self.advance_turn(2 if len(self.players) == 2 else 1)
 
     # ------------------------------------------------------------------ lobby countdown
 
@@ -720,13 +743,7 @@ class DistributedCrazyEightsAI(DistributedMeadowGameAI):
             return
 
         if value == VALUE_REVERSE:
-            self.direction = (DIRECTION_LEFT if self.direction == DIRECTION_RIGHT
-                              else DIRECTION_RIGHT)
-
-            # Head-to-head there's nobody to reverse *towards*, so the standard rule
-            # is that reverse acts as a skip -- flipping direction alone would just
-            # hand the turn straight back to the player who played it.
-            self.advance_turn(2 if len(self.players) == 2 else 1)
+            self.reverseDirection()
             return
 
         if value == VALUE_SELF_GO_AGAIN:
@@ -735,10 +752,11 @@ class DistributedCrazyEightsAI(DistributedMeadowGameAI):
             return
 
         if value == VALUE_ALL_PASS_ONE:
-            # Named "pass one", is actually reverse -- see CrazyEightsConstants.
-            self.direction = (DIRECTION_LEFT if self.direction == DIRECTION_RIGHT
-                              else DIRECTION_RIGHT)
-            self.advance_turn()
+            # Named "pass one", is actually reverse -- see CrazyEightsConstants. It
+            # is the same effect as a reverse card, so it goes through the same path:
+            # spinning into Reverse head-to-head has to grant the extra turn a played
+            # reverse card does, or the two spellings of one effect disagree.
+            self.reverseDirection()
             return
 
         if value == VALUE_ALL_DRAW_ONE:
@@ -1044,18 +1062,31 @@ class DistributedCrazyEightsAI(DistributedMeadowGameAI):
 
         itemId = SEASONAL_REWARD_ITEM[get_season(datetime.now(timezone.utc))]
 
-        # Fewest cards left wins. The winner is on zero, so they always place first;
-        # everyone else is ordered behind them by what they were caught holding.
+        # Fewest cards left wins, and *everyone* is placed by what they were caught
+        # holding -- not just the winner. Standard competition ranking: equal hands
+        # share a place, and the next player down skips the places that tie used up
+        # (0,0,2,3), which keeps rank < len(players) so the client's
+        # rewardRankingMc.gotoAndStop(rank + 1) always lands on a real frame.
+        #
+        # The winner is the only player who can be on zero -- handleWin is the sole
+        # caller of this, and it fires the moment a hand empties -- so rank 0 is
+        # always theirs alone, which is what DistributedMeadowGame.setRewards reads
+        # winnerId off.
         remaining = {avId: len(self.hands.get(avId, [])) for avId in self.players}
-        best = min(remaining.values())
+
+        rankForScore: dict[int, int] = {}
+        for place, score in enumerate(sorted(remaining.values())):
+            rankForScore.setdefault(score, place)
+
+        payouts = REWARD_BY_PLACE[len(self.players)]
 
         ranks = []
 
         for avId in self.players:
             score = remaining[avId]
-            rank = 0 if score == best else 1  # a tie ranks both first
+            rank = rankForScore[score]
 
-            amount = REWARD_FIRST_PLACE if rank == 0 else REWARD_OTHER_PLACE
+            amount = payouts[rank]
             self.grantReward(avId, itemId, amount)
             self.creditGamePlayed(avId)
 

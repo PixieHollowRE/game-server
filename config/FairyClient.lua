@@ -694,6 +694,19 @@ function handleAddOwnership(client, doId, parent, zone, dc, dgi)
     end)
 end
 
+-- The client let these through, but they tripped Disney's banned phrase list
+-- or our banned word combos and the server blocked them. I'm logging that
+-- separately for moderation.
+function writeChatViolationEvents(client, accountId, avatarId, chatType, message, badPhrases, badCombos)
+    if #badPhrases > 0 then
+        client:writeServerEvent("banned-phrase", "FairyClient", string.format("%d|%d|%s|%s|%s", accountId, avatarId, chatType, formatChatViolations(badPhrases), message))
+    end
+
+    if #badCombos > 0 then
+        client:writeServerEvent("banned-combo", "FairyClient", string.format("%d|%d|%s|%s|%s", accountId, avatarId, chatType, formatChatViolations(badCombos), message))
+    end
+end
+
 -- setTalk from client
 function handleClientDistributedFairyPlayer_setTalk(client, doId, fieldId, data)
     -- The data is safe to use, as the ranges has already been
@@ -708,8 +721,16 @@ function handleClientDistributedFairyPlayer_setTalk(client, doId, fieldId, data)
     local message = data[4] --chat
 
     -- Log it for moderation purposes.
-    local cleanMessage, _ = filterWhitelist(message, false)
+    local cleanMessage, _, badPhrases, badCombos = filterWhitelist(message, false)
     client:writeServerEvent("chat-message", "FairyClient", string.format("%d|%d|%s|%s", accountId, avatarId, message, cleanMessage))
+    writeChatViolationEvents(client, accountId, avatarId, "open", message, badPhrases, badCombos)
+
+    -- A banned combo is the whole point of the message, so starring the words
+    -- out would still leave the sentence readable around them. Drop it the way
+    -- the client drops a banned phrase: nobody, the sender included, sees it.
+    if #badCombos > 0 then
+        return
+    end
 
     local dg = datagram:new()
     -- We set the sender field to the doId instead of our channel to make sure
@@ -767,7 +788,16 @@ function handleClientDistributedFairyPlayer_setTalkWhisper(client, doId, fieldId
         return
     end
 
-    local cleanMessage, modifications = filterWhitelist(message)
+    local cleanMessage, modifications, badPhrases, badCombos = filterWhitelist(message)
+
+    -- Log it for moderation purposes.
+    client:writeServerEvent("whisper-chat-message", "FairyClient", string.format("%d|%d|%s|%s", accountId, avatarId, message, cleanMessage))
+    writeChatViolationEvents(client, accountId, avatarId, "whisper", message, badPhrases, badCombos)
+
+    -- Banned combo: drop the whisper outright rather than sending it starred.
+    if #badCombos > 0 then
+        return
+    end
 
     -- Log it for moderation purposes.
     client:writeServerEvent("whisper-chat-message", "FairyClient", string.format("%d|%d|%s|%s", accountId, avatarId, message, cleanMessage))
