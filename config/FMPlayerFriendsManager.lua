@@ -850,6 +850,19 @@ function makeFriends(participant, invite)
             "FMPlayerFriendsManager", "invitationResponse", {invite.inviteeId, INVRESP_ACCEPTED, 0})
 end
 
+-- The client let these through, but they tripped Disney's banned phrase list
+-- or our banned word combos and the server blocked them. I'm logging that
+-- separately for moderation.
+function writeAccountChatViolationEvents(participant, accountId, otherAccountId, chatType, message, badPhrases, badCombos)
+    if #badPhrases > 0 then
+        participant:writeServerEvent("banned-phrase", "FMPlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER, string.format("%d|%d|%s|%s|%s", accountId, otherAccountId, chatType, formatChatViolations(badPhrases), message))
+    end
+
+    if #badCombos > 0 then
+        participant:writeServerEvent("banned-combo", "FMPlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER, string.format("%d|%d|%s|%s|%s", accountId, otherAccountId, chatType, formatChatViolations(badCombos), message))
+    end
+end
+
 function handleFMPlayerFriendsManager_setTalkAccount(participant, fieldId, data)
     local senderId = participant:getAccountIdFromSender()
     local otherAccountId = data[1]
@@ -861,10 +874,18 @@ function handleFMPlayerFriendsManager_setTalkAccount(participant, fieldId, data)
         return
     end
 
-    local cleanMessage, modifications = filterWhitelist(message, false)
+    local cleanMessage, modifications, badPhrases, badCombos = filterWhitelist(message, false)
 
     -- Log it for moderation purposes.
     participant:writeServerEvent("chat-message-whisper", "FMPlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER, string.format("%d|%d|%s|%s", senderId, otherAccountId, message, cleanMessage))
+    writeAccountChatViolationEvents(participant, senderId, otherAccountId, "whisper-account", message, badPhrases, badCombos)
+
+    -- A banned combo is the whole point of the message, so starring the words
+    -- out would still leave the sentence readable around them. Drop it the way
+    -- the client drops a banned phrase: it simply never arrives.
+    if #badCombos > 0 then
+        return
+    end
 
     participant:sendUpdateToAccountId(otherAccountId, OTP_DO_ID_PLAYER_FRIENDS_MANAGER,
             "FMPlayerFriendsManager", "setTalkAccount", {otherAccountId, senderId, data[3], cleanMessage, modifications, 0})
@@ -886,10 +907,16 @@ function handleFMPlayerFriendsManager_setTalkAccountGroup(participant, fieldId, 
         return
     end
 
-    local cleanMessage, modifications = filterWhitelist(message, false)
+    local cleanMessage, modifications, badPhrases, badCombos = filterWhitelist(message, false)
 
     -- Log it for moderation purposes.
     participant:writeServerEvent("chat-message-whisper-group", "FMPlayerFriendsManager", OTP_DO_ID_PLAYER_FRIENDS_MANAGER, string.format("%d|%s|%s", senderId, message, cleanMessage))
+    writeAccountChatViolationEvents(participant, senderId, 0, "whisper-group", message, badPhrases, badCombos)
+
+    -- Banned combo: drop the whole fan-out rather than sending it starred.
+    if #badCombos > 0 then
+        return
+    end
 
     -- The sender is online, so their friends list is normally cached (populated
     -- by handleOnline). Fall back to a fetch only if it's somehow missing.
