@@ -31,37 +31,24 @@ from game.fairies.housing.HouseConstants import (
 from game.fairies.meadow import meadow_xml
 from game.fairies.ai import ZoneConstants
 
-# Post Office mail types that light the HUD "you've got a package" gift-box next
-# to the house button (client GameButtons.onShowHomeItem keys off
-# statusUpdateFromFairy being 4 or 5). Mirror the message `type` written by the
-# shopkeeper AI: 4 = postcards, 5 = gift sets.
+# Mail types that light the client's HUD gift-box; written by the shopkeeper AI.
 MAIL_STATUS_POSTCARD = 4
 MAIL_STATUS_GIFTSET = 5
 
-# Global purchases the client can make from the shop panel, keyed by itemId. The
-# client only ever sends {itemId, amount} up (see GlobalShopPurchase); the server
-# is the price authority, so we keep the MiscItem here and charge from it.
-#   90003 = avatar name change (MMOConstants.AVATAR_NAME_UPDATE_ID)
+# Shop purchases by itemId (90003 = name change); the client sends no price.
 GLOBAL_PURCHASE_ITEMS = {
     90003: MiscItem.unpackFromTuple((90003, 8006, 500, 200, 200)),
 }
 
-# Saved outfits. Every fairy starts with one slot and can buy more, two at a
-# time (a "tab" in the client's SavedOutfits panel holds two outfits). The cap
-# and per-purchase step mirror the client: MAX_OUTFIT_TABS(14) * 2 - 1 slots,
-# and SLOT_COST pixie diamonds per upgrade.
+# Mirrors the client's SavedOutfits panel: MAX_OUTFIT_TABS(14) * 2 - 1 slots.
 DEFAULT_MAX_OUTFIT_SLOTS = 1
 MAX_OUTFIT_SLOTS = 27
 OUTFIT_SLOTS_PER_PURCHASE = 2
 
-# Flat cost per slot upgrade, charged from `gold` (what the client calls
-# diamonds). Must stay in sync with the client's hardcoded
-# SavedOutfits.SLOT_COST = 10, since the client both labels the dialog and gates
-# affordability on that number.
+# Charged from gold (the client's diamonds); mirrors SavedOutfits.SLOT_COST.
 OUTFIT_SLOT_COST = 10
 
-# The eight equipment slots, in the order the client sends the invIds for
-# add/update and reads them back in a SavedOutfit struct (see setOutfitDB).
+# The order the client sends invIds in and reads a SavedOutfit struct back in.
 OUTFIT_SLOT_ORDER = ("head", "necklace", "shirt", "belt", "skirt", "wrist", "ankle", "shoes")
 
 # The slots a fairy is always dressed in.
@@ -72,9 +59,7 @@ MANDATORY_SLOT_NUMBERS = frozenset(
     if slot in MANDATORY_OUTFIT_SLOTS
 )
 
-# Stored slot number -> the DC field that redraws that slot on every client
-# watching. Anything that changes what is worn (equipping, dyeing) has to send
-# the matching one or the fairy keeps wearing the old thing.
+# Slot number -> the field that redraws it; equipping or dyeing must send one.
 EQUIP_SLOT_FIELDS = {
     1: "setHeadItem",
     2: "setNecklace",
@@ -89,15 +74,11 @@ EQUIP_SLOT_FIELDS = {
 # An empty LiteInvItemExt2 (invId, itemId, color1, color2, howAcquired).
 EMPTY_LITE_INV_ITEM = [0, 0, 0, 0, 0]
 
-# Master switch for the pixie-power economy (cookies/cupcakes restoring power).
-# PixiePower is a fixed value in-game today, so the grant path (_grantPixiePower)
-# is fully wired but does not persist/broadcast while this is False. Flip to True
-# once PixiePower goes live — no other code change is needed to enable it.
+# Off until PixiePower goes live; _grantPixiePower is wired but writes nothing.
 PIXIE_POWER_ENABLED = False
 
-# Pixie power the setPixiePower DC field is born with (see fairy.dc: default 100).
-# TODO: Change this later once everything works right - Default should be 10, Max 240.
-DEFAULT_PIXIE_POWER = 100
+# TODO: default should be 10 and max 240 once the PixiePower rules are settled.
+DEFAULT_PIXIE_POWER = 100  # the setPixiePower default in fairy.dc
 
 class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def __init__(self, air) -> None:
@@ -114,8 +95,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.homeType: int = 0
         self.homeSubType: int = 0
 
-        # Owner of the home realm this avatar is currently in (0 = not in a
-        # home). Tracked so the RealmGuardian can tear down empty realms.
+        # 0 when not in a home; the RealmGuardian tears down the empty ones.
         self.currentHomeOwner: int = 0
         
         self.dailyChancePlayed: bool = False
@@ -149,20 +129,14 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             # TEMP: Set level at the request of Jessibee for the Test server.
             self.b_setLevel(NEW_LEVEL)
 
-        # The client only pulls saved-outfit state once (on panel construction),
-        # so push it on generate to survive a crash + reconnect. See
-        # _pushSavedOutfitState.
+        # Pushed on generate: the client only pulls this at panel construction.
         self._pushSavedOutfitState()
 
-        # Light the HUD gift-box if Post Office mail is waiting. Same reconnect
-        # reasoning: the client only reacts to statusUpdateFromFairy, and an
-        # offline recipient never saw the live nudge, so push it on generate.
+        # An offline recipient never saw the live nudge, so light the box here.
         self._pushPendingMailStatus()
 
     def d_statusUpdateFromFairy(self, fromPlayerId: int, status: int) -> None:
-        # Tell our own client someone left us Post Office mail. status 4/5 lights
-        # the HUD gift-box (GameButtons.onShowHomeItem); it clears to 0 when we
-        # next stand in our home.
+        # 4/5 light the HUD gift-box; it clears when we next stand in our home.
         self.sendUpdateToAvatarId(self.doId, "statusUpdateFromFairy", [fromPlayerId, status])
 
     def _pushPendingMailStatus(self) -> None:
@@ -178,15 +152,17 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.d_statusUpdateFromFairy(senderId, latest["type"])
 
     def delete(self):
+        """
+        Tear down this copy of the avatar.
+
+        A district hop deletes and rebuilds the avatar -- which is what flying
+        between two houses does -- so the occupancy update names the home we
+        think we are leaving. The guardian may already have seen us arrive
+        somewhere else by then, and must not act on us if it has.
+        """
         # TODO: Set a post-remove message in case of an AI crash.
 
         # Leave any home realm we were in so it can be torn down if now empty.
-        #
-        # This copy of the avatar is also deleted when it migrates to another
-        # district AI -- which is exactly what flying from one house to another
-        # usually does -- so name the home we think we are leaving. By the time
-        # the guardian reads this the fairy may already have been reported as
-        # having arrived somewhere else, and it must not act on us then.
         if self.currentHomeOwner:
             self.air.sendRealmOccupancyUpdate(self.doId, 0, self.currentHomeOwner)
             self.currentHomeOwner = 0
@@ -260,8 +236,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             if self.dailyChanceCanSpin():
                 self.b_setDailyChancePlayed(0)
 
-        # Track home-realm occupancy. Housing zones are ownerId + offset; 
-        # anything else means we're not in a home.
+        # Housing zones are ownerId + offset; anything else is not a home.
         homeOwner = zoneId - HOUSING_ZONE_OFFSET if zoneId >= HOUSING_ZONE_OFFSET else 0
         if homeOwner != self.currentHomeOwner:
             previousOwner = self.currentHomeOwner
@@ -272,16 +247,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             self.air.badgeManager.d_exploreMeadow(self.doId, zoneId)
 
     def _dailyChanceExcludedBadges(self) -> set[int]:
-        # Never offer a badge the fairy already has. The client sends bits for
-        # two of the three, but has none for Mr. Twitches, who was added after
-        # it shipped -- so read the fairy's own badges rather than trust a mask
-        # that cannot describe all of them anyway.
+        # Mr. Twitches postdates the client's mask, so trust our own badges.
         return badge_state.get_earned_badge_ids(self.air, self.doId, SPIN_BADGE_ID_SET)
 
     def _dailyChanceExcludedCategories(self, excludeMask: int) -> set[Category]:
-        # The wardrobe and storage bits say if there is nowhere to put that kind of
-        # prize. Taking the client's word here is fine. The worst a lie can do
-        # is win someone a prize they have no room for
+        # Trusting the client is fine; a lie only wins an unusable prize.
         excluded = set()
 
         if excludeMask & EXCLUDE_WARDROBE:
@@ -290,8 +260,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         if excludeMask & EXCLUDE_STORAGE:
             excluded.add(Category.HOME)
 
-        # Every badge on Vidia's page is Member-only, so a free fairy drawing one
-        # would win a prize the badge manager then refuses to hand over.
+        # Vidia's badges are Member-only; the manager would refuse to grant one.
         if not self.isPaid():
             excluded.add(Category.BADGE)
 
@@ -349,7 +318,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         self.recordDailyChanceSpin()
 
-        # The rocks are counted per rock, so a member pulling three at once gets credit for three.
+        # Counted per rock, so pulling three at once earns credit for three.
         self.air.badgeManager.d_accumulate(avId, badge_events.EVENT_PLAYED_DAILY_SPIN)
 
         if rocksWon:
@@ -377,22 +346,21 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         }
 
     def _buildOutfitItems(self, invIds: tuple, fairy: dict) -> dict:
+        """
+        Snapshot the eight slots a saved outfit stores.
+
+        The shop's save button (ShopPanel.saveOutfitToLookBook) sends 0 for
+        every slot the player did not just buy, so a trinket run would save an
+        outfit of bare accessories and undress the fairy when worn. Fall back to
+        what she has on, the way the shop's own "wear it now" path does.
+
+        A zero from the wardrobe is deliberate ("no necklace, thanks"), so only
+        fall back when a mandatory slot arrives empty while she is wearing
+        something there -- which only happens on the shop's partial path.
+        """
         itemsById = {item["inv_id"]: item for item in fairy["avatar"]["items"]}
         wanted = dict(zip(OUTFIT_SLOT_ORDER, invIds))
 
-        # The shop's save-outfit button (ShopPanel.saveOutfitToLookBook) fills in
-        # only the slots the player just bought and sends 0 for all the rest, so
-        # a Post Office trinket run saves an outfit of bare accessories -- and
-        # wearing it later undresses the fairy, since SavedOutfits.onWearOutfit
-        # hands those zeros straight to setOutfitDB. The shop's own "wear it now"
-        # path doesn't have the hole (getUpdatedInvIdForDB falls back to what the
-        # fairy has on for every slot it didn't buy), so do the same here: the
-        # saved outfit becomes the whole look, not just the receipt.
-        #
-        # A zero from the wardrobe *is* deliberate ("no necklace, thanks"), so
-        # only reach for the fallback when a slot the fairy can't go without came
-        # in empty while she is in fact wearing something there. That never
-        # happens on the wardrobe path, only on the shop's partial one.
         equipped = self._equippedInvIdsBySlot(fairy)
         if any(not wanted[slot] and equipped.get(slot) for slot in MANDATORY_OUTFIT_SLOTS):
             wanted = {
@@ -420,11 +388,13 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.sendUpdateToAvatarId(self.doId, "setSavedOutfits", [payload])
 
     def _invalidateOutfitsForItem(self, invId: int) -> None:
-        # A saved outfit stores a snapshot of each slot's item, keyed by invId
-        # (index 0 of the stored LiteInvItemExt2 tuple). When the underlying item
-        # is donated away, any outfit referencing it is no longer wearable, so we
-        # drop the whole outfit -- the donateConfirm dialog warns the player of
-        # exactly this ("You will lose this item and saved outfits with it!").
+        """
+        Drop every saved outfit that references a donated-away item.
+
+        An outfit stores a snapshot keyed by invId, so one naming an item the
+        fairy no longer owns is unwearable. The donateConfirm dialog promises
+        this ("You will lose this item and saved outfits with it!").
+        """
         fairy = self.air.mongoInterface.mongodb.fairies.find_one(
             {"_id": self.doId}, {"savedOutfits": 1}
         )
@@ -443,16 +413,15 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self._d_setSavedOutfits(kept)
 
     def _pushSavedOutfitState(self) -> None:
-        # The client's SavedOutfits panel fetches maxOutfitSlots/savedOutfits
-        # exactly once -- when it's first constructed (SavedOutfits.refreshOutfits,
-        # called from the panel's one-time init) -- and caches them on the
-        # DistributedFairyPlayer. After an AI crash + reconnect the client rebuilds
-        # that player object empty (savedOutfits=null, maxOutfitSlots=-1) but never
-        # re-requests, because the panel isn't reconstructed. The book then shows
-        # no outfits and every tab looks unpurchased (and buying does nothing,
-        # since we're really already at the slot cap). Push the state on generate
-        # (which also runs on reconnect) so the freshly (re)generated client
-        # object is populated without needing a request, mirroring the pull.
+        """
+        Push the outfit state the client would otherwise only ever pull once.
+
+        SavedOutfits reads maxOutfitSlots/savedOutfits when its panel is first
+        constructed and caches them. After an AI crash the client rebuilds the
+        player object empty and never re-asks, because the panel is not rebuilt:
+        the book shows no outfits and every tab looks unpurchased. Generate runs
+        on reconnect, so pushing here stands in for the missing pull.
+        """
         fairy = self.air.mongoInterface.mongodb.fairies.find_one(
             {"_id": self.doId}, {"savedOutfits": 1, "maxOutfitSlots": 1}
         )
@@ -485,8 +454,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         outfits = fairy.get("savedOutfits", [])
         maxSlots = fairy.get("maxOutfitSlots", DEFAULT_MAX_OUTFIT_SLOTS)
 
-        # No free slot -- just resync so the client leaves its "waiting for save"
-        # state. The client is meant to buy a slot before it gets here.
+        # No free slot -- resync so the client drops its waiting-for-save state.
         if len(outfits) >= maxSlots:
             self._d_setSavedOutfits(outfits)
             return
@@ -525,7 +493,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         if not fairy:
             return
 
-        # outfitIds is a LongType[]; each struct arrives as a one-tuple (longVal,).
+        # outfitIds is a LongType[]; each struct arrives as (longVal,).
         toRemove = {longType[0] for longType in outfitIds}
         outfits = [o for o in fairy.get("savedOutfits", []) if o["outfitId"] not in toRemove]
 
@@ -543,8 +511,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         if maxSlots >= MAX_OUTFIT_SLOTS:
             return
 
-        # takeGold is the diamond balance from the client's point of view; it
-        # fails (and charges nothing) if the fairy can't afford the upgrade.
+        # takeGold charges nothing if the fairy can't afford the upgrade.
         if not self.takeGold(OUTFIT_SLOT_COST):
             return
 
@@ -554,11 +521,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
     def d_refreshEquippedItem(self, invId: int) -> bool:
         """
-        Redraw one item the fairy is wearing, after its colours changed.
+        Redraw one item the fairy is wearing, after its colors changed.
 
         Does nothing (and says so) for an item that isn't equipped: a wardrobe
         or storage entry has nothing on the avatar to redraw, and shows its new
-        colours the next time the inventory panel reads it.
+        colors the next time the inventory panel reads it.
         """
         fairy = self.air.mongoInterface.mongodb.fairies.find_one(
             {
@@ -607,11 +574,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         table = self.air.mongoInterface.mongodb.fairies
 
-        # Only two kinds of item can change here: one the client asked us to put
-        # on, and one that is on right now (and may have to come off). The rest
-        # of the wardrobe -- most of a thousand-odd entries, for the players who
-        # notice this -- is untouched, so ask Mongo for just those few instead of
-        # dragging the whole document back to filter it in Python.
+        # Ask Mongo for the few items involved, not a thousand-entry wardrobe.
         rows = list(table.aggregate([
             {"$match": {"_id": self.doId}},
             {"$project": {
@@ -633,10 +596,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         if not rows:
             return
 
-        # Stage each change as its own positional update rather than $set-ing
-        # avatar.items wholesale: writing the array back makes Mongo rewrite the
-        # entire document -- and the oplog carry a copy of it -- on every single
-        # outfit change, to move at most sixteen items between two locations.
+        # Positional updates: $set-ing the array rewrites the whole document.
         setOps = {}
         arrayFilters = []
 
@@ -680,9 +640,16 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             self.redrawFairy()
 
     def setHotspotTriggered(self, tagId, hotspotFrame) -> None:
-        # The client keys hotspots by tagId, not by the config's `id`, and sends
-        # its own current frame along. A shared hotspot plays for nobody -- not
-        # even the fairy who clicked it -- until we send a frame back.
+        """
+        Play a shared meadow hotspot for everyone in the zone.
+
+        The client keys hotspots by tagId rather than the config's `id`, and a
+        shared one plays for nobody -- not even the fairy who clicked it --
+        until the server sends a frame back. A full-play hotspot gets -1, the
+        client's "run it from the start" path; a keyframe one gets the clicker's
+        own frame, so everyone plays on from where they were. The config's
+        serverParm is ignored on purpose -- meadow_xml's docstring has the why.
+        """
         if not (meadow := self.air.zoneToMeadow.get(self.zoneId)):
             return
 
@@ -696,19 +663,13 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             return
 
         if not hotspot.shared:
-            # Unshared hotspots are handled entirely client-side, so this can't
-            # come from an honest client.
+            # Unshared hotspots are client-side; no honest client sends this.
             self.notify.warning(
                 f"setHotspotTriggered from {self.doId} for unshared hotspot "
                 f"{tagId} (id {hotspot.hotspotId}) in zone {self.zoneId}"
             )
             return
 
-        # A full-play hotspot gets -1, which is the client's "run the whole
-        # animation from the start" path; a keyframe one gets the clicker's own
-        # frame back, so everyone plays on from where they were. The config's
-        # serverParm looks like it should decide this instead and is ignored on
-        # purpose -- meadow_xml's docstring has the why, and the why for -1.
         frame = meadow_xml.PLAY_FROM_START if hotspot.playsFull else hotspotFrame
 
         self.notify.debug(
@@ -719,9 +680,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         meadow.d_setHotspotFrame(tagId, frame)
 
-        # Some hotspots are a button for clearing other hotspots -- the
-        # tic-tac-toe eraser and its nine squares. The client doesn't read
-        # <resets>, so the squares only go back if we put them back.
+        # The client doesn't read <resets>, so we put the cleared ones back.
         for resetTagId, keyframe in hotspot.resets:
             if meadow_xml.getHotspot(self.zoneId, resetTagId) is None:
                 self.notify.warning(
@@ -730,8 +689,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
                 )
                 continue
 
-            # Snap-and-hold rather than play-on: a reset is a state change, not
-            # an animation, and the mark should just be gone.
+            # Snap and hold: a reset is a state change, not an animation.
             meadow.d_setHotspotFrame(resetTagId, meadow_xml.PLAY_AT_OFFSET + keyframe)
 
     def setGold(self, gold: int) -> None:
@@ -807,8 +765,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
                 self.notify.warning("Failed to add ingredient %d to pouch!" % (invItemToGet))
                 return
 
-            # Apparently setPouch has to be sent back to the client twice here because `onCheckForGiveGetUpdates`
-            # only fires if pouchUpdateCalls is greater than 1
+            # Sent twice: onCheckForGiveGetUpdates only fires above one call.
             pouch = self.air.inventoryManager.getPouch(self.doId)
             self.d_setPouch(pouch)
             self.d_setPouch(pouch)
@@ -830,8 +787,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.lastGoldTradeAt = datetime.now(timezone.utc)
         self._save_gold_trading()
         self._sync_gold_trading_cap()
-        # Apparently setPouch has to be sent back to the client twice here because `onCheckForGiveGetUpdates`
-        # only fires if pouchUpdateCalls is greater than 1
+        # Sent twice: onCheckForGiveGetUpdates only fires above one call.
         pouch = self.air.inventoryManager.getPouch(self.doId)
         self.d_setPouch(pouch)
         self.d_setPouch(pouch)
@@ -845,8 +801,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             self.notify.warning("Failed to add ingredient %d to pouch!" % (invItemToGet))
             return
 
-        # Apparently setPouch has to be sent back to the client twice here because `onCheckForGiveGetUpdates`
-        # only fires if pouchUpdateCalls is greater than 1
+        # Sent twice: onCheckForGiveGetUpdates only fires above one call.
         pouch = self.air.inventoryManager.getPouch(self.doId)
         self.d_setPouch(pouch)
         self.d_setPouch(pouch)
@@ -872,12 +827,10 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
     def _handleAuraSweet(self, itemId):
         aura = AURA_MAPPING[itemId]
-        # A list means the sweet randomly grants one of several auras
-        # (e.g. 22587/22588 grow or shrink, a nod to Alice in Wonderland).
+        # A list means the sweet grants one of several auras at random.
         aura_id = random.choice(aura) if isinstance(aura, list) else aura
         self.sendUpdate("setAura", [aura_id])
 
-        # Cancel any existing aura timer and start fresh
         taskMgr.remove(f"AuraRemover-{self.doId}")
         taskMgr.doMethodLater(60, self.auraRemover, f"AuraRemover-{self.doId}")
 
@@ -981,15 +934,12 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
                 print(f"ITEM MISSING FROM ALL SWEET MAPPINGS: {itemId}")
                 return
 
-            # Calls _handleAuraSweet, _handleSkinSweet, or _handleWingSweet
-            # depending on sweet_type. Add new types by adding a matching method.
+            # A new sweet type only needs a matching _handle<Type>Sweet method.
             handler = getattr(self, f"_handle{sweet_type.capitalize()}Sweet")
             handler(itemId)
 
         elif baked["bakedType"] in ("cookie", "cupcake"):
-            # Cookies and cupcakes restore pixie power. Stubbed for now — see
-            # _grantPixiePower / PIXIE_POWER_ENABLED — since PixiePower is a
-            # fixed value in-game today.
+            # Stubbed while PIXIE_POWER_ENABLED is False; see _grantPixiePower.
             self._grantPixiePower(baked["pixiePower"])
 
         self.sendUpdate("setItemEvent", [itemId, amount, 0, 0])
@@ -1029,10 +979,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         return self.experiencePoints
 
     def d_setMute(self, mute: int) -> None:
-        # Owner-directed: the only thing that reacts is the muted fairy's own
-        # ChatManager, which greys their chat input out. Nothing on this server
-        # drops their setTalk, so this is a client-side courtesy and not a gag --
-        # see game/fairies/magicwords/commands/moderation.py.
+        # A courtesy, not a gag: it grays their input; setTalk still flows.
         self.sendUpdateToAvatarId(self.doId, "setMute", [mute])
 
     def setPixiePower(self, pixiePower: int) -> None:
@@ -1051,13 +998,12 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
     def _grantPixiePower(self, amount: int) -> None:
         """Restore pixie power from eating a cookie or cupcake.
 
-        Stubbed: while PIXIE_POWER_ENABLED is False this computes the intended
-        new total but does not persist or broadcast it, so behaviour is
-        unchanged. The dispatch and plumbing are in place so enabling the
-        economy later is just flipping the flag.
+        Stubbed: while PIXIE_POWER_ENABLED is False this works out the intended
+        new total but neither persists nor broadcasts it, so behavior is
+        unchanged. Everything else is wired, so enabling the economy later is
+        just flipping the flag.
         """
-        # TODO: clamp to the real in-game maximum once PixiePower rules are
-        # confirmed (the DC default is 100, but cookies grant well past that).
+        # TODO: clamp to the real maximum once the PixiePower rules are settled.
         newPower = self.getPixiePower() + amount
 
         if not PIXIE_POWER_ENABLED:
@@ -1080,8 +1026,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.d_setHomeType(homeType, homeSubType)
 
     def _defaultHomeType(self) -> int:
-        # home_type_id defaults to the fairy's talent until they change it.
-        # A stored homeType (once the player changes it) takes precedence.
+        # Falls back to the fairy's talent until the player picks a home type.
         doc = self.air.mongoInterface.mongodb.fairies.find_one({"_id": self.doId})
         if doc:
             stored = doc.get("homeType")
@@ -1128,7 +1073,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         fairy = self.air.getDo(fairyId)
 
         if fairy:
-            # This fairy is present on this shard, no need to query location from OTP server.
+            # Present on this shard -- no need to ask the OTP server.
             gotFairyLocation(fairyId, fairy.parentId, fairy.zoneId)
             return
 
@@ -1142,10 +1087,9 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
             db.fillin(fairy, db.dclass)
 
-            # Dispatch a request to the OTP server to find out where this fairy is.
             self.air.getObjectLocation(fairyId, gotFairyLocation)
 
-        # Query the fairy for data since they are not present on this shard:
+        # Not on this shard -- read their fields out of the database.
         gotFairyEvent = self.air.uniqueName(f"gotFairy-{fairyId}")
         self.acceptOnce(gotFairyEvent, fieldsCallback)
 
@@ -1155,9 +1099,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         db.getFields(["setDISLid", "setName", "setDISLname", "setFairyDNA", "setAccess", "setLevel"])
 
     def ignoresRealmCapacity(self) -> bool:
-        # Overridden by DistributedFairyGMAI. The client exempts GMs from the
-        # shard chooser's full-realm greyout and from the home population lock,
-        # so the server has to let them past its own checks too.
+        # Overridden by the GM AI; the client exempts GMs from the same checks.
         return False
 
     def isRealmCapacityBlocked(self, parentId: int) -> bool:
@@ -1178,17 +1120,19 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         return self.air.isRealmFull(parentId)
 
     def _reportRealmOverflow(self) -> None:
-        # Nothing here can turn a client away: the client drives its own
-        # setLocation and the DC has no "go somewhere else" message for us to
-        # send. Realms are kept under their cap by the request-time checks
-        # (fly-to-fairy, home teleport) plus the client's shard chooser, so an
-        # arrival into an already-full realm means one of those was bypassed.
-        # Log it rather than let the overflow pass silently.
+        """
+        Log an arrival into an already-full realm.
+
+        Nothing here can turn a client away: the client drives its own
+        setLocation and the DC has no "go somewhere else" message to send.
+        Realms are held under their cap by the request-time checks (fly-to-
+        fairy, home teleport) and the client's shard chooser, so an overflow
+        means one of those was bypassed and should not pass silently.
+        """
         if self.ignoresRealmCapacity():
             return
 
-        # We have already counted ourselves, so compare the headcount as it was
-        # immediately before we arrived.
+        # We are already counted, so compare the headcount from just before.
         if self.air.getPopulation() - 1 < self.air.getRealmCapacity():
             return
 
@@ -1202,35 +1146,30 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         from game.fairies.fairy.DistributedFairyPlayerAI import DistributedFairyPlayerAI
 
         def sendResponse(parentId: int, zoneId: int, roomId: int) -> None:
-            # A fairy in an activity zone (talent/crafting minigame, multiplayer
-            # party game, quest/quiet meadow, or home preview) can't be flown to
-            # -- the client would set interest on a zone it can never load a peer
-            # into, hanging forever on the loading screen. Report them as
-            # unavailable so the client shows a graceful teleport-failed instead.
+            """
+            Answer a fly-to request, saying where the target is and if they can
+            be reached.
+
+            An activity zone (minigame, party game, quiet meadow, home preview)
+            can never load a peer, so the arriving client would hang on the
+            loading screen -- report those as unavailable instead.
+
+            roomId is the target's room type. A home and its garden share one
+            zone, so it is the only thing that drops the arriving fairy in the
+            garden rather than the house, and it must never be anything else:
+            the client feeds it into its own dispatchRoomID, so a bogus value
+            gets stamped on everything that fairy places until they next fly.
+            """
             available: bool = not ZoneConstants.isUnflyableActivityZone(zoneId)
 
             if available and self.isRealmCapacityBlocked(parentId):
-                # The target is in a different realm that is already FULL. The
-                # shard chooser greys full realms out client-side; without this
-                # check, flying to a friend walked straight past that and
-                # overfilled the shard anyway.
+                # The shard chooser grays full realms out; this catches leaks.
                 self.notify.debug(
                     "Refusing to fly %d to %d: realm %d is full (%d)"
                     % (self.doId, fairyId, parentId,
                        self.air.getRealmPopulation(parentId)))
                 available = False
 
-            # roomId is the target's room type (ROOM_TYPE_HOME / ROOM_TYPE_GARDEN).
-            # A home and its garden share the same zone, so this is the only thing
-            # that tells the client to drop the arriving fairy in the garden rather
-            # than the house.
-            #
-            # Never report anything else. The arriving client does not just read
-            # this to pick a room -- teleportResponse feeds it into its own
-            # dispatchRoomID, so it becomes that fairy's roomID, and anything they
-            # place before their next teleport is stamped with it. A value that is
-            # neither room produces furniture that draws in the house but can never
-            # be selected or returned to storage.
             if not isValidRoomType(roomId):
                 self.notify.warning(
                     "teleportRequestTo: %s reported room %r, reporting the house"
@@ -1248,14 +1187,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         fairy = self.air.getDo(fairyId)
 
         if fairy:
-            # Present on this shard: read location and room type straight off the
-            # live object, no need to query the OTP server or database.
+            # Present on this shard -- read both off the live object.
             sendResponse(fairy.parentId, fairy.zoneId, fairy.roomID)
             return
 
-        # Not on this shard. The room type lives on the object (not in the OTP
-        # location record), so pull the persisted setRoomID from the database
-        # first, then ask the OTP server where the fairy currently is.
+        # The room type lives on the object, not in the OTP location record.
         def gotRoomID(db: DatabaseObject, retCode: int) -> None:
             roomId: int = ROOM_TYPE_HOME
             if retCode == 0:
@@ -1288,12 +1224,15 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.air.sendUpdateToChannelFrom(self, channelId, "setWhisperSCEmoteFrom", fromId, [fromId, emoteId])
 
     def removeFromInventory(self, invId, itemId):
-        # Donating an item (StorageInventoryEntry.donate / WardrobeInventoryEntry.donate)
-        # both land here -- storage and wardrobe items share avatar.items. We must
-        # echo the removal on the matching client list: storageRemove for Storage
-        # items, wardrobeRemove for Wardrobe/Equipped. Sending the wrong one leaves
-        # a stale entry in the client's inventory model and skips its donate
-        # confirmation (clearDonate). Read the location before pulling.
+        """
+        Drop a donated item and echo the removal on the right client list.
+
+        Storage and wardrobe items share avatar.items, so the item's location
+        picks the echo: storageRemove for Storage, wardrobeRemove for Wardrobe
+        and Equipped. The wrong one leaves a stale entry in the client's model
+        and skips its donate confirmation (clearDonate), so read the location
+        before pulling the item.
+        """
         item = self.air.mongoInterface.mongodb.fairies.find_one(
             {"_id": self.doId, "avatar.items.inv_id": invId},
             {"avatar.items.$": 1}
@@ -1323,13 +1262,10 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         self.air.inventoryManager.sendUpdateToAvatarId(self.doId, field, [0, invId])
 
-        # The item is gone from inventory, so invalidate any saved outfit that
-        # still references it (the client's donate confirmation promises this).
+        # The donate confirmation promises saved outfits go with the item.
         self._invalidateOutfitsForItem(invId)
 
-        # Donating is the only thing that reaches removeFromInventory (both
-        # StorageInventoryEntry.donate and WardrobeInventoryEntry.donate), so each
-        # call is one item given to the community -- advance the donation ladder.
+        # Donating is the only caller: one call, one item to the community.
         self.air.badgeManager.d_accumulate(self.doId, donationEvent)
 
     def requestGlobalPurchase(self, item):
@@ -1340,8 +1276,7 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             )
             return
 
-        # GlobalPurchaseItem is {itemId, amount}; the client hardcodes amount to 1
-        # and never sends a price -- we look the price up ourselves.
+        # The client sends {itemId, amount} and never a price; we look it up.
         try:
             itemId, amount = item[0]
         except (IndexError, TypeError, ValueError):
@@ -1366,16 +1301,20 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         self.sendUpdateToAvatarId(self.doId, "setGlobalPurchase", [1])
 
     def requestSendUpdateFairyName(self, name):
-        # setName is `broadcast db ownrecv`, so this updates every client in the
-        # zone live and persists to Mongo via the DBSS bridge.
-        #
-        # Known limitation (client-side, not fixable from here): the name on the
-        # pre-game loading screen stays stale until the next login. That art is
-        # rendered by the login/container shell (login.swf / container.swf), a
-        # separate SWF that caches the fairy list from web-api at login and never
-        # subscribes to this DO -- so it never hears setName. It self-heals on
-        # reload once web-api returns the persisted name. Refreshing it live would
-        # require a client edit (e.g. mmo.swf pushing the name to the shell).
+        """
+        Rename the fairy, live for the whole zone and persisted to Mongo.
+
+        setName is `broadcast db ownrecv`, so one call does both. It does not
+        reach the pre-game loading screen, which stays stale until the next
+        login: that art belongs to the login/container shell, which caches the
+        fairy list from web-api and never subscribes to this DO. Refreshing it
+        live would take a client edit.
+        """
+        # A last-name-only pick arrives as " Bellbreeze" -- gap and all.
+        name = " ".join(name.split())
+        if not name:
+            return
+
         self.b_setName(name)
         self.sendUpdateToAvatarId(self.doId, "setRedraw", [1])
 
