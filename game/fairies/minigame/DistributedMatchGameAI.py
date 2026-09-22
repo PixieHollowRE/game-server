@@ -14,15 +14,12 @@ import random
 
 CARD_COUNT = 24
 
-# End-of-game reward: a seasonal ingredient in a fixed amount by placement
-# (first place 30, second 15). Both players are rewarded — the results panel
-# shows the item and amount on every card; the winner's card only differs in
-# styling. Season keys must match TimeUtils.SEASON_NAMES.
+# End-of-game reward: Season keys must match TimeUtils.SEASON_NAMES.
 SEASONAL_REWARD_ITEM = {
-    "spring": fc.SPIDER_SILK,      # 8008
-    "summer": fc.SUNFLOWER_SEEDS,  # 8010
-    "fall":   fc.DANDELION_FLUFF,  # 8013
-    "winter": fc.SNOWFLAKES,       # 8016
+    "spring": fc.SPIDER_SILK,
+    "summer": fc.SUNFLOWER_SEEDS,
+    "autumn": fc.MAPLE_LEAVES,
+    "winter": fc.SNOWFLAKES,
 }
 
 REWARD_FIRST_PLACE = 30
