@@ -11,7 +11,7 @@ PACIFIC = ZoneInfo("America/Los_Angeles")
 # ════════════════════════════════════════════════════════════════════════════════════ #
 SOLSTICES_EQUINOXES = {
     # (month, day) for: spring equinox, summer solstice, fall equinox, winter solstice
-    2026: [(3,20), (6,21), (9,23), (12,21)],
+    2026: [(3,20), (6,21), (9,22), (12,21)],
     2027: [(3,20), (6,21), (9,23), (12,22)],
     2028: [(3,20), (6,20), (9,22), (12,21)],
     2029: [(3,20), (6,21), (9,22), (12,21)],
@@ -23,7 +23,7 @@ SOLSTICES_EQUINOXES = {
     2035: [(3,20), (6,21), (9,23), (12,22)],
 }
 
-SEASON_NAMES = ["spring", "summer", "fall", "winter"]
+SEASON_NAMES = ["spring", "summer", "autumn", "winter"]
 
 def get_season(utc_dt) -> str:
     """

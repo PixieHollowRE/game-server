@@ -10,7 +10,7 @@ from game.fairies.daily.TimeUtils import get_season
 # swapped, by get_gateway_name(). Season keys must match TimeUtils.SEASON_NAMES.
 SEASONAL_NAMES: dict[str, dict[str, str]] = {
     # Pixie Postings (Havendish Square)
-    "9206": {"spring": "9206", "summer": "9225", "fall": "9181", "winter": "9183"},
+    "9206": {"spring": "9206", "summer": "9225", "autumn": "9181", "winter": "9183"},
 }
 
 
