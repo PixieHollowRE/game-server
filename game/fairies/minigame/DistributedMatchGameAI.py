@@ -18,7 +18,7 @@ CARD_COUNT = 24
 SEASONAL_REWARD_ITEM = {
     "spring": fc.SPIDER_SILK,
     "summer": fc.SUNFLOWER_SEEDS,
-    "autumn": fc.MAPLE_LEAVES,
+    "autumn": fc.DANDELION_FLUFF,
     "winter": fc.SNOWFLAKES,
 }
 
@@ -105,7 +105,7 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
         self.d_setGameState()
 
     def setGameData(self, lastPlayType, deckStyle, lastFlipOffset, cardStates, matchCounts, lastPlayer, whoseTurn) -> None:
-        print("Got Sent Data from client")
+        #print("Got Sent Data from client")
         self.lastPlayType = lastPlayType
         self.deckStyle = deckStyle
         self.lastFlipOffset = lastFlipOffset
@@ -115,7 +115,7 @@ class DistributedMatchGameAI(DistributedMeadowGameAI):
         self.whoseTurn = whoseTurn
 
     def d_setGameData(self) -> None:
-        print("setGameData sent", self.lastPlayType, self.deckStyle, self.lastFlipOffset, self.cardStates, self.matchCounts, self.lastPlayer, self.whoseTurn)
+        #print("setGameData sent", self.lastPlayType, self.deckStyle, self.lastFlipOffset, self.cardStates, self.matchCounts, self.lastPlayer, self.whoseTurn)
         self.sendUpdate("setGameData", [self.lastPlayType, self.deckStyle, self.lastFlipOffset, self.cardStates, self.matchCounts, self.lastPlayer, self.whoseTurn])
 
     def d_revealBoard(self) -> None:

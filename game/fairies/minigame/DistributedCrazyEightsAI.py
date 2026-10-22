@@ -65,7 +65,7 @@ MEADOW_GAME_STATE_REWARD_NO_CARD = 9
 SEASONAL_REWARD_ITEM = {
     "spring": fc.SPIDER_SILK,
     "summer": fc.SUNFLOWER_SEEDS,
-    "autumn": fc.MAPLE_LEAVES,  
+    "autumn": fc.DANDELION_FLUFF,  
     "winter": fc.SNOWFLAKES,
 }
 

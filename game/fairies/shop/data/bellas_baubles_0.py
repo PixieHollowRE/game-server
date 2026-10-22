@@ -217,6 +217,7 @@ SHOP = NPCShop(
                 ShopItem(itemId=576, price=10, goldPrice=1, color1=183, color2=183, itemType="Belt"), # Vidia Purple Fast-Flying Feather
                 ShopItem(itemId=565, price=10, goldPrice=1, color1=139, color2=139, itemType="Belt"), # Seedling Green Artsy Floral Belt
                 ShopItem(itemId=545, price=10, goldPrice=1, color1=208, color2=208, itemType="Belt"), # Cerulean Blue Pinecone Belt
+                ShopItem(itemId=544, price=10, goldPrice=1, color1=161, color2=56,  itemType="Belt"), # Artists Clothing Belt
                 ShopItem(itemId=531, price=10, goldPrice=1, color1=121, color2=121, itemType="Belt"), # Daisy Pink Ruffled Myrtle Leaf Belt
                 ShopItem(itemId=521, price=10, goldPrice=1, color1=27,  color2=27,  itemType="Belt"), # Corn Cob Yellow Pleated Petal Sash
                 ShopItem(itemId=520, price=10, goldPrice=1, color1=69,  color2=69,  itemType="Belt"), # Powder Blue Spider Silk Tie Belt

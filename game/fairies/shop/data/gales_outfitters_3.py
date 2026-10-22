@@ -30,6 +30,119 @@ SHOP = NPCShop(
             ],
         ),
         ShopCollection(
+            collectionId=1014, # Comfy Creations
+            currencyId=INGREDIENTS["PINE_NEEDLES"].id,
+            items=[
+                # Shirts
+                ShopItem(itemId=1, price=20, goldPrice=3, color1=4, color2=0, itemType="Shirt"),
+                ShopItem(itemId=2, price=20, goldPrice=3, color1=4, color2=0, itemType="Shirt"),
+                ShopItem(itemId=3, price=20, goldPrice=3, color1=4, color2=0, itemType="Shirt"),
+                ShopItem(itemId=4, price=20, goldPrice=3, color1=4, color2=0, itemType="Shirt"),
+                ShopItem(itemId=5, price=20, goldPrice=3, color1=4, color2=0, itemType="Shirt"),
+                ShopItem(itemId=6, price=20, goldPrice=3, color1=4, color2=0, itemType="Shirt"),
+                ShopItem(itemId=7, price=20, goldPrice=3, color1=4, color2=0, itemType="Shirt"),
+                ShopItem(itemId=8, price=20, goldPrice=3, color1=4, color2=0, itemType="Shirt"),
+                ShopItem(itemId=9, price=20, goldPrice=3, color1=4, color2=0, itemType="Shirt"),
+                ShopItem(itemId=10, price=20, goldPrice=3, color1=4, color2=0, itemType="Shirt"),
+                ShopItem(itemId=11, price=20, goldPrice=3, color1=4, color2=0, itemType="Shirt"),
+
+                # Skirts
+                ShopItem(itemId=1001, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1002, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1003, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1004, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1005, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1006, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1007, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1008, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1009, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1010, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1011, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1012, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1013, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1014, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1015, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1016, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+                ShopItem(itemId=1017, price=20, goldPrice=3, color1=4, color2=0, itemType="Skirt"),
+
+                # Sashes
+                ShopItem(itemId=502, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=503, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=504, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=505, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=506, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=507, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=508, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=509, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=510, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=511, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=512, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=513, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=514, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=515, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=516, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+                ShopItem(itemId=517, price=7, goldPrice=1, color1=38, color2=0, itemType="Belt"),
+
+                # Headpieces
+                ShopItem(itemId=2002, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2003, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2004, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2005, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2006, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2007, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2008, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2009, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2010, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2011, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2012, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2013, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2014, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2015, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+                ShopItem(itemId=2016, price=12, goldPrice=3, color1=38, color2=0, itemType="HeadItem"),
+
+                # Necklaces
+                ShopItem(itemId=2502, price=7, goldPrice=1, color1=38, color2=0, itemType="Necklace"),
+                ShopItem(itemId=2503, price=7, goldPrice=1, color1=38, color2=0, itemType="Necklace"),
+                ShopItem(itemId=2504, price=7, goldPrice=1, color1=38, color2=0, itemType="Necklace"),
+                ShopItem(itemId=2505, price=7, goldPrice=1, color1=38, color2=0, itemType="Necklace"),
+                ShopItem(itemId=2506, price=7, goldPrice=1, color1=38, color2=0, itemType="Necklace"),
+                ShopItem(itemId=2507, price=7, goldPrice=1, color1=38, color2=0, itemType="Necklace"),
+                ShopItem(itemId=2508, price=7, goldPrice=1, color1=38, color2=0, itemType="Necklace"),
+                ShopItem(itemId=2509, price=7, goldPrice=1, color1=38, color2=0, itemType="Necklace"),
+                ShopItem(itemId=2510, price=7, goldPrice=1, color1=38, color2=0, itemType="Necklace"),
+                ShopItem(itemId=2511, price=7, goldPrice=1, color1=38, color2=0, itemType="Necklace"),
+
+                # Bracelets
+                ShopItem(itemId=1502, price=7, goldPrice=1, color1=38, color2=0, itemType="WristItem"),
+                ShopItem(itemId=1503, price=7, goldPrice=1, color1=38, color2=0, itemType="WristItem"),
+                ShopItem(itemId=1504, price=7, goldPrice=1, color1=38, color2=0, itemType="WristItem"),
+                ShopItem(itemId=1505, price=7, goldPrice=1, color1=38, color2=0, itemType="WristItem"),
+                ShopItem(itemId=1506, price=7, goldPrice=1, color1=38, color2=0, itemType="WristItem"),
+                ShopItem(itemId=1507, price=7, goldPrice=1, color1=38, color2=0, itemType="WristItem"),
+                ShopItem(itemId=1508, price=7, goldPrice=1, color1=38, color2=0, itemType="WristItem"),
+
+                # Anklets
+                ShopItem(itemId=3002, price=7, goldPrice=1, color1=38, color2=0, itemType="AnkleItem"), 
+                ShopItem(itemId=3003, price=7, goldPrice=1, color1=38, color2=0, itemType="AnkleItem"), 
+                ShopItem(itemId=3004, price=7, goldPrice=1, color1=38, color2=0, itemType="AnkleItem"), 
+                ShopItem(itemId=3005, price=7, goldPrice=1, color1=38, color2=0, itemType="AnkleItem"), 
+                ShopItem(itemId=3006, price=7, goldPrice=1, color1=38, color2=0, itemType="AnkleItem"), 
+                ShopItem(itemId=3007, price=7, goldPrice=1, color1=38, color2=0, itemType="AnkleItem"), 
+                ShopItem(itemId=3008, price=7, goldPrice=1, color1=38, color2=0, itemType="AnkleItem"), 
+
+                # Shoes
+                ShopItem(itemId=3501, price=12, goldPrice=3, color1=4, color2=0, itemType="Shoes"), 
+                ShopItem(itemId=3502, price=12, goldPrice=3, color1=4, color2=0, itemType="Shoes"), 
+                ShopItem(itemId=3503, price=12, goldPrice=3, color1=4, color2=0, itemType="Shoes"), 
+                ShopItem(itemId=3504, price=12, goldPrice=3, color1=4, color2=0, itemType="Shoes"), 
+                ShopItem(itemId=3505, price=12, goldPrice=3, color1=4, color2=0, itemType="Shoes"), 
+                ShopItem(itemId=3506, price=12, goldPrice=3, color1=4, color2=0, itemType="Shoes"), 
+                ShopItem(itemId=3507, price=12, goldPrice=3, color1=4, color2=0, itemType="Shoes"), 
+                ShopItem(itemId=3508, price=12, goldPrice=3, color1=4, color2=0, itemType="Shoes"), 
+
+            ],
+        ),
+        ShopCollection(
             collectionId=78, # Pixie Party Dresses
             currencyId=INGREDIENTS["PINE_NEEDLES"].id,
             outfits=[
@@ -429,122 +542,7 @@ SHOP = NPCShop(
                     ],
                 )
             ],
-        ),
-        ShopCollection(
-            collectionId=28, # Animal-Inspired Fashions
-            currencyId=INGREDIENTS["PINE_NEEDLES"].id,
-            outfits=[
-                ShopOutfit(
-                    outfitId=3045,
-                    items = [
-                        OutfitItem(itemId=2073, price=25, goldPrice=10, color1=206, color2=142, itemType="HeadItem"), # Raven Black Buzzy Bee Mask
-                        OutfitItem(itemId=76, price=45, goldPrice=16, color1=206, color2=142, itemType="Shirt"), # Raven Black Buzzy Bee Striped Wrap
-                        OutfitItem(itemId=1003, price=45, goldPrice=16, color1=142, color2=142, itemType="Skirt"), # Bumble Bee Yellow Leafy Bubble Skirt
-                        OutfitItem(itemId=3501, price=25, goldPrice=10, color1=142, color2=142, itemType="Shoes"), # Bumble Bee Yellow Petal Slippers
-                    ],
-                ),
-                ShopOutfit(
-                    outfitId=3046,
-                    items = [
-                        OutfitItem(itemId=2071, price=25, goldPrice=10, color1=44, color2=257, itemType="HeadItem"), # Plumblossom Pink Little Light Antennae
-                        OutfitItem(itemId=91, price=45, goldPrice=16, color1=44, color2=44, itemType="Shirt"), # Plumblossom Pink Little Light Top
-                        OutfitItem(itemId=1091, price=45, goldPrice=16, color1=44, color2=257, itemType="Skirt"), #  Plumblossom Pink Little Light Mini
-                        OutfitItem(itemId=3501, price=25, goldPrice=10, color1=44, color2=44, itemType="Shoes"), #  Plumblossom Pink Petal Slippers
-                    ],
-                ),
-                ShopOutfit(
-                    outfitId=3047,
-                    items = [
-                        OutfitItem(itemId=2071, price=25, goldPrice=10, color1=206, color2=189, itemType="HeadItem"), # Raven Black Little Light Antennae
-                        OutfitItem(itemId=172, price=45, goldPrice=16, color1=206, color2=189, itemType="Shirt"), # Raven Black Ladybug Tank
-                        OutfitItem(itemId=1156, price=45, goldPrice=16, color1=206, color2=189, itemType="Skirt"), # Raven Black Ladybug Skirt
-                        OutfitItem(itemId=3501, price=25, goldPrice=10, color1=189, color2=189, itemType="Shoes"), # Ladybug Red Petal Slippers
-                    ],
-                ),
-                ShopOutfit(
-                    outfitId=3048,
-                    items = [
-                        OutfitItem(itemId=2151, price=25, goldPrice=10, color1=1, color2=1, itemType="HeadItem"), # Mint Green Dragonfly Mask
-                        OutfitItem(itemId=186, price=45, goldPrice=16, color1=1, color2=1, itemType="Shirt"), # Mint Green Dragonfly Top
-                        OutfitItem(itemId=1168, price=45, goldPrice=16, color1=1, color2=1, itemType="Skirt"), # Mint Green Dragonfly Skirt
-                        OutfitItem(itemId=3501, price=25, goldPrice=10, color1=1, color2=1, itemType="Shoes"), # Mint Green Petal Slippers
-                    ],
-                ),
-                ShopOutfit(
-                    outfitId=3049,
-                    items = [
-                        OutfitItem(itemId=2150, price=25, goldPrice=10, color1=267, color2=186, itemType="HeadItem"), # Celestial Blue Hummingbird Mask
-                        OutfitItem(itemId=187, price=45, goldPrice=16, color1=267, color2=186, itemType="Shirt"), # Celestial Blue Hummingbird Top
-                        OutfitItem(itemId=1169, price=45, goldPrice=16, color1=267, color2=186, itemType="Skirt"), # Celestial Blue Hummingbird Skirt
-                        OutfitItem(itemId=3501, price=25, goldPrice=10, color1=267, color2=267, itemType="Shoes"), # Celestial Blue Petal Slippers
-                    ],
-                ),
-                ShopOutfit(
-                    outfitId=3050,
-                    items = [
-                        OutfitItem(itemId=2033, price=25, goldPrice=10, color1=175, color2=159, itemType="HeadItem"), # Creek Green Firefly Spotlight Barrette
-                        OutfitItem(itemId=2524, price=15, goldPrice=6, color1=175, color2=159, itemType="Necklace"), # Creek Green Firefly Glow Choker
-                        OutfitItem(itemId=29, price=45, goldPrice=16, color1=175, color2=159, itemType="Shirt"), # Creek Green Orchid Firefly Wrap
-                        OutfitItem(itemId=1032, price=45, goldPrice=16, color1=175, color2=159, itemType="Skirt"), # Creek Green Slit Satin Firefly Skirt
-                        OutfitItem(itemId=3519, price=25, goldPrice=10, color1=175, color2=159, itemType="Shoes"), # Creek Green Firefly Glow Toes Slippers
-                    ],
-                ),
-                ShopOutfit(
-                    outfitId=3051,
-                    items = [
-                        OutfitItem(itemId=90, price=45, goldPrice=16, color1=63, color2=166, itemType="Shirt"), # Butterfly Blue Fanciful Flutter Top with White Trim
-                        OutfitItem(itemId=548, price=15, goldPrice=1, color1=63, color2=166, itemType="Belt"), # Butterfly Blue Fanciful Flutter Sash with White Trim
-                        OutfitItem(itemId=1090, price=45, goldPrice=16, color1=63, color2=166, itemType="Skirt"), # Butterfly Blue Fanciful Flutter Gown with White Trim
-                        OutfitItem(itemId=3559, price=25, goldPrice=10, color1=63, color2=166, itemType="Shoes"), # Butterfly Blue Fanciful Flutter Flats with White Trim
-                    ],
-                ),
-                ShopOutfit(
-                    outfitId=3052,
-                    items = [
-                        OutfitItem(itemId=376, price=45, goldPrice=16, color1=189, color2=206, itemType="Shirt"), # Ladybug Red Morpho Butterfly Top with Raven Black Trim
-                        OutfitItem(itemId=635, price=15, goldPrice=1, color1=189, color2=189, itemType="Belt"), # Ladybug Red Morpho Butterfly Sash
-                        OutfitItem(itemId=1294, price=45, goldPrice=16, color1=30, color2=206, itemType="Skirt"), # Pumpkin Orange Morpho Butterfly Skirt with Raven Black Trim
-                        OutfitItem(itemId=3716, price=25, goldPrice=10, color1=206, color2=189, itemType="Shoes"), # Raven Black Morpho Butterfly Shoes
-                    ],
-                ),
-                ShopOutfit(
-                    outfitId=3053,
-                    items = [
-                        OutfitItem(itemId=2367, price=25, goldPrice=10, color1=216, color2=216, itemType="HeadItem"), # Slate Gray Raven Mask
-                        OutfitItem(itemId=499, price=45, goldPrice=16, color1=206, color2=216, itemType="Shirt"), # Raven Black Raven Costume Top with Slate Gray Trim
-                        OutfitItem(itemId=1415, price=45, goldPrice=16, color1=206, color2=216, itemType="Skirt"), # Raven Black Raven Skirt with Slate Gray Trim
-                        OutfitItem(itemId=3794, price=25, goldPrice=10, color1=206, color2=216, itemType="Shoes"), # Raven Black Raven Heels with Slate Gray Trim
-                    ],
-                ),
-                ShopOutfit(
-                    outfitId=3054,
-                    items = [
-                        OutfitItem(itemId=2347, price=25, goldPrice=10, color1=224, color2=224, itemType="HeadItem"), # Ivory White Fox Mask
-                        OutfitItem(itemId=1000011, price=45, goldPrice=16, color1=224, color2=224, itemType="Shirt"), # Ivory White Fox Top
-                        OutfitItem(itemId=1395, price=45, goldPrice=16, color1=224, color2=224, itemType="Skirt"), # Ivory White Fox Skirt
-                        OutfitItem(itemId=3801, price=25, goldPrice=10, color1=224, color2=224, itemType="Shoes"), # Ivory White Furry Critter Boots
-                    ],
-                ),
-                ShopOutfit(
-                    outfitId=3055,
-                    items = [
-                        OutfitItem(itemId=2360, price=25, goldPrice=10, color1=206, color2=169, itemType="HeadItem"), # Raven Black Raccoon Mask
-                        OutfitItem(itemId=481, price=45, goldPrice=16, color1=169, color2=206, itemType="Shirt"), # Squirrel Gray Raccoon Top
-                        OutfitItem(itemId=1398, price=45, goldPrice=16, color1=169, color2=206, itemType="Skirt"), # Squirrel Gray Raccoon Skirt
-                        OutfitItem(itemId=3801, price=25, goldPrice=10, color1=206, color2=169, itemType="Shoes"), # Raven Black Furry Critter Boots
-                    ],
-                ),
-                ShopOutfit(
-                    outfitId=3056,
-                    items = [
-                        OutfitItem(itemId=2440, price=25, goldPrice=10, color1=212, color2=194, itemType="HeadItem"), # Indigo Purple Songbird Headband
-                        OutfitItem(itemId=1000078, price=45, goldPrice=16, color1=194, color2=212, itemType="Shirt"), # Electric Pink Songbird Top
-                        OutfitItem(itemId=1484, price=45, goldPrice=16, color1=212, color2=194, itemType="Skirt"), # Indigo Purple Songbird Skirt
-                        OutfitItem(itemId=3869, price=25, goldPrice=10, color1=212, color2=194, itemType="Shoes"), # Indigo Purple Songbird Heels
-                    ],
-                )
-            ],
-        ),   
+        ), 
         ShopCollection(
             collectionId=40, # Casual and Sporty Wear
             currencyId=INGREDIENTS["PINE_NEEDLES"].id,
@@ -665,6 +663,15 @@ SHOP = NPCShop(
                         OutfitItem(itemId=331, price=35, goldPrice=13, color1=189, color2=272, itemType="Shirt"), # Ladybug Red Gentian Top
                         OutfitItem(itemId=1268, price=35, goldPrice=13, color1=189, color2=272, itemType="Skirt"), # Ladybug Red Gentian Skirt
                         OutfitItem(itemId=3691, price=15, goldPrice=8, color1=189, color2=272, itemType="Shoes"), # Ladybug Red Gentian Shoes
+                    ],
+                ),
+                ShopOutfit(
+                    outfitId=3089, # Outfit of the Month
+                    items=[
+                        OutfitItem(itemId=2010, price=35, goldPrice=13, color1=229, color2=0, itemType="HeadItem"), 
+                        OutfitItem(itemId=167, price=35, goldPrice=13, color1=229, color2=0, itemType="Shirt"), 
+                        OutfitItem(itemId=1028, price=35, goldPrice=13, color1=0, color2=0, itemType="Skirt"),
+                        OutfitItem(itemId=3510, price=15, goldPrice=8, color1=229, color2=0, itemType="Shoes"),
                     ],
                 ),
             ]

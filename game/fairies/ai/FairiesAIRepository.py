@@ -18,8 +18,7 @@ from game.fairies.meadow.GiveawaySpawnMgrAI import GiveawaySpawnMgrAI
 from game.fairies.minigame import MinigameConstants
 from game.fairies.minigame.DistributedTalentMinigameAI import DistributedTalentMinigameAI
 from game.fairies.minigame.DistributedCraftingMinigameAI import DistributedCraftingMinigameAI
-from game.fairies.gateway.DistributedGatewayAI import DistributedGatewayAI
-from game.fairies.gateway.GatewayConstants import GATEWAYS, get_gateway_name
+from game.fairies.gateway.GatewayManagerAI import GatewayManagerAI
 from game.fairies.fairy.npc.DistributedFairyQuestNPCAI import DistributedFairyQuestNPCAI
 from game.fairies.fairy.npc.DistributedFairyShopkeeperNPCAI import DistributedFairyShopkeeperNPCAI
 from game.fairies.minigame.DistributedMatchGameAI import DistributedMatchGameAI
@@ -258,18 +257,8 @@ class FairiesAIRepository(AIDistrict, ServerBase, RealmPopulationRegistry):
             meadow.generateWithRequired(zoneId)
             self.zoneToMeadow[zoneId] = meadow
 
-        for zoneId, gateways in GATEWAYS.items():
-            for gw in gateways:
-                gate = DistributedGatewayAI(self)
-                gate.setName(get_gateway_name(gw["name"]))
-                gate.setPosition(*gw["position"])
-                gate.setTargetLocationName(gw["targetLocationName"])
-                gate.setTargetZoneID(gw["targetZoneID"])
-
-                if rewardList := gw.get("rewardList"):
-                    gate.setRewardList(rewardList)
-
-                gate.generateWithRequired(zoneId)
+        self.gatewayManager = GatewayManagerAI(self)
+        self.gatewayManager.start()
 
         self.ingredientSpawnMgr = IngredientSpawnMgrAI(self)
         self.ingredientSpawnMgr.start()

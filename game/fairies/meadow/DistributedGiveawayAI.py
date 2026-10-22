@@ -47,12 +47,14 @@ class DistributedGiveawayAI(DistributedSpawnStackAI):
         # Server-side only; reaches the client as acquisitionResponse.
         self.membersOnly: bool = False
 
-        # Server-side only. The colours the reward is dyed with when it is paid
-        # out -- unrelated to setColorIDs, which is the meadow art. There is no
-        # .dc field for these because the client never needs them until the
-        # item is already in its inventory.
+        # Server-side only, and unrelated to setColorIDs (the meadow art)
         self.rewardColor1: int = 0
         self.rewardColor2: int = 0
+        self.rewardAmount: int = 1
+
+        # What the fairy's collected list records; 0 falls back to giveawayID
+        self.claimId: int = 0
+        self.phraseOnly: bool = False
 
     # ── required fields ──────────────────────────────────────────────────── #
 
@@ -87,6 +89,18 @@ class DistributedGiveawayAI(DistributedSpawnStackAI):
         self.rewardColor1 = color1
         self.rewardColor2 = color2
 
+    def setRewardAmount(self, amount: int) -> None:
+        self.rewardAmount = amount
+
+    def setClaimId(self, claimId: int) -> None:
+        self.claimId = claimId
+
+    def setPhraseOnly(self, phraseOnly: bool) -> None:
+        self.phraseOnly = phraseOnly
+
+    def _claimKey(self) -> int:
+        return self.claimId or self.giveawayID
+
     # ── client exchanges ─────────────────────────────────────────────────── #
 
     def acquisitionRequest(self) -> None:
@@ -98,7 +112,7 @@ class DistributedGiveawayAI(DistributedSpawnStackAI):
 
     def setEligible(self, bogus: int) -> None:
         avId = self.air.getAvatarIdFromSender()
-        collected = GiveawayReward.has_collected(self.air, avId, self.giveawayID)
+        collected = GiveawayReward.has_collected(self.air, avId, self._claimKey())
 
         self.sendUpdateToAvatarId(avId, "setEligible", [0 if collected else 1])
 
@@ -111,32 +125,58 @@ class DistributedGiveawayAI(DistributedSpawnStackAI):
                 f"No avatar present on AI for setCollectRequest: {avId}"
             )
             return
-
-        # Claim before paying: this is the only thing standing between a fairy
-        # and collecting the same giveaway twice, and it has to be the write
-        # that decides, not a read we did first.
-        if not GiveawayReward.claim(self.air, avId, self.giveawayID):
+        
+        if self.phraseOnly:
+            # A click would skip the basket and range rules
             self.notify.debug(
-                "giveaway %d refused for %d: already collected"
-                % (self.giveawayID, avId)
+                "giveaway %d is phrase-only, ignoring click from %d"
+                % (self._claimKey(), avId)
             )
             return
+
+        self.collect(avId)
+
+    def collect(self, avId: int) -> bool:
+        """
+        Claim this giveaway for the fairy and pay it out; True only if both held.
+        """
+        key = self._claimKey()
+
+        # The claim write is what decides, so it comes before the payout
+        if not GiveawayReward.claim(self.air, avId, key):
+            self.notify.debug(
+                "giveaway %d refused for %d: already collected" % (key, avId)
+            )
+            return False
 
         if not GiveawayReward.award(
             self.air,
             avId,
-            self.giveawayID,
+            key,
             self.getItemID(),
             self.rewardColor1,
             self.rewardColor2,
+            self.rewardAmount,
         ):
-            # Nothing was handed over, so the fairy must not be recorded as
-            # having had it -- leave them eligible to try again once whatever
-            # was wrong with the reward is fixed.
-            GiveawayReward.release(self.air, avId, self.giveawayID)
-            return
+            # Nothing was handed over, so stay eligible to retry once it's fixed
+            GiveawayReward.release(self.air, avId, key)
+            return False
 
         self.notify.debug(
             "giveaway %d (reward %d) collected by %d"
-            % (self.giveawayID, self.getItemID(), avId)
+            % (key, self.getItemID(), avId)
         )
+        return True
+
+    def collectByPhrase(self, avId: int) -> bool:
+        """
+        Collect for a fairy who didn't click it, then tell their client it's spent.
+
+        A click hides the art client-side; a spoken phrase has nothing to hide, so
+        without this the pumpkin it lights would stay lit.
+        """
+        if not self.collect(avId):
+            return False
+
+        self.sendUpdateToAvatarId(avId, "setEligible", [0])
+        return True

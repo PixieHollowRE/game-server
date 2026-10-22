@@ -19,8 +19,7 @@ from game.fairies.fairy.ItemGrant import STORAGE, WARDROBE, grant_item
 
 notify = DirectNotifyGlobal.directNotify.newCategory("GiveawayReward")
 
-# The field on the fairy document. A plain list of giveaway_id; absent on every
-# fairy who has never collected one, which the $ne query below handles for free.
+# List of giveaway ids; absent until first claim, which $ne handles
 COLLECTED_FIELD = "giveawaysCollected"
 
 
@@ -66,9 +65,11 @@ def _showPickup(air, avId: int, itemId: int, color1: int = 0, color2: int = 0) -
 
 
 def award(air, avId: int, giveawayId: int, itemId: int,
-          color1: int = 0, color2: int = 0) -> bool:
+          color1: int = 0, color2: int = 0, amount: int = 1) -> bool:
     """
     Pay a giveaway's reward into whichever inventory it belongs in.
+
+    amount only applies to pouch items; wardrobe and storage grants are single.
     """
     try:
         typeId = fc.get_type_id(itemId)
@@ -82,12 +83,12 @@ def award(air, avId: int, giveawayId: int, itemId: int,
         if not _awardBadge(air, avId, giveawayId, itemId):
             return False
 
-        # Colours deliberately dropped: the bubble draws the badge itself.
+        # colors deliberately dropped: the bubble draws the badge itself.
         _showPickup(air, avId, itemId)
         return True
 
     if typeId in fc.POUCH_TYPE_IDS:
-        if air.inventoryManager.addIngredientsToPouchWithPickupFeedback(avId, itemId, 1):
+        if air.inventoryManager.addIngredientsToPouchWithPickupFeedback(avId, itemId, amount):
             return True
 
         notify.warning(
@@ -133,6 +134,5 @@ def _awardBadge(air, avId: int, giveawayId: int, badgeId: int) -> bool:
     air.badgeManager.d_unlockBadge(avId, badgeId)
     air.badgeManager.d_giveBadge(avId, badgeId)
 
-    # Fire-and-forget: the uberdog owns every write to badgeData and reports
-    # back to the fairy's client itself, so there is no verdict to wait for.
+    # Fire-and-forget — the uberdog writes badgeData and notifies the client
     return True

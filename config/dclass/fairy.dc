@@ -559,7 +559,7 @@ dclass FairyMgr { // 77
 
 dclass DistributedFairyBase : TalkPath_owner, TalkPath_whisper { // 78
     setName(string) required ownrequired broadcast db ownrecv; // 463
-    setPosition(uint32, uint32) ram required ownsend broadcast ownrequired; // 464
+    setPosition(uint32, uint32) ram required ownsend broadcast ownrequired airecv; // 464
     setPositionCurve(uint32, uint32, uint32, uint32, uint32, uint32, uint32, int32) ram ownsend broadcast; // 465
     setRotation(uint32) ram required ownsend broadcast ownrequired; // 466
     setFairyDNA(FairyDNA) required ownrequired broadcast db ownrecv; // 467
@@ -577,7 +577,7 @@ dclass DistributedFairyBase : TalkPath_owner, TalkPath_whisper { // 78
     setPetDNA(PetDNA) db broadcast; // 479
     setRenderEffects(int32) ram broadcast ownrecv; // 480
     setAura(int16) ram broadcast; // 481
-    setRoomID(int32) required ownrequired broadcast db ownrecv ownsend airecv; // 482
+    setRoomID(int32) required ownrequired broadcast ownrecv ownsend airecv; // 482
 };
 
 dclass DistributedFairyNPC : DistributedFairyBase { // 79
@@ -592,7 +592,7 @@ dclass DistributedFairyPlayer : DistributedFairyBase { // 80
     setOutfitDB(uint64, uint64, uint64, uint64, uint64, uint64, uint64, uint64) ownsend airecv; // 488
     setStatus(uint8, uint8, uint8, uint8) ram broadcast ownsend ownrecv airecv; // 489
     setSCEmote(uint32, uint16) broadcast ownsend airecv; // 490
-    setChatMessage(string) ownsend broadcast; // 491
+    setChatMessage(string) ownsend broadcast airecv; // 491
     setWhisperSCEmoteTo(uint32 toId, uint16 emoteId) ownsend ownrecv airecv; // 492
     setWhisperSCEmoteFrom(uint32 fromId, uint16 emoteId) ownrecv ownsend; // 493
     setActualZoneId(uint32 zoneId) ownsend airecv; // 494

@@ -185,36 +185,6 @@ SHOP = NPCShop(
             ]
         ),
         ShopCollection(
-            collectionId=58, # Animal Friend Costumes
-            currencyId=INGREDIENTS["MAPLE_LEAVES"].id,
-            items=[
-            ShopItem(itemId=2073, price=25, goldPrice=10, color1=206, color2=142, itemType="HeadItem"), # Raven Black Buzzy Bee Mask
-            ShopItem(itemId=230, price=45, goldPrice=16, color1=142, color2=206, itemType="Shirt"), # Bumble Bee Yellow Buzzy Bee Top
-            ShopItem(itemId=1170, price=45, goldPrice=16, color1=206, color2=206, itemType="Skirt"), # Raven Black Pocket Pants
-            ShopItem(itemId=3577, price=25, goldPrice=10, color1=206, color2=206, itemType="Shoes"), # Raven Black Ivy Lace Work Boots
-
-            ShopItem(itemId=2071, price=25, goldPrice=10, color1=44, color2=190, itemType="HeadItem"), # Plumblossom Pink Little Light Antennae
-            ShopItem(itemId=175, price=45, goldPrice=16, color1=44, color2=190, itemType="Shirt"), # Plumblossom Pink Firefly Wrap
-            ShopItem(itemId=1195, price=45, goldPrice=16, color1=190, color2=190, itemType="Skirt"), # Firefly Green Dry Leaf Shorts
-            ShopItem(itemId=3577, price=25, goldPrice=10, color1=44, color2=44, itemType="Shoes"), # Plumblossom Pink Ivy Lace Work Boots
-
-            ShopItem(itemId=2071, price=25, goldPrice=10, color1=206, color2=189, itemType="HeadItem"), # Raven Black Little Light Antennae
-            ShopItem(itemId=177, price=45, goldPrice=16, color1=206, color2=189, itemType="Shirt"), # Raven Black Ladybug Tee
-            ShopItem(itemId=1175, price=45, goldPrice=16, color1=206, color2=189, itemType="Skirt"), # Raven Black Ladybug Shorts
-            ShopItem(itemId=3577, price=25, goldPrice=10, color1=206, color2=206, itemType="Shoes"), # Raven Black Ivy Lace Work Boots
-
-            ShopItem(itemId=2149, price=25, goldPrice=10, color1=193, color2=175, itemType="HeadItem"), # Electric Green Dragonfly Mask
-            ShopItem(itemId=178, price=45, goldPrice=16, color1=175, color2=175, itemType="Shirt"), # Creek Green Dragonfly Top 
-            ShopItem(itemId=1173, price=45, goldPrice=16, color1=175, color2=193, itemType="Skirt"), # Creek Green Dragonfly Trousers
-            ShopItem(itemId=3577, price=25, goldPrice=10, color1=175, color2=175, itemType="Shoes"), # Creek Green Ivy Lace Work Boots
-
-            ShopItem(itemId=2153, price=25, goldPrice=10, color1=267, color2=27, itemType="HeadItem"), # Celestial Blue Hummingbird Mask
-            ShopItem(itemId=190, price=45, goldPrice=16, color1=267, color2=27, itemType="Shirt"), # Celestial Blue Hummingbird Top 
-            ShopItem(itemId=1174, price=45, goldPrice=16, color1=267, color2=267, itemType="Skirt"), # Celestial Blue Hummingbird Trousers
-            ShopItem(itemId=3577, price=25, goldPrice=10, color1=267, color2=267, itemType="Shoes"), # Celestial Blue Ivy Lace Work Boots
-            ]
-        ),
-        ShopCollection(
             collectionId=62, # Sparrow Shirts and Jackets
             currencyId=INGREDIENTS["MAPLE_LEAVES"].id,
             items=[

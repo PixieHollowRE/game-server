@@ -27,12 +27,12 @@ class GiveawaySpawnMgrAI:
             if not placement.enabled:
                 continue
 
-            definition = GIVEAWAY_DEFS.get(placement.giveaway_id)
+            definition = GIVEAWAY_DEFS.get(placement.key)
 
             if definition is None:
                 self.notify.warning(
                     "no giveaway %d to place in zone %d"
-                    % (placement.giveaway_id, placement.zone_id)
+                    % (placement.key, placement.zone_id)
                 )
                 continue
 
@@ -44,6 +44,8 @@ class GiveawaySpawnMgrAI:
         giveaway = DistributedGiveawayAI(self.air)
 
         giveaway.setGiveawayID(definition.giveaway_id)
+        giveaway.setClaimId(definition.key)
+        giveaway.setPhraseOnly(definition.phrase_only)
         giveaway.setEventID(definition.event_id)
         giveaway.setHolidayBit(definition.holiday_bit)
         giveaway.setItemEventId(definition.item_event_id)
@@ -51,22 +53,19 @@ class GiveawaySpawnMgrAI:
         giveaway.setRewardColors(
             definition.reward_color1, definition.reward_color2
         )
+        giveaway.setRewardAmount(definition.reward_amount)
 
-        # Inherited spawn stack fields. itemID is the *reward*, not the art --
-        # the client picks the art off giveawayID and only uses itemID to decide
-        # which inventory limit to size-check before letting the fairy click.
+        # itemID is the reward, not the art; the client picks art off giveawayID
         giveaway.setItemID(definition.reward_item_id)
         giveaway.setName(definition.display_name)
         giveaway.setPosition(placement.x, placement.y)
         giveaway.setColorIDs(list(definition.color_ids))
 
-        # One item, one serving: a giveaway is always a single thing, and the
-        # client never renders a count on giveaway art.
+        # Client never renders a count on giveaway art, whatever reward_amount is
         giveaway.setItemCount(1)
         giveaway.setServingSize(1)
 
-        # Deliberately no spawnMgr. That hook is how a collected ingredient
-        # stack tells its pool to delete and respawn it; a giveaway does neither.
+        # No spawnMgr — that hook respawns collected stacks, which giveaways never do
         giveaway.generateWithRequired(placement.zone_id)
 
         self.notify.debug(

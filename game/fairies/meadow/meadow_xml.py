@@ -8,28 +8,33 @@ from paths import MEADOWS, XML
 
 notify = DirectNotifyGlobal.directNotify.newCategory("meadow_xml")
 
-# The client's per-id hotspot asset table, keyed by the `id` attribute rather
-# than tagId. Only the resting frames are read out of it -- see getStopFrames.
+# Per-id hotspot assets, keyed by `id` not tagId; only resting frames are read
 HOTSPOT_ASSETS_XML = XML / "hotspotAssets.xml"
 
-# MMOConstants.HOTSPOT_PLAY_AT_OFFSET. A frame at or above this tells the client
-# to jump to (frame - offset) and *stop* instead of playing on from it.
+# MMOConstants.HOTSPOT_PLAY_AT_OFFSET — frames at or above it jump and stop
 PLAY_AT_OFFSET = 8000
 
-# Hotspot.CLIENT_SKILL_ANIMATION -- the talent spots, where a fairy spends pixie
-# dust to cast a talent skill rather than just clicking. They're the one kind the
-# client will not re-arm on its own (MeadowHotspot.refreshUpdate has a bare
-# `break` for them), so the server owes them a reset.
+# Talent spots; the client never re-arms these itself, so the server resets them
 CLIENT_SKILL_ANIMATION = 6
 
-# Hotspot.PLAY_TYPE_FULL / PLAY_TYPE_KEYFRAME. The client reads anything that
-# isn't the literal "full" as keyframe, so this parses the same way.
+# Hotspot.CLIENT_CHAT_PHRASE — hidden until the server lights it via a giveaway
+CLIENT_CHAT_PHRASE = 7
+
+# Anything that isn't literally "full" is keyframe on the client too
 PLAY_TYPE_FULL = 0
 PLAY_TYPE_KEYFRAME = 1
 
-# The frame a full-play hotspot is told to play from: MMOConstants has no name
-# for it, playHotspotServer just tests `frame == -1`.
+# playHotspotServer just tests `frame == -1`; MMOConstants has no name for it
 PLAY_FROM_START = -1
+
+# ChatTrigger.as defaults for a missing attribute
+CHAT_TRIGGER_UNSET = -1
+
+# ChatTrigger.TYPE_*, from typeToTrigger
+CHAT_TRIGGER_HOTSPOT = 1
+CHAT_TRIGGER_WARDROBE = 2
+CHAT_TRIGGER_STORAGE = 3
+CHAT_TRIGGER_POUCH = 4
 
 
 @dataclass(frozen=True)
@@ -40,6 +45,9 @@ class HotspotDef:
     clientTrigger: int
     playType: int
     refreshMs: int
+    # Meadow coordinates, the same space as a fairy's setPosition
+    x: int
+    y: int
     # (tagId, frame) pairs from <resets>, in document order.
     resets: tuple[tuple[int, int], ...]
 
@@ -72,7 +80,25 @@ class _RawHotspot:
     excludingTags: frozenset[str]
 
 
+@dataclass(frozen=True)
+class ChatTriggerDef:
+    """One <chatTrigger> row; fields the attribute omits stay CHAT_TRIGGER_UNSET."""
+    # Lowercased, since the client lowercases both sides before matching
+    messages: tuple[str, ...]
+    typeToTrigger: int
+    # The hotspot's `id` attribute, not its tagId
+    itemId: int
+    tagId: int
+    eligibleGiveAwayId: int
+    delay: int
+    color1: int
+    color2: int
+    amount: int
+    velvetRope: bool
+
+
 _rawByZone: dict[int, tuple[_RawHotspot, ...]] = {}
+_chatTriggersByZone: dict[int, tuple[ChatTriggerDef, ...]] = {}
 _resolvedByZoneAndTags: dict[tuple[int, tuple[str, ...]], dict[int, HotspotDef]] = {}
 
 
@@ -84,8 +110,7 @@ def _splitTags(value: str | None) -> frozenset[str]:
 
 
 def _refreshMs(value: str | None) -> int:
-    # Hotspot.as: `int(Number(@refresh) * 1000)`, or -1 when the attribute is
-    # absent. Seconds in the file, milliseconds everywhere in the client.
+    # Hotspot.as: seconds in the file, milliseconds in the client; -1 if absent
     if value is None:
         return -1
 
@@ -93,6 +118,14 @@ def _refreshMs(value: str | None) -> int:
         return int(float(value) * 1000)
     except ValueError:
         return -1
+
+
+def _coordinate(value: str | None) -> int:
+    # Some rows carry fractions ("238.95"); AS3 int() truncates, so this does too
+    try:
+        return int(float(value or 0))
+    except ValueError:
+        return 0
 
 
 def _parseResets(element) -> tuple[tuple[int, int], ...]:
@@ -128,13 +161,14 @@ def _parse(path) -> tuple[_RawHotspot, ...]:
             definition=HotspotDef(
                 tagId=int(tagId),
                 hotspotId=int(element.get("id") or 0),
-                # Util.toboolean, which the client runs this attribute through,
-                # accepts either spelling.
+                # Util.toboolean accepts either spelling
                 shared=element.get("shared") in ("true", "1"),
                 clientTrigger=int(element.get("clientTrigger") or 0),
                 playType=(PLAY_TYPE_FULL if element.get("playType") == "full"
                           else PLAY_TYPE_KEYFRAME),
                 refreshMs=_refreshMs(element.get("refresh")),
+                x=_coordinate(element.get("x")),
+                y=_coordinate(element.get("y")),
                 resets=_parseResets(element),
             ),
             tags=_splitTags(element.get("tags")),
@@ -153,8 +187,7 @@ def _getRaw(zoneId: int) -> tuple[_RawHotspot, ...]:
     try:
         raws = _parse(path)
     except FileNotFoundError:
-        # Not every zone the AI hosts is a meadow with scene data on disk, and a
-        # missing file should cost the zone its hotspots, not the district.
+        # Not every zone has scene data; a missing file costs hotspots, not the district
         notify.warning(f"no meadow config for zone {zoneId} at {path}")
         raws = ()
     except ET.ParseError as e:
@@ -166,10 +199,8 @@ def _getRaw(zoneId: int) -> tuple[_RawHotspot, ...]:
 
 
 def _resolve(raws: tuple[_RawHotspot, ...], activeTags: frozenset[str]) -> dict[int, HotspotDef]:
-    # MeadowContent.as:317-366, in document order: a tagged row wins its tagId
-    # whenever one of its tags is live, overriding anything claimed earlier; an
-    # untagged row only fills a tagId nothing has claimed yet, and steps aside
-    # entirely if one of its excludingTags is live.
+    # MeadowContent.as:317-366, in document order: a live-tagged row overrides
+    # earlier claims; an untagged row fills only unclaimed tagIds, unless excluded
     resolved: dict[int, HotspotDef] = {}
 
     for raw in raws:
@@ -195,6 +226,71 @@ def getHotspots(zoneId: int) -> dict[int, HotspotDef]:
 
 def getHotspot(zoneId: int, tagId: int) -> HotspotDef | None:
     return getHotspots(zoneId).get(tagId)
+
+
+def _intAttr(element, name: str) -> int:
+    value = element.get(name)
+
+    if value is None:
+        return CHAT_TRIGGER_UNSET
+
+    try:
+        return int(value)
+    except ValueError:
+        notify.warning(f"unusable {name}={value!r} on <chatTrigger>")
+        return CHAT_TRIGGER_UNSET
+
+
+def _parseChatTriggers(path) -> tuple[ChatTriggerDef, ...]:
+    root = ET.parse(path).getroot()
+    triggers = []
+
+    for element in root.iterfind("chatTriggers/chatTrigger"):
+        amount = _intAttr(element, "amount")
+
+        triggers.append(ChatTriggerDef(
+            messages=tuple(
+                message.lower() for message in (element.get("message") or "").split("|")
+            ),
+            typeToTrigger=_intAttr(element, "typeToTrigger"),
+            itemId=_intAttr(element, "itemid"),
+            tagId=_intAttr(element, "tagId"),
+            eligibleGiveAwayId=_intAttr(element, "eligibleGiveAwayId"),
+            delay=_intAttr(element, "delay"),
+            color1=_intAttr(element, "setColor1"),
+            color2=_intAttr(element, "setColor2"),
+            # ChatTrigger.as defaults amount to 1, not unset
+            amount=1 if amount == CHAT_TRIGGER_UNSET else amount,
+            velvetRope=element.get("setVelvetRope", "1") in ("true", "1"),
+        ))
+
+    return tuple(triggers)
+
+
+def getChatTriggers(zoneId: int) -> tuple[ChatTriggerDef, ...]:
+    """
+    The phrase triggers a meadow declares, in document order.
+
+    Unlike hotspots these carry no seasonal tags; the client builds one for every
+    row (MeadowContent.as:367), and what makes a trigger seasonal is that its
+    hotspot is tagged, so look the hotspot up through getHotspot to find out.
+    """
+    if zoneId in _chatTriggersByZone:
+        return _chatTriggersByZone[zoneId]
+
+    path = MEADOWS / f"zone{zoneId}" / "config.xml"
+
+    try:
+        triggers = _parseChatTriggers(path)
+    except FileNotFoundError:
+        notify.warning(f"no meadow config for zone {zoneId} at {path}")
+        triggers = ()
+    except ET.ParseError as e:
+        notify.warning(f"could not parse meadow config for zone {zoneId}: {e}")
+        triggers = ()
+
+    _chatTriggersByZone[zoneId] = triggers
+    return triggers
 
 
 _stopFrames: dict[int, tuple[int, ...]] | None = None
