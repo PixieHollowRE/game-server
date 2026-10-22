@@ -20,6 +20,7 @@ from direct.directnotify import DirectNotifyGlobal
 from direct.task import Task
 from direct.task.TaskManagerGlobal import taskMgr
 
+from game.fairies.badges import badge_events
 from game.fairies.meadow.DistributedSpawnStackAI import DistributedSpawnStackAI
 
 # Matches DistributedMultiplayerSpawnStack.MAX_MULTIPLIER on the client.
@@ -132,6 +133,12 @@ class DistributedMultiplayerSpawnStackAI(DistributedSpawnStackAI):
             self.air.inventoryManager.addIngredientsToPouchWithPickupFeedback(
                 avId, itemID, itemCount, -1
             )
+
+            # One bunch is one count, however many items it paid
+            bunchEvent = badge_events.BUNCH_TO_EVENT.get(itemID)
+
+            if bunchEvent is not None:
+                self.air.badgeManager.d_accumulate(avId, bunchEvent)
 
         self.notify.debug(
             "%s awarded %d each to %d recipient(s) (multiplier %d)"

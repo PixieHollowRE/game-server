@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pymongo import ReturnDocument
 
@@ -6,6 +6,7 @@ from direct.distributed.DistributedObjectGlobalUD import DistributedObjectGlobal
 
 from game.fairies.badges import badge_events, badge_lookup, badge_xml
 from game.fairies.badges.badge_state import STATUS_ACTIVE, STATUS_EARNED
+from game.fairies.daily.TimeUtils import to_pacific
 
 # Chapters tracked from a fairy's first login. Everything else in the book is
 # left alone for now.
@@ -52,6 +53,17 @@ NEW_FAIRY = 10574
 INCLUDED_BADGES: dict[int, str] = {
     FOUNDING_FAIRY: STATUS_EARNED,
     NEW_FAIRY: STATUS_EARNED,
+    # Autumn 2012 Challenges (chapter 53); only what has a server trigger
+    11154: STATUS_ACTIVE,  # Animal Masquerade
+    **{badgeId: STATUS_ACTIVE for badgeId in badge_events.ZONE_TO_VISIT_BADGE.values()},
+    **{
+        badgeId: STATUS_ACTIVE
+        for badgeIds in (
+            badge_events.EVENT_TO_BADGES[eventId]
+            for eventId in badge_events.BUNCH_TO_EVENT.values()
+        )
+        for badgeId in badgeIds
+    },
 }
 
 def _badgeIdsIn(chapterIds) -> tuple[int, ...]:
@@ -404,7 +416,7 @@ class FairiesBadgeManagerUD(DistributedObjectGlobalUD):
         )
 
     def _awardBadge(self, avatarId: int, badgeId: int, goal: int) -> None:
-        dateEarned = datetime.now()
+        dateEarned = datetime.now(timezone.utc)
 
         # Clamping progress to the goal keeps an overshoot (collecting 60 twigs
         # in one go against a goal of 50) from being stored as 60 of 50.
@@ -471,7 +483,11 @@ class FairiesBadgeManagerUD(DistributedObjectGlobalUD):
                     self._newRow(
                         badgeId,
                         status,
-                        dateEarned=datetime.now() if status == STATUS_EARNED else None,
+                        dateEarned=(
+                            datetime.now(timezone.utc)
+                            if status == STATUS_EARNED
+                            else None
+                        ),
                     )
                 )
 
@@ -508,4 +524,7 @@ class FairiesBadgeManagerUD(DistributedObjectGlobalUD):
         if not dateEarned:
             return ""
 
-        return f"{dateEarned.strftime('%B')} {dateEarned.day}, {dateEarned.year}"
+        local = to_pacific(dateEarned)
+
+        return f"{local.strftime('%B')} {local.day}, {local.year}"
+

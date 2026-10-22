@@ -5,6 +5,7 @@ import random
 from game.otp.otpbase import OTPGlobals
 
 from .DistributedFairyBaseAI import DistributedFairyBaseAI
+from game.fairies.fairy import name_xml
 from game.fairies.ai.BakingAssets import BAKED_ITEMS
 from game.fairies.fairy.AuraMapping import AURA_MAPPING, SKIN_COLOR_MAPPING, WING_COLOR_MAPPING
 from game.fairies.fairy.structs.RewardExt import RewardExt
@@ -28,7 +29,7 @@ from game.fairies.daily.TimeUtils import get_period_start
 
 from game.fairies.housing.HouseConstants import (
     HOUSING_ZONE_OFFSET, ROOM_TYPE_HOME, isValidRoomType)
-from game.fairies.meadow import meadow_xml
+from game.fairies.meadow import meadow_xml, TrickOrTreat
 from game.fairies.ai import ZoneConstants
 
 # Mail types that light the client's HUD gift-box; written by the shopkeeper AI.
@@ -239,6 +240,11 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
 
         if badge_events.get_meadow_badge_for_zone(zoneId) is not None:
             self.air.badgeManager.d_exploreMeadow(self.doId, zoneId)
+
+        visitBadge = badge_events.ZONE_TO_VISIT_BADGE.get(zoneId)
+
+        if visitBadge is not None:
+            self.air.badgeManager.d_giveBadge(self.doId, visitBadge)
 
     def _dailyChanceExcludedBadges(self) -> set[int]:
         # Mr. Twitches postdates the client's mask, so trust our own badges.
@@ -632,6 +638,13 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
             )
 
             self.redrawFairy()
+
+    def setChatMessage(self, message: str) -> None:
+        # Ignore anything not sent by this fairy's own connection
+        if self.air.getAvatarIdFromSender() != self.doId:
+            return
+        
+        TrickOrTreat.handleChat(self.air, self, message)
 
     def setHotspotTriggered(self, tagId, hotspotFrame) -> None:
         """
@@ -1304,9 +1317,27 @@ class DistributedFairyPlayerAI(DistributedFairyBaseAI):
         fairy list from web-api and never subscribes to this DO. Refreshing it
         live would take a client edit.
         """
-        # A last-name-only pick arrives as " Bellbreeze" -- gap and all.
-        name = " ".join(name.split())
+        avId = self.air.getAvatarIdFromSender()
+        if avId != self.doId:
+            self.notify.warning(
+                f"requestSendUpdateFairyName from {avId} but sender DO is {self.doId}"
+            )
+            return
+
+        # The client builds the name as `first + " " + prefix + suffix` and
+        # drops whichever half the player toggled off, so a last-name-only pick
+        # arrives with the separator still on the front: " Bellbreeze".
+        name = name_xml.normalize(name)
         if not name:
+            return
+
+        # The picker can only ever produce a name built from nameGenerator.xml's
+        # word lists, so anything else came from an edited client. Same check
+        # web-api's validateFairyName makes on the create-a-fairy path.
+        if not name_xml.is_valid(name):
+            self.notify.warning(
+                f"{self.doId} tried to set an unpickable name: {name!r}"
+            )
             return
 
         self.b_setName(name)

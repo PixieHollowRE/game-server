@@ -235,7 +235,15 @@ FIXED_BUNCH_SPAWNS: tuple[FixedBunchSpawnDef, ...] = (
     FixedBunchSpawnDef(zc.TROOP_TURTLE_HIDEOUT, fc.BLUE_GEMS, "Blue Gem Bunch", 700, 245),
     FixedBunchSpawnDef(zc.TROOP_TURTLE_HIDEOUT, fc.BLUE_GEMS, "Blue Gem Bunch", 400, 95),
 
-
+    # Ballroom Spawns
+    FixedBunchSpawnDef(zc.THE_BALLROOM, fc.OAK_LEAVES, "", 1305, 465),
+    FixedBunchSpawnDef(zc.THE_BALLROOM, fc.OAK_LEAVES, "", 1170, 430),
+    FixedBunchSpawnDef(zc.THE_BALLROOM, fc.OAK_LEAVES, "", 1020, 430),
+    FixedBunchSpawnDef(zc.THE_BALLROOM, fc.OAK_LEAVES, "", 900, 430),
+    FixedBunchSpawnDef(zc.THE_BALLROOM, fc.OAK_LEAVES, "", 560, 430),
+    FixedBunchSpawnDef(zc.THE_BALLROOM, fc.OAK_LEAVES, "", 450, 430),
+    FixedBunchSpawnDef(zc.THE_BALLROOM, fc.OAK_LEAVES, "", 285, 450),
+    FixedBunchSpawnDef(zc.THE_BALLROOM, fc.OAK_LEAVES, "", 150, 470),
 )
 
 # Mirrors <spawnableIdRemaps> in spawnableAssets.xml: ingredient -> bunch asset

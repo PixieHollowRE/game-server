@@ -12,12 +12,9 @@ def getActiveTags() -> list[str]:
     apart would mean the server acting on a hotspot the player can't see.
     """
     tags = [
-        "Meadow_Theater_Camp",
-        "Meadow_Camp2013",
-        "Meadow_Decorations_SummmerSplash",
-        "Meadow_SummerSplash",
-        "Meadow_CampPixie2012",
-        "Emote_Camp",
+        "Meadow_Masquerade2012",
+        "Speedchat_Masquerade",
+        "Meadow_Theater_Dollhouse"
     ]
 
     # Handle Seasonal changes for PP/Tearoom automatically

@@ -406,6 +406,7 @@ TYPE_MINIGAME_ID = 26
 TYPE_DYEBOTTLE_ID = 28
 TYPE_PARTY_DECORATION_ID = 34
 TYPE_COOKIE_ID = 45
+TYPE_SEED_ID = 178
 
 # The four categories Util.getCategory sorts an item into, as sets of type id.
 # Wardrobe and storage together are exactly ITEM_TYPES, so they double as the
@@ -425,6 +426,7 @@ POUCH_TYPE_IDS = frozenset({
     TYPE_DYEBOTTLE_ID,
     TYPE_PARTY_DECORATION_ID,
     TYPE_COOKIE_ID,
+    TYPE_SEED_ID,
 })
 
 # Where the client stops treating an id as a plain bucket and starts reading it

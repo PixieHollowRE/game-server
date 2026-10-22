@@ -749,7 +749,6 @@ SHOP = NPCShop(
                 ShopItem(itemId=2554, price=2, goldPrice=1, color1=180, color2=27, itemType="Necklace"), # Seashell Blue Giant Bow Tie
                 ShopItem(itemId=2040, price=5, goldPrice=3, color1=206, color2=206, itemType="HeadItem"), # Raven Black Silly Spectacles
                 ShopItem(itemId=2180, price=5, goldPrice=3, color1=126, color2=207, itemType="HeadItem"), # Raindrop Blue Stars Are Out Cap
-                ShopItem(itemId=1583, price=2, goldPrice=1, color1=30, color2=35, itemType="WristItem"), # Pumpkin Orange Trick or Treat Basket
                 ShopItem(itemId=2213, price=5, goldPrice=3, color1=230, color2=230, itemType="HeadItem"), # Scarlet Red Wayfairy Glasses
                 ShopItem(itemId=2214, price=5, goldPrice=3, color1=206, color2=206, itemType="HeadItem"), # Raven Black Fairy Spotter Specs
                 ShopItem(itemId=2241, price=5, goldPrice=3, color1=197, color2=197, itemType="HeadItem"), # Electric Purple Fly Shutter Shades

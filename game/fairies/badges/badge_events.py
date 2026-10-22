@@ -65,15 +65,28 @@ EVENT_WON_LUCKY_PURPLE_FEATHERS_BADGE = 30032
 EVENT_WON_SNEAKY_MR_TWITCHES_BADGE = 30033
 
 # ─────────────────────────────────── MEADOW GAMES ─────────────────────────────────── #
-# The Tearoom's two multiplayer tables each have a Fan/Super Fan/Devotee ladder
-# (goals 5/10/25, read from badges.xml). Unlike the talent minigames above, which
-# are single-player and score-based, these count *finished games* -- the badge
-# text is "playing ... at least #GOAL# times" -- so they are raised from
-# d_setRewards for every seated player, winner or not (see
+# The Tearoom's two multiplayer tables and the Coliseum's Animal Derby each have a
+# Fan/Super Fan/Devotee ladder (goals 5/10/25, read from badges.xml). Unlike the
+# talent minigames above, which are single-player and score-based, these count
+# *finished games* -- the badge text is "playing ... at least #GOAL# times" -- so
+# they are raised from d_setRewards for every seated player, winner or not (see
 # DistributedMeadowGameAI.creditGamePlayed).
 
 EVENT_PLAYED_CRAZY_CAKES = 30040
 EVENT_PLAYED_TWO_FOR_TEA = 30041
+EVENT_PLAYED_ANIMAL_DERBY = 30042
+
+# 2012 Animal Masquerade: one per pumpkin, goal 12 (badges.xml goal11154)
+EVENT_TRICK_OR_TREATED = 30050
+
+# Autumn 2012 Seasonal Gathering: one event per ingredient, raised once per
+# multiplayer bunch collected (not per item, so shop buys and single stacks
+# never count). Each has a 1/10/20 ladder read from badges.xml.
+EVENT_BUNCH_DANDELION_FLUFF = 30400
+EVENT_BUNCH_MAPLE_LEAVES = 30401
+EVENT_BUNCH_BLUEBERRIES = 30402
+EVENT_BUNCH_ACORNS = 30403
+EVENT_BUNCH_OAK_LEAVES = 30404
 
 # ───────────────────────────────────── DONATIONS ──────────────────────────────────── #
 # Donating an inventory item (DistributedFairyPlayerAI.removeFromInventory, which
@@ -174,6 +187,15 @@ EVENT_TO_BADGES: dict[int, tuple[int, ...]] = {
 
     EVENT_PLAYED_CRAZY_CAKES:         (10896, 10897, 10898),  # Crazy Cakes Fan / Super Fan / Devotee
     EVENT_PLAYED_TWO_FOR_TEA:         (11001, 11002, 11003),  # Two for Tea Fan / Super Fan / Devotee
+    EVENT_PLAYED_ANIMAL_DERBY:        (11040, 11041, 11042),  # Animal Derby Fan / Super Fan / Devotee
+
+    EVENT_TRICK_OR_TREATED:           (11154,),  # 2012 Animal Masquerade
+
+    EVENT_BUNCH_DANDELION_FLUFF:      (11137, 11138, 11139),  # Dandelion Fluff Bunches
+    EVENT_BUNCH_MAPLE_LEAVES:         (11140, 11141, 11142),  # Maple Leaf Bunches
+    EVENT_BUNCH_BLUEBERRIES:          (11143, 11144, 11145),  # Blueberry Bunches
+    EVENT_BUNCH_ACORNS:               (11146, 11147, 11148),  # Acorn Bunches
+    EVENT_BUNCH_OAK_LEAVES:           (11149, 11150, 11151),  # Oak Leaf Bunches
 
     EVENT_DONATE_WARDROBE_ITEM:       (10811, 10812, 10813),  # Wardrobe / Super / Flitterific Donation
     EVENT_DONATE_STORAGE_ITEM:        (10814, 10815, 10816),  # Storage / Super / Flitterific Donation
@@ -190,6 +212,14 @@ EVENT_TO_BADGES.update(
 # game hosted by another Fairy"). There is no party system on the server yet, so
 # nothing raises its event; it sits at 0 progress in the badge book until there
 # is one.
+
+BUNCH_TO_EVENT: dict[int, int] = {
+    fc.DANDELION_FLUFF: EVENT_BUNCH_DANDELION_FLUFF,
+    fc.MAPLE_LEAVES:    EVENT_BUNCH_MAPLE_LEAVES,
+    fc.BLUEBERRIES:     EVENT_BUNCH_BLUEBERRIES,
+    fc.ACORNS:          EVENT_BUNCH_ACORNS,
+    fc.OAK_LEAVES:      EVENT_BUNCH_OAK_LEAVES,
+}
 
 GAME_TO_EVENT: dict[int, int] = {
     mc.MINIGAME_FIREFLY_LIGHT_UP: EVENT_PLAYED_FIREFLY_LIGHT_UP,
@@ -212,6 +242,7 @@ GAME_TO_EVENT: dict[int, int] = {
 MEADOW_GAME_TO_EVENT: dict[int, int] = {
     13070: EVENT_PLAYED_CRAZY_CAKES,  # Crazy Cakes (MEADOW_GAME_CRAZY_EIGHTS)
     13072: EVENT_PLAYED_TWO_FOR_TEA,  # Two for Tea (MEADOW_GAME_TWO_FOR_TEA)
+    13073: EVENT_PLAYED_ANIMAL_DERBY, # Animal Derby (MEADOW_GAME_CART_RACING)
 }
 
 # High Score badges (chapter 7) are not accumulated like the Helper badges: a
@@ -266,6 +297,12 @@ SPIN_BADGE_TO_EVENT: dict[int, int] = {
     11130: EVENT_WON_SNEAKY_MR_TWITCHES_BADGE,
 }
 
+
+# Badges handed over outright the moment a fairy lands in one zone. Goalless,
+# so they take giveBadge rather than accumulate.
+ZONE_TO_VISIT_BADGE: dict[int, int] = {
+    zc.FAIRY_TALE_THEATER: 11155,  # Haunted Dollhouse
+}
 
 # ─────────────────────────────────── MEADOW EXPLORER ──────────────────────────────── #
 # The four seasonal Meadow Explorer badges (Exploration chapter) are earned by

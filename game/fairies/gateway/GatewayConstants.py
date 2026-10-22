@@ -527,12 +527,12 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetLocationName": "fromZone401",
             "targetZoneID": ZoneConstants.NEVERFRUIT_GROVE,
         },
-        {   # Troop Glowworm Hideout
-            "name": "9305",
-            "position": (905,640),
-            "targetLocationName": "",
-            "targetZoneID": ZoneConstants.TROOP_GLOWWORM_HIDEOUT,
-        },
+       # {   # Troop Glowworm Hideout
+       #     "name": "9305",
+       #     "position": (905,640),
+       #     "targetLocationName": "",
+       #     "targetZoneID": ZoneConstants.TROOP_GLOWWORM_HIDEOUT,
+       # },
         {
             # Pheobe's
             "name": "9147",
@@ -652,12 +652,12 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetLocationName": "",
             "targetZoneID": ZoneConstants.SUNFLOWER_GULLY,
         },
-        {   # Troop Turtle Hideout
-            "name": "9304",
-            "position": (330,815),
-            "targetLocationName": "",
-            "targetZoneID": ZoneConstants.TROOP_TURTLE_HIDEOUT,
-        },
+        #{   # Troop Turtle Hideout
+        #    "name": "9304",
+        #    "position": (330,815),
+        #    "targetLocationName": "",
+        #    "targetZoneID": ZoneConstants.TROOP_TURTLE_HIDEOUT,
+        #},
         {
             # Tinker Toss
             "name": "9145",
@@ -754,13 +754,13 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetLocationName": "fromMapleHill",
             "targetZoneID": ZoneConstants.ACORN_SUMMIT,
         },
-        {
-            # Troop Rabbit Hideout
-            "name": "9301",
-            "position": (625, 280),
-            "targetLocationName": "",
-            "targetZoneID": ZoneConstants.TROOP_RABBIT_HIDEOUT,
-        },
+        #{
+        #    # Troop Rabbit Hideout
+        #    "name": "9301",
+        #    "position": (625, 280),
+        #    "targetLocationName": "",
+        #    "targetZoneID": ZoneConstants.TROOP_RABBIT_HIDEOUT,
+        #},
     ],
     ZoneConstants.PUMPKIN_PATCH: [
         {
@@ -904,12 +904,12 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetLocationName": "fromCherryblossomHeights",
             "targetZoneID": ZoneConstants.SPRINGTIME_ORCHARD,
         },
-        {   # Troop Butterfly Hideout
-            "name": "9302",
-            "position": (880,815),
-            "targetLocationName": "",
-            "targetZoneID": ZoneConstants.TROOP_BUTTERFLY_HIDEOUT,
-        },
+        #{   # Troop Butterfly Hideout
+        #    "name": "9302",
+        #    "position": (880,815),
+        #    "targetLocationName": "",
+        #    "targetZoneID": ZoneConstants.TROOP_BUTTERFLY_HIDEOUT,
+        #},
         {
             # Neverberry Thicket (southeast)
             "name": "9056",
@@ -982,12 +982,12 @@ GATEWAYS: dict[int, list[dict]] = {
             "targetLocationName": "fromSpringtimeValley",
             "targetZoneID": ZoneConstants.SPRINGTIME_ORCHARD,
         },
-        {   # Troop Otter Hideout
-            "name": "9303",
-            "position": (508,330),
-            "targetLocationName": "",
-            "targetZoneID": ZoneConstants.TROOP_OTTER_HIDEOUT,
-        },
+        #{   # Troop Otter Hideout
+        #    "name": "9303",
+        #    "position": (508,330),
+        #    "targetLocationName": "",
+        #    "targetZoneID": ZoneConstants.TROOP_OTTER_HIDEOUT,
+        #},
         {
             # Bubble Bounce
             "name": "9010",

@@ -10,9 +10,11 @@ returning nothing and fills up on its own -- no cron, no rollover job.
 
 The keys are derived from the period *start* (weekly: the Pacific-anchored
 Monday; seasonal: the solstice/equinox boundary), so they are unique per
-occurrence -- the winter that starts in Dec 2026 and the winter running in Jan
-2026 get different keys even though get_season names both "winter". Both
-boundaries come from TimeUtils so the server agrees with seasonsIndex.xml.
+occurrence -- the winter that starts in Dec 2026 and the one starting in Dec
+2027 get different keys even though get_season names both "winter". A single
+winter keeps one key across New Year, since its start stays the December
+solstice it began at. Both boundaries come from TimeUtils, so the server agrees
+with seasonsIndex.xml and every rollover happens at Pacific midnight.
 """
 
 from datetime import datetime, timedelta, timezone
